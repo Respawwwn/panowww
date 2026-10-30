@@ -1,0 +1,11 @@
+{
+  "format": "panowww-game",
+  "version": 1,
+  "id": "3f6c1e2a-0000-4000-8000-000000000001",
+  "name": "Out of bounds",
+  "shotsPerRow": 100,
+  "rows": 1,
+  "waitAfterMoveMs": 300,
+  "waitAfterShotMs": 300,
+  "input": { "device": "keyboard", "turnRightKey": "ArrowRight", "lookUpKey": "ArrowUp", "lookDownKey": "ArrowDown", "turnHoldMs": 0, "pitchHoldMs": 100 }
+}
