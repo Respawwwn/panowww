@@ -8,10 +8,13 @@
 //! behind the `test-support` feature.
 #![forbid(unsafe_code)]
 
+pub mod calibrate;
 pub mod constants;
+pub mod detector;
 #[cfg(feature = "test-support")]
 pub mod fakes;
 pub mod game;
+pub mod overlap;
 pub mod plan;
 pub mod ports;
 pub mod runner;

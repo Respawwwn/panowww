@@ -421,3 +421,93 @@ fn shots_are_asked_for_frames_newer_than_the_last_step() {
     let second = run.stream.freshness_marks[1];
     assert_eq!(second - first, Duration::from_millis(300 + 120));
 }
+
+// The screen-unchanged detector (spec §4.6). The default FakeStream fills
+// consecutive frames with bytes one apart, which the detector reads as the
+// same screen; a moving stream makes them differ widely.
+
+fn screen_unchanged_positions(events: &[Progress]) -> Vec<usize> {
+    events
+        .iter()
+        .enumerate()
+        .filter_map(|(i, e)| matches!(e, Progress::ScreenUnchanged).then_some(i))
+        .collect()
+}
+
+#[test]
+fn a_still_screen_is_reported_once_after_the_second_shot() {
+    let game = samples::keyboard();
+    let (_, run) = run_session(&game, FakeStream::new(64, 36), FakeClock::new());
+    let positions = screen_unchanged_positions(&run.events);
+    assert_eq!(positions.len(), 1, "{positions:?}");
+    let second_shot = run
+        .events
+        .iter()
+        .position(|e| matches!(e, Progress::Shot { index: 2, .. }))
+        .unwrap();
+    assert_eq!(positions[0], second_shot + 1, "right after the second Shot");
+    assert_eq!(
+        run.outcome,
+        RunOutcome::Completed { shots: 78 },
+        "no automatic stop"
+    );
+}
+
+#[test]
+fn a_moving_screen_is_not_reported() {
+    let game = samples::keyboard();
+    let (_, run) = run_session(&game, FakeStream::new(64, 36).moving(), FakeClock::new());
+    assert_eq!(screen_unchanged_positions(&run.events), Vec::<usize>::new());
+    assert_eq!(run.outcome, RunOutcome::Completed { shots: 78 });
+}
+
+#[test]
+fn tests_report_a_still_screen_after_the_first_step_only() {
+    for (device, game) in samples::all() {
+        for kind in [
+            RunKind::TurnTest,
+            RunKind::PitchTest,
+            RunKind::StepOnce(Axis::Turn),
+        ] {
+            let (_, run) = run_tool(&game, kind);
+            let positions = screen_unchanged_positions(&run.events);
+            assert_eq!(positions.len(), 1, "{device} {kind}: {positions:?}");
+            let after_sample = run
+                .events
+                .iter()
+                .position(|e| {
+                    matches!(
+                        e,
+                        Progress::Sample {
+                            slot: SampleSlot::AfterFirstStep,
+                            ..
+                        }
+                    )
+                })
+                .unwrap();
+            assert_eq!(positions[0], after_sample + 1, "{device} {kind}");
+        }
+    }
+}
+
+#[test]
+fn check_overlap_never_runs_the_detector() {
+    let game = samples::mouse();
+    let (_, run) = run_tool(&game, RunKind::CheckOverlap(Axis::Pitch));
+    assert_eq!(screen_unchanged_positions(&run.events), Vec::<usize>::new());
+}
+
+#[test]
+fn a_moving_screen_in_a_test_is_not_reported() {
+    let game = samples::gamepad();
+    let plan = plan(&game, RunKind::TurnTest);
+    let run = run_with(
+        &plan,
+        None,
+        RecordingCamera::new(),
+        FakeStream::new(64, 36).moving(),
+        MemorySink::new(),
+        FakeClock::new(),
+    );
+    assert_eq!(screen_unchanged_positions(&run.events), Vec::<usize>::new());
+}

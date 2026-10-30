@@ -33,7 +33,7 @@ fn encode(rgb: &[u8], width: u32, height: u32) -> Option<Jpeg> {
 
 /// `width × height` scaled so the longer side is at most `long_side`, never
 /// enlarged, each side at least 1.
-fn fit(width: u32, height: u32, long_side: u32) -> (u32, u32) {
+pub(crate) fn fit(width: u32, height: u32, long_side: u32) -> (u32, u32) {
     let longest = width.max(height);
     if longest <= long_side {
         return (width, height);
