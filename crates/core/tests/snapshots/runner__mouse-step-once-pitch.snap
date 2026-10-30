@@ -1,0 +1,28 @@
+---
+source: crates/core/tests/runner.rs
+expression: run.camera.transcript()
+---
+park_cursor 900 500
+button_down Right
+mouse_delta 0 -19
+mouse_delta 0 -20 ×2
+mouse_delta 0 -19
+mouse_delta 0 -20 ×2
+mouse_delta 0 -19
+mouse_delta 0 -20 ×2
+mouse_delta 0 -19
+mouse_delta 0 -20 ×2
+mouse_delta 0 -19
+mouse_delta 0 -20 ×2
+mouse_delta 0 -19
+mouse_delta 0 -20 ×2
+mouse_delta 0 -19
+mouse_delta 0 -20 ×2
+mouse_delta 0 -19
+mouse_delta 0 -20 ×2
+mouse_delta 0 -19
+mouse_delta 0 -20 ×2
+mouse_delta 0 -19
+mouse_delta 0 -20 ×3
+button_up Right
+release_all
