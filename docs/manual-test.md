@@ -58,3 +58,18 @@ cargo run -p panowww-capture --example shot -- 0 100 100 1600 900
 | A2 | Stop shortcut | During the countdown and during a Session, press Ctrl+Shift+9 | Countdown: cancelled, no folder created. Session: `interrupted`, the Shots taken are in the folder, nothing stays held | |
 | A3 | Rebinding | Settings → change Start to another combo, Save | The old combo does nothing, the new one starts; a combo already taken by the system shows the inline error | |
 | A4 | Quit during a Session | Cmd+Q while a Session runs | The app quits within a second; `session.json` says `interrupted` with the Shots on disk | |
+
+## macOS · overlay (issue 12)
+
+Reference game in a full-screen Space on the zone's display. The overlay is a `tauri-nspanel` non-activating panel; the spike validated the same setup.
+
+| # | Check | How | Pass | Result |
+|---|---|---|---|---|
+| O1 | Show zone | Setup → *Show zone*, switch to the game (full-screen Space) | The lavender frame sits exactly on the zone over the game; the game keeps the focus (keep moving the camera with the real mouse); clicks inside the frame reach the game; *Hide zone* removes it, as does leaving the Game | |
+| O2 | Countdown digit | Start a Session with the shortcut from the game | 3, 2, 1 centred in the frame over the game, the game never loses the focus, the Panowww window does not come forward | |
+| O3 | Progress | Let the Session run | A 2 px bar fills along the top inner edge and the `k / n` pill top right follows every Shot; nothing is drawn outside the zone | |
+| O4 | End pill | Let the Session finish; run another and stop it with the shortcut | `Done · n Shots` for about 2 s, then the overlay is gone; `Stopped · k / n` (amber) after a stop | |
+| O5 | Not in the Shots | Open the Session folder | No frame, digit, bar or pill in any PNG | |
+| O6 | Cannot start | Revoke Screen Recording, start a Session | The error state shows in the window and no overlay appears (or a frame shown by *Show zone* goes away) | |
+| O7 | Second display | Draw a zone on a second display with a different scale, run a Session | The overlay covers that display, the frame matches the zone there | |
+| O8 | Release build transparency | `pnpm tauri build`, run the bundle, *Show zone* | The overlay window is transparent (no white sheet over the game); if it is white, enable `app.macOSPrivateApi` in `tauri.conf.json` and the `macos-private-api` feature of `tauri` | |

@@ -8,6 +8,7 @@ mod commands;
 mod dto;
 mod error;
 mod logging;
+mod overlay;
 mod runner;
 mod shortcuts;
 mod state;
@@ -24,9 +25,12 @@ use panowww_store::sink::SystemWallClock;
 use tauri::{Emitter, Manager};
 
 use crate::backend::SystemBackend;
+use crate::overlay::WindowOverlay;
 use crate::runner::Runner;
 use crate::state::{AppState, SharedState};
 
+/// The app window's label in `tauri.conf.json`.
+pub const MAIN_WINDOW: &str = "main";
 /// The window event that carries every `RunEvent` of a run.
 pub const RUN_EVENT: &str = "run";
 /// The window event sent when a file of the Games folder changed on disk.
@@ -39,15 +43,21 @@ pub const GAMES_CHANGED_EVENT: &str = "games-changed";
 /// When the Tauri runtime cannot start at all (no webview, no display):
 /// there is nothing to show the error in.
 pub fn run() {
-    tauri::Builder::default()
+    let builder = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
-        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build());
+    #[cfg(target_os = "macos")]
+    let builder = builder.plugin(tauri_nspanel::init());
+    builder
         .setup(|app| {
             logging::init(app)?;
             tracing::info!(version = env!("CARGO_PKG_VERSION"), "Panowww starting");
             let state = build_state(app)?;
             app.manage(state);
+            if let Err(error) = overlay::init(app.handle()) {
+                tracing::warn!(%error, "overlay window not prepared");
+            }
             if let Err(error) = shortcuts::register(app.handle()) {
                 tracing::warn!(%error, "global shortcuts not registered");
             }
@@ -56,11 +66,21 @@ pub fn run() {
         .invoke_handler(commands::handler())
         .build(context())
         .expect("the Tauri runtime failed to start")
-        .run(|app, event| {
-            if let tauri::RunEvent::ExitRequested { .. } = event {
+        .run(|app, event| match event {
+            tauri::RunEvent::ExitRequested { .. } => {
                 // A running Session ends as interrupted, with its Shots kept.
                 app.state::<SharedState>().runner.shutdown();
             }
+            // The hidden overlay window would keep the app alive.
+            tauri::RunEvent::WindowEvent {
+                label,
+                event: tauri::WindowEvent::Destroyed,
+                ..
+            } if label == MAIN_WINDOW => {
+                app.state::<SharedState>().runner.shutdown();
+                app.exit(0);
+            }
+            _ => {}
         });
 }
 
@@ -82,6 +102,10 @@ fn build_state(app: &tauri::App) -> tauri::Result<SharedState> {
         Err(error) => tracing::warn!(%error, "could not scan the Sessions folder"),
     }
     let backend: backend::SharedBackend = Arc::new(SystemBackend);
+    let overlay: overlay::SharedOverlay = Arc::new(WindowOverlay::new(
+        app.handle().clone(),
+        Arc::clone(&backend),
+    ));
     let handle = app.handle().clone();
     let runner = Runner::new(
         Arc::clone(&backend),
@@ -90,6 +114,7 @@ fn build_state(app: &tauri::App) -> tauri::Result<SharedState> {
                 tracing::warn!(%error, "run event not delivered");
             }
         }),
+        Arc::clone(&overlay),
     );
     // A Game edited by hand, or a damaged file repaired, is re-read: the
     // window re-lists the folder on `games-changed` (spec §5).
@@ -113,6 +138,7 @@ fn build_state(app: &tauri::App) -> tauri::Result<SharedState> {
         selected: Mutex::new(None),
         runner,
         backend,
+        overlay,
         version: env!("CARGO_PKG_VERSION").to_owned(),
         watcher: Mutex::new(watcher),
     }))

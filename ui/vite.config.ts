@@ -8,6 +8,15 @@ export default defineConfig(({ mode }) => ({
   // browser build to mount in jsdom.
   resolve: mode === "test" ? { conditions: ["browser"] } : undefined,
   clearScreen: false,
+  // Two pages: the app window and the overlay window.
+  build: {
+    rollupOptions: {
+      input: {
+        main: "index.html",
+        overlay: "overlay.html",
+      },
+    },
+  },
   server: {
     port: 1420,
     strictPort: true,

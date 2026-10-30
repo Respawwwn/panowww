@@ -67,6 +67,11 @@ $effect(() => {
 onDestroy(() => {
   void editor.flush();
   editor.dispose();
+  // The frame shown without a run goes with the screen; a run that just
+  // started owns the overlay and Rust ignores this.
+  if (zoneShown) {
+    void api.zone.show(editor.game.id, false).catch(() => {});
+  }
 });
 
 async function pickZone() {

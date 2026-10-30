@@ -19,6 +19,23 @@
         "titleBarStyle": "Overlay",
         "hiddenTitle": true,
         "dragDropEnabled": false
+      },
+      {
+        "label": "overlay",
+        "title": "Panowww overlay",
+        "url": "overlay.html",
+        "visible": false,
+        "transparent": true,
+        "decorations": false,
+        "alwaysOnTop": true,
+        "focusable": false,
+        "focus": false,
+        "skipTaskbar": true,
+        "shadow": false,
+        "resizable": false,
+        "acceptFirstMouse": false,
+        "width": 400,
+        "height": 300
       }
     ],
     "security": {
@@ -27,7 +44,10 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["dmg", "nsis"],
+    "targets": [
+      "dmg",
+      "nsis"
+    ],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

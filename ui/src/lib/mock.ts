@@ -137,6 +137,7 @@ export function installMock(): void {
       }
       case "select_game":
       case "show_zone":
+      case "overlay_state":
       case "reveal_path":
       case "open_url":
         return null;

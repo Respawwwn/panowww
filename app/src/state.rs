@@ -10,6 +10,7 @@ use panowww_store::settings::Settings;
 use uuid::Uuid;
 
 use crate::backend::SharedBackend;
+use crate::overlay::SharedOverlay;
 use crate::runner::Runner;
 
 pub struct AppState {
@@ -21,6 +22,8 @@ pub struct AppState {
     pub selected: Mutex<Option<Uuid>>,
     pub runner: Runner,
     pub backend: SharedBackend,
+    /// Shared with the Runner; the Setup's Show zone draws the frame alone.
+    pub overlay: SharedOverlay,
     pub version: String,
     /// Keeps the Games folder watch alive for the app's lifetime.
     #[allow(dead_code, reason = "held for its Drop")]

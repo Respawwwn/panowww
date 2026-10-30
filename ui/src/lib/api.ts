@@ -10,6 +10,7 @@ import type { Estimate } from "./generated/Estimate";
 import type { Game } from "./generated/Game";
 import type { GameEntry } from "./generated/GameEntry";
 import type { Import } from "./generated/Import";
+import type { OverlayState } from "./generated/OverlayState";
 import type { PermissionKind } from "./generated/PermissionKind";
 import type { Permissions } from "./generated/Permissions";
 import type { Pong } from "./generated/Pong";
@@ -141,6 +142,13 @@ export const api = {
   update: {
     /** null when up to date, offline, or the switch is off. */
     check: () => invoke<UpdateInfo | null>("check_for_updates"),
+  },
+
+  /** The overlay window's side: what it draws, pushed by Rust. */
+  overlay: {
+    state: () => invoke<OverlayState | null>("overlay_state"),
+    onState: (handler: (state: OverlayState) => void): Promise<UnlistenFn> =>
+      listen<OverlayState>("overlay", (event) => handler(event.payload)),
   },
 };
 

@@ -17,6 +17,7 @@ use panowww_store::sink::{SessionSink, SessionSinkConfig, SystemWallClock};
 
 use crate::backend::SharedBackend;
 use crate::dto::{RunEvent, RunKindDto, RunnerPhase, SampleSlotDto, StartFailure};
+use crate::overlay::SharedOverlay;
 
 /// Countdown after the Start shortcut (spec Appendix A).
 pub const COUNTDOWN_SHORTCUT: Duration = Duration::from_secs(3);
@@ -44,6 +45,7 @@ type PreviewSwitch = Arc<Mutex<Option<Box<dyn Fn(bool) + Send>>>>;
 pub struct Runner {
     backend: SharedBackend,
     emit: EventSink,
+    overlay: SharedOverlay,
     phase: Arc<AtomicU8>,
     cancel: Mutex<Option<CancelFlag>>,
     preview_switch: PreviewSwitch,
@@ -64,10 +66,11 @@ const RUNNING: u8 = 2;
 const STOPPING: u8 = 3;
 
 impl Runner {
-    pub fn new(backend: SharedBackend, emit: EventSink) -> Self {
+    pub fn new(backend: SharedBackend, emit: EventSink, overlay: SharedOverlay) -> Self {
         Self {
             backend,
             emit,
+            overlay,
             phase: Arc::new(AtomicU8::new(IDLE)),
             cancel: Mutex::new(None),
             preview_switch: Arc::new(Mutex::new(None)),
@@ -104,6 +107,7 @@ impl Runner {
         let worker = Worker {
             backend: Arc::clone(&self.backend),
             emit: Arc::clone(&self.emit),
+            overlay: Arc::clone(&self.overlay),
             phase: Arc::clone(&self.phase),
             preview_switch: Arc::clone(&self.preview_switch),
             cancel,
@@ -195,6 +199,7 @@ impl Runner {
 struct Worker {
     backend: SharedBackend,
     emit: EventSink,
+    overlay: SharedOverlay,
     phase: Arc<AtomicU8>,
     preview_switch: PreviewSwitch,
     cancel: CancelFlag,
@@ -211,14 +216,20 @@ impl Worker {
         (self.emit)(closing);
     }
 
-    /// Pre-flight, stream, countdown, run. Returns the closing event.
+    /// Pre-flight, stream, countdown, run. Returns the closing event. The
+    /// overlay follows (spec §10): the digit, the frame with the progress,
+    /// the end pill of a Session; hidden on failure or cancel.
     fn countdown_then_run(&self, spec: &RunSpec) -> RunEvent {
         if let Err(failure) = self.preflight(spec) {
+            self.overlay.hide();
             return RunEvent::CannotStart(failure);
         }
         let mut stream = match self.open_stream(spec) {
             Ok(stream) => stream,
-            Err(failure) => return RunEvent::CannotStart(failure),
+            Err(failure) => {
+                self.overlay.hide();
+                return RunEvent::CannotStart(failure);
+            }
         };
         // The stream stays on this thread; the command layer flips a shared
         // flag that is applied between ticks and after the run.
@@ -236,20 +247,23 @@ impl Worker {
         }
         stream.set_preview(spec.preview);
 
-        if !self.countdown(spec.countdown, &preview_flag, stream.as_mut()) {
+        if !self.countdown(spec, &preview_flag, stream.as_mut()) {
             stream.stop();
+            self.overlay.hide();
             return RunEvent::Cancelled;
         }
 
         self.phase.store(RUNNING, Ordering::SeqCst);
+        self.overlay.show_frame(&spec.zone);
         let plan = plan(&spec.game, spec.kind.into());
+        let expected = u32::try_from(plan.expected_shots()).unwrap_or(u32::MAX);
         let request = RunRequest {
             plan: &plan,
             zone: spec.zone.rect(),
             session: spec.kind.is_session().then(|| SessionStart {
                 game: spec.game.clone(),
                 zone: spec.zone.clone(),
-                shots_expected: u32::try_from(plan.expected_shots()).unwrap_or(u32::MAX),
+                shots_expected: expected,
             }),
         };
         let mut camera = self.backend.camera();
@@ -261,6 +275,7 @@ impl Worker {
             &mut no_sink
         };
         let emit = Arc::clone(&self.emit);
+        let overlay = Arc::clone(&self.overlay);
         let outcome = run(
             &request,
             camera.as_mut(),
@@ -269,12 +284,23 @@ impl Worker {
             &SystemClock,
             &self.cancel,
             &|progress| {
+                match &progress {
+                    Progress::Started { .. } => overlay.progress(0, expected),
+                    Progress::Shot { index, .. } => overlay.progress(*index, expected),
+                    _ => {}
+                }
                 if let Some(event) = translate(progress) {
                     emit(event);
                 }
             },
         );
         stream.stop();
+        if spec.kind.is_session() {
+            let stopped = !matches!(outcome, RunOutcome::Completed { .. });
+            self.overlay.end_pill(stopped, outcome.shots(), expected);
+        } else {
+            self.overlay.hide();
+        }
         let folder = session_sink.folder().map(|p| p.display().to_string());
         RunEvent::Finished { outcome, folder }
     }
@@ -340,20 +366,21 @@ impl Worker {
         }
     }
 
-    /// Ticks the countdown once a second; `false` when cancelled. The
-    /// preview switch is applied between ticks.
+    /// Ticks the countdown once a second, in the window and on the overlay;
+    /// `false` when cancelled. The preview switch is applied between ticks.
     fn countdown(
         &self,
-        duration: Duration,
+        spec: &RunSpec,
         preview_flag: &Arc<Mutex<bool>>,
         stream: &mut dyn panowww_core::ports::Stream,
     ) -> bool {
-        let seconds = u32::try_from(duration.as_secs()).unwrap_or(5);
+        let seconds = u32::try_from(spec.countdown.as_secs()).unwrap_or(5);
         let mut applied = *preview_flag
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner);
         for left in (1..=seconds).rev() {
             (self.emit)(RunEvent::Countdown { seconds_left: left });
+            self.overlay.show_countdown(&spec.zone, left);
             let tick = Instant::now();
             while tick.elapsed() < Duration::from_secs(1) {
                 if self.cancel.is_raised() {
@@ -460,6 +487,51 @@ mod tests {
 
     use super::*;
     use crate::backend::fake::FakeBackend;
+    use crate::overlay::Overlay;
+
+    /// Records every overlay call, one line each.
+    #[derive(Default)]
+    struct RecordingOverlay(Mutex<Vec<String>>);
+
+    impl RecordingOverlay {
+        fn calls(&self) -> Vec<String> {
+            self.0.lock().unwrap().clone()
+        }
+    }
+
+    impl Overlay for RecordingOverlay {
+        fn show_frame(&self, zone: &Zone) {
+            self.0
+                .lock()
+                .unwrap()
+                .push(format!("frame {}", zone.display_id.0));
+        }
+        fn show_countdown(&self, _: &Zone, seconds_left: u32) {
+            self.0
+                .lock()
+                .unwrap()
+                .push(format!("countdown {seconds_left}"));
+        }
+        fn progress(&self, taken: u32, expected: u32) {
+            self.0
+                .lock()
+                .unwrap()
+                .push(format!("progress {taken}/{expected}"));
+        }
+        fn end_pill(&self, stopped: bool, taken: u32, expected: u32) {
+            let word = if stopped { "stopped" } else { "done" };
+            self.0
+                .lock()
+                .unwrap()
+                .push(format!("end {word} {taken}/{expected}"));
+        }
+        fn hide(&self) {
+            self.0.lock().unwrap().push("hide".to_owned());
+        }
+        fn current(&self) -> Option<crate::dto::OverlayState> {
+            None
+        }
+    }
 
     fn spec(sessions: &std::path::Path, kind: RunKindDto, countdown_secs: u64) -> RunSpec {
         let mut game = Game::new("Test", NewGameDefaults::default());
@@ -496,14 +568,23 @@ mod tests {
     }
 
     fn runner(backend: Arc<FakeBackend>) -> (Runner, mpsc::Receiver<RunEvent>) {
+        let (runner, rx, _) = runner_with_overlay(backend);
+        (runner, rx)
+    }
+
+    fn runner_with_overlay(
+        backend: Arc<FakeBackend>,
+    ) -> (Runner, mpsc::Receiver<RunEvent>, Arc<RecordingOverlay>) {
         let (tx, rx) = mpsc::channel();
+        let overlay = Arc::new(RecordingOverlay::default());
         let runner = Runner::new(
             backend,
             Arc::new(move |e| {
                 let _ = tx.send(e);
             }),
+            Arc::clone(&overlay) as SharedOverlay,
         );
-        (runner, rx)
+        (runner, rx, overlay)
     }
 
     fn events(rx: &mpsc::Receiver<RunEvent>) -> Vec<String> {
@@ -677,6 +758,43 @@ mod tests {
         assert!(
             matches!(&samples[0], RunEvent::Sample { slot: SampleSlotDto::First, image } if image.starts_with("data:image/jpeg;base64,"))
         );
+    }
+
+    #[test]
+    fn the_overlay_follows_a_session_from_the_digit_to_the_end_pill() {
+        let dir = tempfile::tempdir().unwrap();
+        let (runner, _rx, overlay) = runner_with_overlay(FakeBackend::new());
+        assert!(runner.start(spec(dir.path(), RunKindDto::Session, 1)));
+        runner.wait();
+        let calls = overlay.calls();
+        assert_eq!(calls[0], "countdown 1");
+        assert_eq!(calls[1], "frame main");
+        assert_eq!(calls[2], "progress 0/6");
+        assert!(calls.contains(&"progress 6/6".to_owned()), "{calls:?}");
+        assert_eq!(calls.last().unwrap(), "end done 6/6");
+    }
+
+    #[test]
+    fn the_overlay_hides_after_a_test_a_cancel_and_a_failed_start() {
+        let dir = tempfile::tempdir().unwrap();
+        let backend = FakeBackend::new();
+        let (runner, _rx, overlay) = runner_with_overlay(backend.clone());
+        assert!(runner.start(spec(dir.path(), RunKindDto::TurnTest, 1)));
+        runner.wait();
+        assert_eq!(overlay.calls().last().unwrap(), "hide");
+        assert!(!overlay.calls().iter().any(|c| c.starts_with("end")));
+
+        assert!(runner.start(spec(dir.path(), RunKindDto::Session, 5)));
+        std::thread::sleep(Duration::from_millis(150));
+        runner.stop();
+        runner.wait();
+        assert_eq!(overlay.calls().last().unwrap(), "hide");
+
+        *backend.accessibility.lock().unwrap() = false;
+        assert!(runner.start(spec(dir.path(), RunKindDto::Session, 1)));
+        runner.wait();
+        let calls = overlay.calls();
+        assert_eq!(&calls[calls.len() - 2..], ["hide", "hide"]);
     }
 
     #[test]

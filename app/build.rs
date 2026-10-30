@@ -19,6 +19,7 @@ const COMMANDS: &[&str] = &[
     "set_zone",
     "pick_zone",
     "show_zone",
+    "overlay_state",
     "list_displays",
     "start_run",
     "stop_run",

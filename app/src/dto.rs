@@ -131,6 +131,66 @@ pub enum SampleSlotDto {
     Second,
 }
 
+/// What the overlay page draws (spec §10): the frame always, plus one of
+/// the digit, the progress bar with its pill, or the end pill.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(tag = "kind", rename_all = "camelCase")]
+#[ts(export)]
+pub enum OverlayView {
+    Frame,
+    #[serde(rename_all = "camelCase")]
+    Countdown {
+        seconds_left: u32,
+    },
+    Progress {
+        taken: u32,
+        expected: u32,
+    },
+    End {
+        stopped: bool,
+        taken: u32,
+        expected: u32,
+    },
+}
+
+/// The zone in CSS points, relative to the overlay window that covers
+/// the display.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct OverlayZone {
+    pub x: f64,
+    pub y: f64,
+    pub w: f64,
+    pub h: f64,
+}
+
+impl From<&Zone> for OverlayZone {
+    /// Zones are points on macOS and physical pixels on Windows (spec §6).
+    fn from(zone: &Zone) -> Self {
+        let per_point = if cfg!(target_os = "macos") {
+            1.0
+        } else {
+            zone.scale.max(f64::EPSILON)
+        };
+        Self {
+            x: f64::from(zone.x) / per_point,
+            y: f64::from(zone.y) / per_point,
+            w: f64::from(zone.w) / per_point,
+            h: f64::from(zone.h) / per_point,
+        }
+    }
+}
+
+/// One message to the overlay page: everything it shows.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct OverlayState {
+    pub zone: OverlayZone,
+    pub view: OverlayView,
+}
+
 /// What the Game Setup shows about the zone of a Game on this machine.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
