@@ -42,6 +42,6 @@ Tools: `just`, `cargo-nextest`, `cargo-deny`, `typos` (`brew install just cargo-
 - `just check`: rustfmt, clippy `-D warnings`, typos, cargo-deny, Biome, svelte-check.
 - `just test`: nextest, doc tests, Vitest.
 - `just generate`: writes `ui/src/lib/generated/` from every `#[ts(export)]` type. Run it after changing a type the UI sees.
-- `just dev`: the app with hot reload. `just lint`, `just fmt`, `just ui-build`.
+- `just dev`: the app with hot reload. `just lint`, `just fmt`, `just ui-build`. `just icons` renders `app/icons/` from `assets/icon/panowww.svg`.
 
 The app crate embeds `ui/dist`, so `just lint` and `just test` build the UI first. CI (`.github/workflows/ci.yml`) runs the same on macOS and Windows, plus `core` + `store` and a library-crate build on Linux. Actions are pinned by SHA; run `actionlint` after editing workflows.

@@ -1,7 +1,9 @@
 <script lang="ts">
 // About (spec §11.13): icon, version, tagline, the Respawwwn line and
 // links, the licence, the update line.
+import respawwwnMark from "../../../assets/brand/respawwwn-mark.svg";
 import Chip from "../components/Chip.svelte";
+import Mark from "../components/Mark.svelte";
 import WindowFrame from "../components/WindowFrame.svelte";
 import { api } from "../lib/api";
 import { interpolate, strings } from "../lib/strings";
@@ -31,10 +33,10 @@ const links = [
 
 <WindowFrame title={strings.sidebar.about} width={440} onclose={() => windows.close()}>
   <div class="about">
-    <span class="icon" aria-hidden="true"></span>
+    <Mark size={72} radius={18} />
     <h2 class="t-window">{interpolate(strings.about.version, { version })}</h2>
     <p class="tagline">{strings.about.tagline}</p>
-    <p class="by"><span class="mark" aria-hidden="true">R</span> {strings.about.by}</p>
+    <p class="by"><img class="mark" src={respawwwnMark} alt="Respawwwn" /> {strings.about.by}</p>
     <nav class="links">
       {#each links as link (link.url)}
         <button type="button" class="link" onclick={() => api.onboarding.openUrl(link.url)}>{link.label}</button>
@@ -61,14 +63,6 @@ const links = [
     padding: 8px 0;
   }
 
-  .icon {
-    width: 72px;
-    height: 72px;
-    border-radius: 18px;
-    background: #6454b5;
-    box-shadow: inset 0 0 0 10px rgb(255 255 255 / 18%);
-  }
-
   h2,
   p {
     margin: 0;
@@ -87,16 +81,10 @@ const links = [
   }
 
   .mark {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
     width: 22px;
     height: 22px;
     border-radius: 6px;
-    background: var(--accent);
-    color: var(--accent-fg);
-    font-size: 12px;
-    font-weight: 700;
+    display: block;
   }
 
   .links {
