@@ -244,6 +244,7 @@ export const strings = {
     folder: "Sessions are saved in {path} · Change the folder in Settings",
     deleteConfirm: "Delete the whole folder?",
     failed: {
+      why: "Why did it fail?",
       template: "Stopped at Shot {n}: {reason} The {taken} Shots taken are kept in the folder.",
       reason: {
         captureUnavailable: "the display could not be captured.",
@@ -269,6 +270,12 @@ export const strings = {
     reveal: "Reveal",
     delete: "Delete",
     cancel: "Cancel",
+    zipped: "Zipped",
+    title: "All Sessions",
+    summary: "{n} Sessions · {size}",
+    folderShort: "Sessions folder: {path}",
+    revealFolder: "Reveal folder",
+    changeInSettings: "Change in Settings…",
   },
   overlay: {
     done: "Done · {n} Shots",
@@ -321,6 +328,15 @@ export const strings = {
   },
   settings: {
     title: "Settings",
+    sessionsTitle: "Sessions",
+    previewTitle: "Display preview",
+    recorder: {
+      press: "Press the new combo…",
+      f12: "F12 cannot be used: games and browsers own it.",
+      noModifier: "Add a modifier such as Ctrl or Shift.",
+      winKey: "The Win key cannot be part of a shortcut.",
+      optionOnly: "Option alone, or with Shift, types characters: add Ctrl or Cmd.",
+    },
     sessionsFolder: "Sessions folder",
     change: "Change…",
     reveal: "Reveal",
@@ -344,6 +360,12 @@ export const strings = {
     revealLogs: "Reveal logs",
   },
   about: {
+    links: {
+      site: "respawwwn.com",
+      discord: "Discord",
+      kofi: "Ko-fi",
+      github: "GitHub",
+    },
     tagline: "Captures the Shots of a 360° panorama inside a video game, ready to stitch.",
     by: "By Respawwwn",
     licence:
