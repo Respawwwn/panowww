@@ -1,0 +1,33 @@
+---
+source: crates/core/tests/plan.rs
+expression: "plan(&game, run_kind).to_string()"
+---
+# turn test: 28 ops, 0 shots, 8.888s
+sample BeforeFirstStep
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+sample AfterFirstStep
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms

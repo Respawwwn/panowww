@@ -1,0 +1,531 @@
+---
+source: crates/core/tests/plan.rs
+expression: "plan(&game, run_kind).to_string()"
+---
+# session: 526 ops, 128 shots, 98.8s
+shot r01 c01
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r01 c02
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r01 c03
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r01 c04
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r01 c05
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r01 c06
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r01 c07
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r01 c08
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r01 c09
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r01 c10
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r01 c11
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r01 c12
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r01 c13
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r01 c14
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r01 c15
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r01 c16
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+move pitch: stick x 0 y 0.8 hold 100ms
+wait 300ms
+shot r02 c01
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r02 c02
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r02 c03
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r02 c04
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r02 c05
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r02 c06
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r02 c07
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r02 c08
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r02 c09
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r02 c10
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r02 c11
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r02 c12
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r02 c13
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r02 c14
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r02 c15
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r02 c16
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+move pitch: stick x 0 y 0.8 hold 100ms
+wait 300ms
+shot r03 c01
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r03 c02
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r03 c03
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r03 c04
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r03 c05
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r03 c06
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r03 c07
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r03 c08
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r03 c09
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r03 c10
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r03 c11
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r03 c12
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r03 c13
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r03 c14
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r03 c15
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r03 c16
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+move pitch: stick x 0 y 0.8 hold 100ms
+wait 300ms
+shot r04 c01
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r04 c02
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r04 c03
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r04 c04
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r04 c05
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r04 c06
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r04 c07
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r04 c08
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r04 c09
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r04 c10
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r04 c11
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r04 c12
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r04 c13
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r04 c14
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r04 c15
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r04 c16
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+move pitch: stick x 0 y 0.8 hold 100ms
+wait 300ms
+shot r05 c01
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r05 c02
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r05 c03
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r05 c04
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r05 c05
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r05 c06
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r05 c07
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r05 c08
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r05 c09
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r05 c10
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r05 c11
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r05 c12
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r05 c13
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r05 c14
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r05 c15
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r05 c16
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+move pitch: stick x 0 y 0.8 hold 100ms
+wait 300ms
+shot r06 c01
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r06 c02
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r06 c03
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r06 c04
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r06 c05
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r06 c06
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r06 c07
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r06 c08
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r06 c09
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r06 c10
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r06 c11
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r06 c12
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r06 c13
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r06 c14
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r06 c15
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r06 c16
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+move pitch: stick x 0 y 0.8 hold 100ms
+wait 300ms
+shot r07 c01
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r07 c02
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r07 c03
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r07 c04
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r07 c05
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r07 c06
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r07 c07
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r07 c08
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r07 c09
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r07 c10
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r07 c11
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r07 c12
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r07 c13
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r07 c14
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r07 c15
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r07 c16
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+move pitch: stick x 0 y 0.8 hold 100ms
+wait 300ms
+shot r08 c01
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r08 c02
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r08 c03
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r08 c04
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r08 c05
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r08 c06
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r08 c07
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r08 c08
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r08 c09
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r08 c10
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r08 c11
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r08 c12
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r08 c13
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r08 c14
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r08 c15
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+shot r08 c16
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms

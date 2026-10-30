@@ -1,0 +1,5 @@
+---
+source: crates/core/tests/plan.rs
+expression: "format!(\"{} ({} ms)\", format_duration(total), total.as_millis())"
+---
+≈ 1 min 7 s (67010 ms)

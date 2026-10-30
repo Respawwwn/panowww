@@ -8,4 +8,6 @@
 //! behind the `test-support` feature.
 #![forbid(unsafe_code)]
 
+pub mod constants;
 pub mod game;
+pub mod plan;

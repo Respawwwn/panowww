@@ -1,0 +1,17 @@
+---
+source: crates/core/tests/plan.rs
+expression: "plan(&game, run_kind).to_string()"
+---
+# pitch test: 12 ops, 0 shots, 2.05s
+sample BeforeFirstStep
+move pitch: key ArrowUp hold 90ms
+wait 300ms
+sample AfterFirstStep
+move pitch: key ArrowUp hold 90ms
+wait 300ms
+move pitch: key ArrowUp hold 90ms
+wait 300ms
+move pitch: key ArrowUp hold 90ms
+wait 300ms
+move pitch: key ArrowUp hold 90ms
+wait 300ms

@@ -1,0 +1,39 @@
+---
+source: crates/core/tests/plan.rs
+expression: "plan(&game, run_kind).to_string()"
+---
+# turn test: 34 ops, 0 shots, 6.5s
+sample BeforeFirstStep
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+sample AfterFirstStep
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
+move turn: stick x 0.8 y 0 hold 100ms
+wait 300ms
