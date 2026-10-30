@@ -11,3 +11,7 @@ pub const MOUSE_SUB_MOVE_INTERVAL: Duration = Duration::from_millis(8);
 pub const DRAG_SETTLE: Duration = Duration::from_millis(20);
 /// Cost of one Shot or Sample in the duration estimate.
 pub const CAPTURE_COST: Duration = Duration::from_millis(50);
+/// Longer side of the live thumbnail sent with every Shot, in pixels.
+pub const THUMBNAIL_LONG_SIDE: u32 = 192;
+/// JPEG quality of the live thumbnail.
+pub const THUMBNAIL_JPEG_QUALITY: u8 = 70;

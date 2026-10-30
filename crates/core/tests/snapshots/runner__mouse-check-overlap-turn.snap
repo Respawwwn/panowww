@@ -1,0 +1,9 @@
+---
+source: crates/core/tests/runner.rs
+expression: run.camera.transcript()
+---
+park_cursor 900 500
+button_down Right
+mouse_delta 20 0 ×42
+button_up Right
+release_all

@@ -70,10 +70,30 @@ impl Op {
     }
 }
 
+/// The Session grid of the Game a plan was made from.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Grid {
+    pub shots_per_row: u32,
+    pub rows: u32,
+}
+
+impl Grid {
+    pub fn of(game: &Game) -> Self {
+        Self {
+            shots_per_row: game.shots_per_row,
+            rows: game.rows,
+        }
+    }
+}
+
 /// The operations of one run, in order.
 #[derive(Debug, Clone, PartialEq)]
 pub struct CapturePlan {
     pub kind: RunKind,
+    pub grid: Grid,
+    /// The Game's `waitAfterShot`, which the Runner also waits before
+    /// retrying a failed Shot (§7.3).
+    pub wait_after_shot: Duration,
     pub ops: Vec<Op>,
 }
 
@@ -103,6 +123,15 @@ pub fn plan(game: &Game, kind: RunKind) -> CapturePlan {
     }
 }
 
+fn plan_of(game: &Game, kind: RunKind, ops: Vec<Op>) -> CapturePlan {
+    CapturePlan {
+        kind,
+        grid: Grid::of(game),
+        wait_after_shot: millis(game.wait_after_shot_ms),
+        ops,
+    }
+}
+
 /// Spec §7.1: first Shot at once, then per Row N times `Shot → waitAfterShot
 /// → turn → waitAfterMove` (the Nth turn closes the Row), and after every
 /// Row but the last `pitch → waitAfterMove`.
@@ -126,47 +155,44 @@ pub fn plan_session(game: &Game) -> CapturePlan {
             ops.push(Op::Wait(after_move));
         }
     }
-    CapturePlan {
-        kind: RunKind::Session,
-        ops,
-    }
+    plan_of(game, RunKind::Session, ops)
 }
 
 /// N turn Steps with the detector's two Samples around the first.
 pub fn plan_turn_test(game: &Game) -> CapturePlan {
-    CapturePlan {
-        kind: RunKind::TurnTest,
-        ops: probed_steps(game, Axis::Turn, game.shots_per_row),
-    }
+    plan_of(
+        game,
+        RunKind::TurnTest,
+        probed_steps(game, Axis::Turn, game.shots_per_row),
+    )
 }
 
 /// R − 1 pitch Steps with the detector's two Samples around the first.
 pub fn plan_pitch_test(game: &Game) -> CapturePlan {
-    CapturePlan {
-        kind: RunKind::PitchTest,
-        ops: probed_steps(game, Axis::Pitch, game.rows.saturating_sub(1)),
-    }
+    plan_of(
+        game,
+        RunKind::PitchTest,
+        probed_steps(game, Axis::Pitch, game.rows.saturating_sub(1)),
+    )
 }
 
 /// One Step with the detector's two Samples around it.
 pub fn plan_step_once(game: &Game, axis: Axis) -> CapturePlan {
-    CapturePlan {
-        kind: RunKind::StepOnce(axis),
-        ops: probed_steps(game, axis, 1),
-    }
+    plan_of(game, RunKind::StepOnce(axis), probed_steps(game, axis, 1))
 }
 
 /// `Sample(First) → Step → waitAfterMove → Sample(Second)`.
 pub fn plan_check_overlap(game: &Game, axis: Axis) -> CapturePlan {
-    CapturePlan {
-        kind: RunKind::CheckOverlap(axis),
-        ops: vec![
+    plan_of(
+        game,
+        RunKind::CheckOverlap(axis),
+        vec![
             Op::Sample(SampleSlot::First),
             Op::Move(Step::for_game(game, axis)),
             Op::Wait(millis(game.wait_after_move_ms)),
             Op::Sample(SampleSlot::Second),
         ],
-    }
+    )
 }
 
 /// `count` Steps on `axis`, each followed by `waitAfterMove` and never by
