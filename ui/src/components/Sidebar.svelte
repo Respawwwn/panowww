@@ -1,29 +1,47 @@
 <script lang="ts">
-// Lavender sidebar: mark, Games list, toolbar, footer (spec §11.1). The
-// list and its actions arrive with issue 15; the frame is here.
+// Lavender sidebar (spec §11.1): mark and wordmark, the Games list, the
+// + New / Import… toolbar, the All Sessions / Settings / About footer.
+// Greyed to 45 % during a countdown or a run. The list arrives with issue 15.
+import { nav } from "../lib/nav.svelte";
 import { strings } from "../lib/strings";
+
+type Props = {
+  onnew?: () => void;
+  onimport?: () => void;
+  onsessions?: () => void;
+  onsettings?: () => void;
+  onabout?: () => void;
+};
+
+let { onnew, onimport, onsessions, onsettings, onabout }: Props = $props();
 </script>
 
-<aside class="sidebar">
+<aside class="sidebar" class:dim={nav.busy}>
   <header class="brand" data-tauri-drag-region>
     <span class="mark" aria-hidden="true"></span>
-    <span class="wordmark">{strings.app.name}</span>
+    <span>{strings.app.name}</span>
   </header>
 
   <nav class="games" aria-label="Games">
     <!-- Game rows arrive with issue 15. -->
   </nav>
 
-  <div class="toolbar">
-    <button type="button" class="ghost" disabled>+ {strings.sidebar.new}</button>
-    <button type="button" class="ghost" disabled>{strings.sidebar.import}</button>
+  <div class="actions">
+    <button type="button" class="tbtn" disabled={!onnew || nav.busy} onclick={onnew}>+ {strings.sidebar.new}</button>
+    <button type="button" class="tbtn" disabled={!onimport || nav.busy} onclick={onimport}>{strings.sidebar.import}</button>
   </div>
 
-  <footer class="footer">
-    <button type="button" class="ghost" disabled>{strings.sidebar.allSessions}</button>
-    <span class="spacer"></span>
-    <button type="button" class="ghost icon" disabled aria-label={strings.sidebar.settings}>⚙</button>
-    <button type="button" class="ghost icon" disabled aria-label={strings.sidebar.about}>?</button>
+  <footer class="foot">
+    <button type="button" class="footrow" disabled={!onsessions || nav.busy} onclick={onsessions}>
+      {strings.sidebar.allSessions}
+    </button>
+    <button type="button" class="footrow" disabled={!onsettings || nav.busy} onclick={onsettings}>
+      {strings.sidebar.settings}
+      <kbd>⌘,</kbd>
+    </button>
+    <button type="button" class="footrow" disabled={!onabout || nav.busy} onclick={onabout}>
+      {strings.sidebar.about}
+    </button>
   </footer>
 </aside>
 
@@ -33,63 +51,100 @@ import { strings } from "../lib/strings";
     display: flex;
     flex-direction: column;
     background: var(--sidebar);
-    border-right: 1px solid var(--line);
-    padding: 12px;
     /* Room for the macOS traffic lights under the overlay title bar. */
-    padding-top: 44px;
+    padding-top: 52px;
+    transition: opacity 0.15s ease-out;
+  }
+
+  .sidebar.dim {
+    opacity: 0.45;
+    pointer-events: none;
   }
 
   .brand {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 0 8px 12px;
+    padding: 4px 16px 12px;
     font-weight: 700;
     font-size: 14px;
-    color: var(--lavender-text);
+    letter-spacing: -0.01em;
   }
 
   .mark {
-    width: 18px;
-    height: 18px;
+    width: 22px;
+    height: 22px;
     border-radius: 6px;
-    background: var(--accent);
+    background: #6454b5;
+    flex: none;
   }
 
   .games {
     flex: 1;
     min-height: 0;
     overflow: auto;
-  }
-
-  .toolbar,
-  .footer {
-    display: flex;
-    gap: 4px;
-    padding-top: 8px;
-  }
-
-  .spacer {
-    flex: 1;
-  }
-
-  .ghost {
-    height: var(--control-height);
     padding: 0 10px;
-    border: 0;
-    border-radius: 999px;
+  }
+
+  .actions {
+    display: flex;
+    gap: 6px;
+    padding: 10px;
+  }
+
+  .tbtn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    padding: 1px 10px 0;
+    border-radius: var(--rs);
     background: transparent;
-    color: var(--lavender-text);
+    border: 1px solid transparent;
+    color: var(--lav-fg);
     font-size: 12px;
     font-weight: 500;
+    line-height: 1;
   }
 
-  .ghost.icon {
-    width: var(--control-height);
-    padding: 0;
+  .tbtn:hover:not(:disabled) {
+    background: var(--hover);
   }
 
-  .ghost:disabled {
+  .tbtn:disabled,
+  .footrow:disabled {
     opacity: 0.45;
+  }
+
+  .foot {
+    margin-top: auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .footrow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 30px;
+    padding: 0 10px;
+    border-radius: var(--rs);
+    background: transparent;
+    border: 0;
+    color: var(--fg);
+    text-align: left;
+  }
+
+  .footrow:hover:not(:disabled) {
+    background: var(--hover);
+  }
+
+  .footrow kbd {
+    margin-left: auto;
+    font: inherit;
+    font-size: 11px;
+    color: var(--faint);
   }
 </style>

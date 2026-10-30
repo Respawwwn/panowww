@@ -21,3 +21,21 @@ test("ping goes through invoke and comes back typed", async () => {
   expect(calls).toEqual(["ping"]);
   expect(pong).toEqual({ app: "Panowww", version: "0.0.1" });
 });
+
+test("commands pass their arguments in camelCase", async () => {
+  const seen: { cmd: string; args: unknown }[] = [];
+  mockIPC((cmd, args) => {
+    seen.push({ cmd, args });
+    return null;
+  });
+
+  await api.games.delete("abc");
+  await api.sessions.list();
+  await api.run.setPreview(false);
+
+  expect(seen).toEqual([
+    { cmd: "delete_game", args: { id: "abc" } },
+    { cmd: "list_sessions", args: { gameId: null } },
+    { cmd: "set_preview", args: { on: false } },
+  ]);
+});
