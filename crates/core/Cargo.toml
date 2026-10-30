@@ -10,6 +10,8 @@ publish.workspace = true
 workspace = true
 
 [dependencies]
+fast_image_resize = "6"
+image = { version = "0.25", default-features = false, features = ["jpeg"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["float_roundtrip"] }
 thiserror = "2"
@@ -17,5 +19,11 @@ ts-rs = { version = "12", features = ["uuid-impl", "no-serde-warnings"] }
 uuid = { version = "1", features = ["v4", "serde"] }
 
 [dev-dependencies]
+# The integration tests use the fakes of this very crate.
+panowww-core = { path = ".", features = ["test-support"] }
 insta = "1"
 proptest = "1"
+
+[features]
+# Fakes for the ports: RecordingCamera, FakeStream, MemorySink, FakeClock.
+test-support = []

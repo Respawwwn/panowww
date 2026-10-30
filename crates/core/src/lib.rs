@@ -9,5 +9,9 @@
 #![forbid(unsafe_code)]
 
 pub mod constants;
+#[cfg(feature = "test-support")]
+pub mod fakes;
 pub mod game;
 pub mod plan;
+pub mod ports;
+pub mod runner;
