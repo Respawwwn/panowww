@@ -10,6 +10,7 @@ import type { Game } from "../lib/generated/Game";
 import { type DetailTab, nav } from "../lib/nav.svelte";
 import { strings } from "../lib/strings";
 import GameSetup from "./GameSetup.svelte";
+import SessionsTab from "./SessionsTab.svelte";
 
 type Props = { game: Game; tab: DetailTab };
 
@@ -38,12 +39,5 @@ let confirming = $state(false);
 {#if tab === "setup"}
   <GameSetup {game} />
 {:else}
-  <!-- The Sessions tab arrives with issue 18. -->
-  <p class="placeholder t-tip">{strings.sessions.empty}</p>
+  <SessionsTab gameId={game.id} />
 {/if}
-
-<style>
-  .placeholder {
-    padding: 24px;
-  }
-</style>

@@ -7,6 +7,7 @@ import type { Game } from "./generated/Game";
 import type { GameEntry } from "./generated/GameEntry";
 import type { RunEvent } from "./generated/RunEvent";
 import type { RunKindDto } from "./generated/RunKindDto";
+import type { SessionSummary } from "./generated/SessionSummary";
 import type { Settings } from "./generated/Settings";
 import { applyRunEvent } from "./run.svelte";
 import { defaultSettings } from "./settings.svelte";
@@ -69,6 +70,7 @@ export function installMock(): void {
       ],
     },
   ];
+  const sessions = sampleSessions(entries);
   const zones: Record<string, boolean> = { "00000000-0000-4000-8000-000000000001": true };
   const settings: Settings = structuredClone(defaultSettings);
 
@@ -184,7 +186,22 @@ export function installMock(): void {
       case "zip_session":
         return `${args.folder}.zip`;
       case "list_sessions":
-        return [];
+        return sessions.filter((s) => !args.gameId || s.record.game.id === args.gameId);
+      case "delete_session": {
+        const i = sessions.findIndex((s) => s.folder === args.folder);
+        if (i >= 0) {
+          sessions.splice(i, 1);
+        }
+        return null;
+      }
+      case "request_permission":
+        return true;
+      case "open_system_settings":
+      case "reveal_logs":
+      case "apply_shortcuts":
+        return null;
+      case "choose_sessions_folder":
+        return "/Volumes/Shots/Panowww";
       case "permissions":
         return { accessibility: true, screenRecording: true, vigem: true };
       default:
@@ -258,4 +275,59 @@ function simulateRun(kind: RunKindDto): void {
   for (const [i, step] of steps.entries()) {
     setTimeout(() => applyRunEvent(step), 200 * (i + 1));
   }
+}
+
+/** A few Sessions of the sample Games, newest first. */
+function sampleSessions(entries: GameEntry[]): SessionSummary[] {
+  const games = entries.flatMap((e) => (e.kind === "game" ? [e.game] : []));
+  const zone = {
+    displayId: "main",
+    x: 320,
+    y: 180,
+    w: 1920,
+    h: 1080,
+    displayW: 2560,
+    displayH: 1440,
+    scale: 2,
+  };
+  const make = (
+    game: Game,
+    startedAt: string,
+    status: "completed" | "interrupted" | "failed",
+    taken: number,
+  ): SessionSummary => ({
+    folder: `/Users/me/Pictures/Panowww/${game.name}/${startedAt.slice(0, 19).replace("T", "_").replaceAll(":", "-")}`,
+    record: {
+      format: "panowww-session",
+      version: 1,
+      id: crypto.randomUUID(),
+      appVersion: "0.0.1-mock",
+      startedAt,
+      endedAt: startedAt,
+      status,
+      ...(status === "failed"
+        ? {
+            error: {
+              kind: "displayGone" as const,
+              message: "The display of the Capture zone is gone.",
+            },
+          }
+        : {}),
+      game,
+      zone,
+      shotsExpected: game.shotsPerRow * game.rows,
+      shotsTaken: taken,
+      shots: [],
+    },
+  });
+  const [a, b] = games;
+  if (!a || !b) {
+    return [];
+  }
+  return [
+    make(a, "2026-10-30T14:32:00+01:00", "completed", 78),
+    make(a, "2026-10-30T14:10:00+01:00", "interrupted", 31),
+    make(b, "2026-10-29T22:05:00+01:00", "failed", 52),
+    make(a, "2026-10-27T19:48:00+01:00", "completed", 78),
+  ];
 }

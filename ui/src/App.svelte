@@ -6,19 +6,25 @@ import { onMount } from "svelte";
 import BottomBar from "./components/BottomBar.svelte";
 import ImportPrompt from "./components/ImportPrompt.svelte";
 import Sidebar from "./components/Sidebar.svelte";
+import { api } from "./lib/api";
 import { screenForRun } from "./lib/flow";
 import { games } from "./lib/games.svelte";
 import { nav } from "./lib/nav.svelte";
 import { run } from "./lib/run.svelte";
 import { settings } from "./lib/settings.svelte";
 import { update } from "./lib/update.svelte";
+import { windows } from "./lib/windows.svelte";
+import About from "./screens/About.svelte";
+import AllSessions from "./screens/AllSessions.svelte";
 import Countdown from "./screens/Countdown.svelte";
 import DamagedGame from "./screens/DamagedGame.svelte";
 import EmptyDetail from "./screens/EmptyDetail.svelte";
 import Gallery from "./screens/Gallery.svelte";
 import GameDetail from "./screens/GameDetail.svelte";
+import Onboarding from "./screens/Onboarding.svelte";
 import SessionEnd from "./screens/SessionEnd.svelte";
 import SessionRunning from "./screens/SessionRunning.svelte";
+import Settings from "./screens/Settings.svelte";
 
 onMount(() => {
   if (nav.screen.kind === "gallery") {
@@ -30,6 +36,14 @@ onMount(() => {
     await Promise.allSettled([settings.load(), games.load()]);
     unwatch = await games.watch().catch(() => null);
     unrun = await run.subscribe().catch(() => null);
+    // Onboarding shows whenever a permission is missing at launch (§11.11).
+    const permissions = await api.onboarding.permissions().catch(() => null);
+    if (
+      permissions &&
+      !(permissions.accessibility && permissions.screenRecording && permissions.vigem)
+    ) {
+      windows.show("onboarding");
+    }
     await update.check();
   })();
   return () => {
@@ -63,13 +77,27 @@ const runGame = $derived.by(() => {
   const screen = nav.screen;
   return "gameId" in screen ? games.find(screen.gameId) : null;
 });
+
+// Cmd+, / Ctrl+, opens Settings (§11).
+function onKeyDown(event: KeyboardEvent) {
+  if (event.key === "," && (event.metaKey || event.ctrlKey) && !nav.busy) {
+    event.preventDefault();
+    windows.show("settings");
+  }
+}
 </script>
+
+<svelte:window onkeydown={onKeyDown} />
 
 {#if nav.screen.kind === "gallery"}
   <Gallery />
 {:else}
   <div class="shell">
-    <Sidebar />
+    <Sidebar
+      onsessions={() => windows.show("sessions")}
+      onsettings={() => windows.show("settings")}
+      onabout={() => windows.show("about")}
+    />
     <main class="detail">
       {#if nav.screen.kind === "game" && games.selected}
         <GameDetail game={games.selected} tab={nav.screen.tab} />
@@ -89,6 +117,15 @@ const runGame = $derived.by(() => {
     </main>
     <BottomBar />
     <ImportPrompt />
+    {#if windows.open === "sessions"}
+      <AllSessions />
+    {:else if windows.open === "settings"}
+      <Settings />
+    {:else if windows.open === "about"}
+      <About />
+    {:else if windows.open === "onboarding"}
+      <Onboarding />
+    {/if}
   </div>
 {/if}
 
