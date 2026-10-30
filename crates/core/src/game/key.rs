@@ -55,7 +55,8 @@ impl PhysicalKey {
 }
 
 /// Every code a Game may bind: the writing system, functional, control pad,
-/// arrow, numpad and function keys of the W3C code tables.
+/// arrow, numpad and function keys of the W3C code tables that exist on both
+/// macOS (`kVK_*`) and Windows (scan code). The `input` crate holds the table.
 pub const BINDABLE: &[&str] = &[
     // Writing system keys.
     "Backquote",
@@ -110,16 +111,12 @@ pub const BINDABLE: &[&str] = &[
     "Slash",
     // Functional keys.
     "Backspace",
-    "Convert",
     "Enter",
-    "KanaMode",
-    "NonConvert",
     "Space",
     "Tab",
     // Control pad.
     "Delete",
     "End",
-    "Help",
     "Home",
     "Insert",
     "PageDown",
@@ -141,17 +138,12 @@ pub const BINDABLE: &[&str] = &[
     "Numpad8",
     "Numpad9",
     "NumpadAdd",
-    "NumpadBackspace",
-    "NumpadClear",
-    "NumpadClearEntry",
     "NumpadComma",
     "NumpadDecimal",
     "NumpadDivide",
     "NumpadEnter",
     "NumpadEqual",
     "NumpadMultiply",
-    "NumpadParenLeft",
-    "NumpadParenRight",
     "NumpadSubtract",
     // Function keys.
     "Escape",
@@ -175,10 +167,6 @@ pub const BINDABLE: &[&str] = &[
     "F18",
     "F19",
     "F20",
-    "F21",
-    "F22",
-    "F23",
-    "F24",
 ];
 
 /// Modifier and lock keys: known codes a Game may not bind.

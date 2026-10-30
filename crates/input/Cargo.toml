@@ -8,3 +8,16 @@ publish.workspace = true
 
 [lints]
 workspace = true
+
+[dependencies]
+panowww-core = { path = "../core" }
+tracing = "0.1"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2-application-services = { version = "0.3", features = ["HIServices", "AXUIElement"] }
+objc2-core-foundation = "0.3"
+objc2-core-graphics = { version = "0.3", features = ["CGEvent", "CGEventTypes", "CGEventSource", "CGRemoteOperation"] }
+
+[dev-dependencies]
+# The turn_test example drives the Runner with the core fakes for the rest.
+panowww-core = { path = "../core", features = ["test-support"] }
