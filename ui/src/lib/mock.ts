@@ -5,7 +5,10 @@ import { mockIPC, mockWindows } from "@tauri-apps/api/mocks";
 import { defaultInput } from "./game";
 import type { Game } from "./generated/Game";
 import type { GameEntry } from "./generated/GameEntry";
+import type { RunEvent } from "./generated/RunEvent";
+import type { RunKindDto } from "./generated/RunKindDto";
 import type { Settings } from "./generated/Settings";
+import { applyRunEvent } from "./run.svelte";
 import { defaultSettings } from "./settings.svelte";
 
 function game(id: string, name: string, input: Game["input"], notes?: string): Game {
@@ -168,6 +171,7 @@ export function installMock(): void {
       case "save_settings":
         return null;
       case "start_run":
+        simulateRun(args.kind as RunKindDto);
         return true;
       case "stop_run":
         return null;
@@ -183,4 +187,41 @@ export function installMock(): void {
         return Promise.reject({ kind: "internal", message: `mock: ${cmd} is not mocked` });
     }
   });
+}
+
+/** A purple 16:9 "Sample" with a stripe at `x` percent, as a data URL. */
+function sample(x: number): string {
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='640' height='360'><rect width='640' height='360' fill='%236454b5'/><rect x='${x}%' y='40' width='40' height='280' fill='%23fff'/><circle cx='${x + 20}%' cy='180' r='30' fill='%23ffb0c2'/></svg>`;
+  return `data:image/svg+xml,${svg}`;
+}
+
+/** Plays the events of a run through the store, a few hundred ms apart. */
+function simulateRun(kind: RunKindDto): void {
+  const steps: RunEvent[] = [
+    { event: "countdown", secondsLeft: 2 },
+    { event: "countdown", secondsLeft: 1 },
+    { event: "started", expected: kind.kind === "session" ? 78 : 0 },
+  ];
+  if (kind.kind === "checkOverlap") {
+    steps.push({ event: "sample", slot: "first", image: sample(20) });
+    steps.push({ event: "moved", row: 1, col: 2 });
+    steps.push({ event: "sample", slot: "second", image: sample(60) });
+  } else if (kind.kind === "turnTest" || kind.kind === "pitchTest") {
+    for (let i = 2; i <= 6; i += 1) {
+      steps.push({ event: "moved", row: 1, col: i });
+    }
+    if (kind.kind === "pitchTest") {
+      steps.push({ event: "screenUnchanged" });
+    }
+  } else if (kind.kind === "stepOnce") {
+    steps.push({ event: "moved", row: 1, col: 2 });
+  }
+  steps.push({
+    event: "finished",
+    outcome: { status: "completed", shots: 0 },
+    folder: null,
+  });
+  for (const [i, step] of steps.entries()) {
+    setTimeout(() => applyRunEvent(step), 200 * (i + 1));
+  }
 }

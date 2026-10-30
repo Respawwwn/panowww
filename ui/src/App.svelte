@@ -7,6 +7,7 @@ import ImportPrompt from "./components/ImportPrompt.svelte";
 import Sidebar from "./components/Sidebar.svelte";
 import { games } from "./lib/games.svelte";
 import { nav } from "./lib/nav.svelte";
+import { run } from "./lib/run.svelte";
 import { settings } from "./lib/settings.svelte";
 import { update } from "./lib/update.svelte";
 import DamagedGame from "./screens/DamagedGame.svelte";
@@ -19,12 +20,17 @@ onMount(() => {
     return;
   }
   let unwatch: (() => void) | null = null;
+  let unrun: (() => void) | null = null;
   void (async () => {
     await Promise.allSettled([settings.load(), games.load()]);
     unwatch = await games.watch().catch(() => null);
+    unrun = await run.subscribe().catch(() => null);
     await update.check();
   })();
-  return () => unwatch?.();
+  return () => {
+    unwatch?.();
+    unrun?.();
+  };
 });
 
 const damagedEntry = $derived.by(() => {

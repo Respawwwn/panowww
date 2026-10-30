@@ -119,6 +119,19 @@ export const strings = {
     calibrate: {
       title: "Calibrate",
       countdown: "Tests start after a 5 s countdown: switch to the game.",
+      run: "Run",
+      open: "Open",
+      stop: "Stop",
+      overshot: "Overshot",
+      undershot: "Undershot",
+      turn: "Turn",
+      pitch: "Pitch",
+      turnTestTitle: "Turn test",
+      overlapTurnTitle: "Check overlap (turn)",
+      pitchTestTitle: "Pitch test",
+      overlapPitchTitle: "Check overlap (pitch)",
+      stepOnceTitle: "Step once",
+      running: "{tool} running…",
       turnTest:
         "Pick a landmark. After the turn the camera must point at it again. Overshot or undershot? Adjust, then run again.",
       overlapTurn:
@@ -147,6 +160,14 @@ export const strings = {
   },
   overlap: {
     instruction: "Two Samples one Step apart, superimposed. Slide until they line up.",
+    title: "Check overlap · {game}",
+    target: "Target 25–35 %",
+    sample1: "Sample 1",
+    sample2: "Sample 2",
+    chip: "Overlap {p} %",
+    align: "Align",
+    waiting: "Taking the Samples…",
+    none: "No Samples yet. Open Check overlap from the Calibrate card.",
     verdict: {
       ok: "{p} % Overlap, in the 25–35 % target.",
       low: {
