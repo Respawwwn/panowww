@@ -76,6 +76,20 @@ impl Zone {
     }
 }
 
+/// One display as the capture adapter enumerates it: what a Zone's display
+/// is checked against at load (spec §6).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct DisplayInfo {
+    pub id: DisplayId,
+    pub width: u32,
+    pub height: u32,
+    pub scale: f64,
+    /// Windows only: HDR displays get an amber warning in the zone status.
+    pub hdr: bool,
+}
+
 /// An RGB8 image without alpha, rows top to bottom, `width × height × 3`
 /// bytes.
 #[derive(Debug, Clone, PartialEq, Eq)]
