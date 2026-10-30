@@ -1,98 +1,52 @@
 // The one place the UI talks to Rust: one typed wrapper per command of the
-// app crate. Types come from `generated/`, written by ts-rs (`just
-// generate`). Commands exist in Rust once issue 11 lands; until then every
-// call is mocked in tests with `mockIPC`.
-import { Channel, invoke } from "@tauri-apps/api/core";
+// app crate, over the types ts-rs writes into `generated/` (`just
+// generate`). Every command is mockable with `mockIPC`.
+import { invoke } from "@tauri-apps/api/core";
+import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import type { AppError } from "./generated/AppError";
+import type { AxisDto } from "./generated/AxisDto";
 import type { DisplayInfo } from "./generated/DisplayInfo";
+import type { Estimate } from "./generated/Estimate";
 import type { Game } from "./generated/Game";
 import type { GameEntry } from "./generated/GameEntry";
 import type { Import } from "./generated/Import";
+import type { PermissionKind } from "./generated/PermissionKind";
+import type { Permissions } from "./generated/Permissions";
 import type { Pong } from "./generated/Pong";
-import type { RunOutcome } from "./generated/RunOutcome";
+import type { RunEvent } from "./generated/RunEvent";
+import type { RunKindDto } from "./generated/RunKindDto";
+import type { RunnerPhase } from "./generated/RunnerPhase";
 import type { SessionSummary } from "./generated/SessionSummary";
 import type { Settings } from "./generated/Settings";
+import type { UpdateInfo } from "./generated/UpdateInfo";
 import type { Zone } from "./generated/Zone";
-import type { ZoneStatus } from "./generated/ZoneStatus";
+import type { ZoneState } from "./generated/ZoneState";
 
-/** The one error shape the UI sees (spec §4.7). */
-export type AppErrorKind =
-  | "validation"
-  | "notFound"
-  | "store"
-  | "input"
-  | "capture"
-  | "permission"
-  | "busy"
-  | "internal";
+export type {
+  AppError,
+  AxisDto,
+  Estimate,
+  PermissionKind,
+  Permissions,
+  RunEvent,
+  RunKindDto,
+  RunnerPhase,
+  UpdateInfo,
+  ZoneState,
+};
 
-export interface AppError {
-  kind: AppErrorKind;
-  message: string;
-  /** For `validation`: one entry per failing field. */
-  fields?: { field: string; message: string }[];
-}
+/** The window event every `RunEvent` arrives on. */
+export const RUN_EVENT = "run";
 
-/** Which run the Calibrate card or the Start card asks for. */
-export type RunKindDto =
-  | { kind: "session" }
-  | { kind: "turnTest" }
-  | { kind: "pitchTest" }
-  | { kind: "stepOnce"; axis: "turn" | "pitch" }
-  | { kind: "checkOverlap"; axis: "turn" | "pitch" };
-
-/** What the Runner streams on the progress Channel (spec §4.4). */
-export type RunEvent =
-  | { event: "countdown"; secondsLeft: number }
-  | { event: "started"; expected: number }
-  | {
-      event: "shot";
-      index: number;
-      row: number;
-      col: number;
-      captureMs: number;
-      /** data: URL of the live JPEG thumbnail, or null when it could not be encoded. */
-      thumbnail: string | null;
-    }
-  | { event: "moved"; row: number; col: number }
-  | { event: "sample"; slot: "first" | "second"; image: string }
-  | { event: "screenUnchanged" }
-  | { event: "preview"; image: string; displayW: number; displayH: number; zone: Zone }
-  | { event: "finished"; outcome: RunOutcome; folder: string | null };
-
-/** Why a countdown could not start (spec §11.5 error state). */
-export type StartFailure =
-  | { reason: "accessibility" }
-  | { reason: "screenRecording" }
-  | { reason: "vigem" }
-  | { reason: "displayGone"; display: string }
-  | { reason: "captureUnavailable"; message: string };
-
-export interface ZoneState {
-  zone: Zone | null;
-  status: ZoneStatus | null;
-  /** 1-based index of the zone's display among the connected ones, for `Display {n}`. */
-  displayIndex: number | null;
-}
-
-export interface Estimate {
-  durationMs: number;
-  /** `≈ 4 min 20 s` */
-  duration: string;
-  shots: number;
-}
-
-export interface Permissions {
-  accessibility: boolean;
-  screenRecording: boolean;
-  /** Windows only; always true elsewhere. */
-  vigem: boolean;
-}
-
-export type PermissionKind = "accessibility" | "screenRecording";
-
-export interface UpdateInfo {
-  version: string;
-  url: string;
+/** Whether a rejected command carried an `AppError`. */
+export function isAppError(error: unknown): error is AppError {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "kind" in error &&
+    "message" in error &&
+    typeof (error as AppError).message === "string"
+  );
 }
 
 export const api = {
@@ -113,19 +67,22 @@ export const api = {
     importReplace: (incoming: Game) => invoke<Game>("import_replace", { incoming }),
     importKeepBoth: (incoming: Game) => invoke<Game>("import_keep_both", { incoming }),
     /** For damaged files, which have no id. */
-    revealFile: (path: string) => invoke<void>("reveal_path", { path }),
     deleteFile: (path: string) => invoke<void>("delete_game_file", { path }),
+    revealFile: (path: string) => invoke<void>("reveal_path", { path }),
     estimate: (game: Game) => invoke<Estimate>("estimate_session", { game }),
     adjustStep: (
       id: string,
-      axis: "turn" | "pitch",
+      axis: AxisDto,
       observation: "overshot" | "undershot",
       magnitude: "fine" | "coarse",
     ) => invoke<Game>("adjust_step", { id, axis, observation, magnitude }),
+    /** The Game the detail area shows: what the Start shortcut runs. */
+    select: (id: string | null) => invoke<void>("select_game", { id }),
   },
 
   zone: {
     get: (gameId: string) => invoke<ZoneState>("get_zone", { gameId }),
+    set: (gameId: string, zone: Zone) => invoke<ZoneState>("set_zone", { gameId, zone }),
     /** Opens the picker windows; resolves once saved or cancelled. */
     pick: (gameId: string) => invoke<ZoneState>("pick_zone", { gameId }),
     show: (gameId: string, on: boolean) => invoke<void>("show_zone", { gameId, on }),
@@ -134,18 +91,19 @@ export const api = {
 
   run: {
     /**
-     * Pre-flight, stream, countdown, then the run. Events arrive on `onEvent`
-     * until `finished`. Rejects with a `StartFailure` when the countdown
-     * cannot start; ignored while a run is in progress.
+     * Pre-flight, stream, countdown, then the run, from a button (5 s).
+     * Resolves to false when a run is in progress (the request is ignored).
+     * Everything after arrives on `onEvent`, `cannotStart` included.
      */
-    start: (gameId: string, kind: RunKindDto, onEvent: (event: RunEvent) => void) => {
-      const channel = new Channel<RunEvent>();
-      channel.onmessage = onEvent;
-      return invoke<void>("start_run", { gameId, kind, onEvent: channel });
-    },
+    start: (gameId: string, kind: RunKindDto) => invoke<boolean>("start_run", { gameId, kind }),
     /** Cancels a countdown or stops a run; `release_all` first. */
     stop: () => invoke<void>("stop_run"),
+    /** The Hide / Show preview button; persisted in Settings. */
     setPreview: (on: boolean) => invoke<void>("set_preview", { on }),
+    phase: () => invoke<RunnerPhase>("runner_phase"),
+    /** Every `RunEvent`, shortcut-started runs included. */
+    onEvent: (handler: (event: RunEvent) => void): Promise<UnlistenFn> =>
+      listen<RunEvent>(RUN_EVENT, (e) => handler(e.payload)),
   },
 
   sessions: {
@@ -162,18 +120,19 @@ export const api = {
 
   settings: {
     get: () => invoke<Settings>("get_settings"),
+    /** Writes the settings and re-registers the shortcuts when they changed. */
     save: (settings: Settings) => invoke<void>("save_settings", { settings }),
     /** Folder picker; null when cancelled. */
     chooseSessionsFolder: () => invoke<string | null>("choose_sessions_folder"),
     revealLogs: () => invoke<void>("reveal_logs"),
     revealPath: (path: string) => invoke<void>("reveal_path", { path }),
-    /** Re-registers the global shortcuts; rejects with the failing combo. */
+    /** Re-registers the global shortcuts; rejects naming the failing combo. */
     applyShortcuts: () => invoke<void>("apply_shortcuts"),
   },
 
   onboarding: {
     permissions: () => invoke<Permissions>("permissions"),
-    request: (permission: PermissionKind) => invoke<void>("request_permission", { permission }),
+    request: (permission: PermissionKind) => invoke<boolean>("request_permission", { permission }),
     openSystemSettings: (permission: PermissionKind) =>
       invoke<void>("open_system_settings", { permission }),
     openUrl: (url: string) => invoke<void>("open_url", { url }),
