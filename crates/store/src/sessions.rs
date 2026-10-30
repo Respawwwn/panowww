@@ -4,6 +4,8 @@
 
 use std::path::{Path, PathBuf};
 
+use serde::{Deserialize, Serialize};
+use ts_rs::TS;
 use uuid::Uuid;
 
 use crate::StoreError;
@@ -11,7 +13,9 @@ use crate::session::{SessionRecord, SessionStatus, TIMESTAMP};
 use crate::sink::WallClock;
 
 /// One Session folder and its record.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
 pub struct SessionSummary {
     pub folder: PathBuf,
     pub record: SessionRecord,
