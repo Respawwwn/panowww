@@ -42,6 +42,11 @@ pub enum StoreError {
     UnknownGame(Uuid),
     #[error("Could not watch the Games folder: {0}")]
     Watch(#[from] notify::Error),
+    /// A Shot could not be encoded, written or read back as PNG.
+    #[error("PNG {}: {message}", path.display())]
+    Png { path: PathBuf, message: String },
+    #[error("Could not zip {}: {message}", path.display())]
+    Zip { path: PathBuf, message: String },
 }
 
 impl StoreError {
