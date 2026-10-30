@@ -22,8 +22,22 @@ One screenshot of the Capture zone taken during a Session.
 _Avoid_: capture (ambiguous), screenshot.
 
 **Test**
-A run of a Game's camera movements without taking Shots, used to verify the Game before a Session. Creates no Session.
+A run of a Game's camera movements without taking Shots, used to verify the Game before a Session. Creates no Session. Two kinds: a **Turn test** (one full horizontal turn, the camera must come back to its landmark) and a **Pitch test** (from the start pole to the opposite pole).
 _Avoid_: dry-run.
+
+**Step once**
+A single Step, horizontal or vertical, fired on its own to feel its size while calibrating a Game.
+
+**Check overlap**
+Taking two Samples one Step apart and superimposing them so the user can judge the Overlap. Neither a Test nor a Session.
+
+**Sample**
+An image of the Capture zone taken outside a Session, for Check overlap or to tell whether the screen changed after a Step. Never kept.
+_Avoid_: shot, screenshot.
+
+**Display preview**
+The reduced, regularly refreshed image of the display holding the Capture zone, shown in the app during a countdown and a run, with the zone frame drawn on it. Never saved. Not a Sample, not a Shot thumbnail.
+_Avoid_: live view, monitor, mirror.
 
 **Nadir / Zenith**
 Straight down / straight up. The pole where a Session starts.

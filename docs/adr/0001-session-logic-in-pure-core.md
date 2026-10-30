@@ -1,0 +1,3 @@
+# Session logic lives in a pure core; OS adapters only perform primitives
+
+Everything that decides how a Session or Test runs (capture plan, Step to sub-move splitting, key holds, drag sequences, inversion, delays, cancellation) lives in `panowww-core`, which has no OS code and forbids `unsafe`. The input and capture adapters per OS are deliberately dumb: they only press/release a physical key, move the mouse by a delta, press/release a button, set a stick position, or return a fresh cropped frame. We chose this over richer per-OS adapters so the whole run is tested with fakes and snapshots, without a game, and so movement logic is written once instead of once per OS. Do not move movement logic into an adapter; add a primitive instead.
