@@ -1,0 +1,9 @@
+---
+source: crates/core/tests/plan.rs
+expression: "plan(&game, run_kind).to_string()"
+---
+# step once (turn): 4 ops, 0 shots, 776ms
+sample BeforeFirstStep
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+sample AfterFirstStep

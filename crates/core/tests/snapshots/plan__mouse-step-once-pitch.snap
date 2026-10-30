@@ -1,0 +1,9 @@
+---
+source: crates/core/tests/plan.rs
+expression: "plan(&game, run_kind).to_string()"
+---
+# step once (pitch): 4 ops, 0 shots, 688ms
+sample BeforeFirstStep
+move pitch: drag Right dx 0 dy -610 in 31 sub-moves
+wait 300ms
+sample AfterFirstStep

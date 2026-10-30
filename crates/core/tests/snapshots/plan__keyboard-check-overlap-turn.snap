@@ -1,0 +1,9 @@
+---
+source: crates/core/tests/plan.rs
+expression: "plan(&game, run_kind).to_string()"
+---
+# check overlap (turn): 4 ops, 0 shots, 520ms
+sample First
+move turn: key KeyD hold 120ms
+wait 300ms
+sample Second

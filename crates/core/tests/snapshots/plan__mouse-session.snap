@@ -1,0 +1,327 @@
+---
+source: crates/core/tests/plan.rs
+expression: "plan(&game, run_kind).to_string()"
+---
+# session: 322 ops, 78 shots, 82.968s
+shot r01 c01
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r01 c02
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r01 c03
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r01 c04
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r01 c05
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r01 c06
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r01 c07
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r01 c08
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r01 c09
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r01 c10
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r01 c11
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r01 c12
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r01 c13
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+move pitch: drag Right dx 0 dy -610 in 31 sub-moves
+wait 300ms
+shot r02 c01
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r02 c02
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r02 c03
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r02 c04
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r02 c05
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r02 c06
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r02 c07
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r02 c08
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r02 c09
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r02 c10
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r02 c11
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r02 c12
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r02 c13
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+move pitch: drag Right dx 0 dy -610 in 31 sub-moves
+wait 300ms
+shot r03 c01
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r03 c02
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r03 c03
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r03 c04
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r03 c05
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r03 c06
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r03 c07
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r03 c08
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r03 c09
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r03 c10
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r03 c11
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r03 c12
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r03 c13
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+move pitch: drag Right dx 0 dy -610 in 31 sub-moves
+wait 300ms
+shot r04 c01
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r04 c02
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r04 c03
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r04 c04
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r04 c05
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r04 c06
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r04 c07
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r04 c08
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r04 c09
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r04 c10
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r04 c11
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r04 c12
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r04 c13
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+move pitch: drag Right dx 0 dy -610 in 31 sub-moves
+wait 300ms
+shot r05 c01
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r05 c02
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r05 c03
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r05 c04
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r05 c05
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r05 c06
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r05 c07
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r05 c08
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r05 c09
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r05 c10
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r05 c11
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r05 c12
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r05 c13
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+move pitch: drag Right dx 0 dy -610 in 31 sub-moves
+wait 300ms
+shot r06 c01
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r06 c02
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r06 c03
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r06 c04
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r06 c05
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r06 c06
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r06 c07
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r06 c08
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r06 c09
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r06 c10
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r06 c11
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r06 c12
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms
+shot r06 c13
+wait 300ms
+move turn: drag Right dx 840 dy 0 in 42 sub-moves
+wait 300ms

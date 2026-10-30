@@ -1,0 +1,21 @@
+---
+source: crates/core/tests/plan.rs
+expression: "plan(&game, run_kind).to_string()"
+---
+# pitch test: 16 ops, 0 shots, 2.9s
+sample BeforeFirstStep
+move pitch: stick x 0 y 0.8 hold 100ms
+wait 300ms
+sample AfterFirstStep
+move pitch: stick x 0 y 0.8 hold 100ms
+wait 300ms
+move pitch: stick x 0 y 0.8 hold 100ms
+wait 300ms
+move pitch: stick x 0 y 0.8 hold 100ms
+wait 300ms
+move pitch: stick x 0 y 0.8 hold 100ms
+wait 300ms
+move pitch: stick x 0 y 0.8 hold 100ms
+wait 300ms
+move pitch: stick x 0 y 0.8 hold 100ms
+wait 300ms
