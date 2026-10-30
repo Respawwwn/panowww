@@ -70,6 +70,13 @@ export class GameEditor {
     this.schedule();
   }
 
+  /** Takes a Game saved elsewhere (an adjust) without sending it back. */
+  replace(game: Game): void {
+    this.game = structuredClone($state.snapshot(game)) as Game;
+    this.errors = {};
+    void this.refreshEstimate();
+  }
+
   /** The message of one field, by its JSON path (`rows`, `input.turnDelta`). */
   error(field: string): string | null {
     return this.errors[field] ?? null;
