@@ -11,6 +11,9 @@ all-features = true
 [advisories]
 version = 2
 yanked = "deny"
+ignore = [
+    { id = "RUSTSEC-2024-0370", reason = "proc-macro-error is pulled in by Tauri; unmaintained, not a vulnerability" },
+]
 
 [licenses]
 version = 2

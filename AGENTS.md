@@ -23,7 +23,8 @@ Use the glossary terms in identifiers, comments, strings and commit messages: Ga
 | `panowww-input` | `crates/input` | `Camera` adapters (CGEvent, SendInput, ViGEm), input prerequisite checks. |
 | `panowww-capture` | `crates/capture` | `Grabber` / `Stream` adapters (ScreenCaptureKit, WGC), displays, Display preview. |
 | `panowww-store` | `crates/store` | Everything on disk: Games, settings, Session folders, PNG worker, zip. Implements `ShotSink`. |
-| `panowww-app` | `app` | Thin Tauri shell: commands, the single Runner owner, overlay, shortcuts. (issue 2) |
+| `panowww-app` | `app` | Thin Tauri shell: commands (`src/commands.rs`, each listed in `build.rs` and allowed in `capabilities/default.json`), the single Runner owner, overlay, shortcuts. |
+| UI | `ui` | Svelte 5 + TypeScript + Vite, pnpm, Biome, Vitest. `src/lib/api.ts` wraps every command; `src/lib/strings.ts` holds every user-visible string; `src/lib/generated/` is written by ts-rs, never by hand. |
 
 Rules:
 - **No OS code in `core` or `store`.** Both `#![forbid(unsafe_code)]`. `store` touches paths only.
@@ -36,10 +37,11 @@ Rules:
 
 ## Checks
 
-Tools: `just`, `cargo-nextest`, `cargo-deny`, `typos` (`brew install just cargo-nextest cargo-deny typos-cli`). The toolchain is pinned in `rust-toolchain.toml`.
+Tools: `just`, `cargo-nextest`, `cargo-deny`, `typos` (`brew install just cargo-nextest cargo-deny typos-cli`), Node 24 and pnpm (`corepack enable pnpm`, then `pnpm install` at the root). The toolchain is pinned in `rust-toolchain.toml`; the Tauri CLI is an npm dev dependency (`pnpm tauri`).
 
-- `just check`: rustfmt, clippy `-D warnings`, typos, cargo-deny.
-- `just test`: nextest and doc tests.
-- `just lint`, `just fmt`, `just dev`.
+- `just check`: rustfmt, clippy `-D warnings`, typos, cargo-deny, Biome, svelte-check.
+- `just test`: nextest, doc tests, Vitest.
+- `just generate`: writes `ui/src/lib/generated/` from every `#[ts(export)]` type. Run it after changing a type the UI sees.
+- `just dev`: the app with hot reload. `just lint`, `just fmt`, `just ui-build`.
 
-CI (`.github/workflows/ci.yml`) runs the same on macOS and Windows, plus `core` + `store` and a workspace build on Linux. Actions are pinned by SHA; run `actionlint` after editing workflows.
+The app crate embeds `ui/dist`, so `just lint` and `just test` build the UI first. CI (`.github/workflows/ci.yml`) runs the same on macOS and Windows, plus `core` + `store` and a library-crate build on Linux. Actions are pinned by SHA; run `actionlint` after editing workflows.
