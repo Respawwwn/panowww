@@ -29,3 +29,23 @@ Game matrix:
 | Game | Input device | Mode | Display mode | I2 | I3 | I4 | Notes |
 |---|---|---|---|---|---|---|---|
 | | | | | | | | |
+
+## macOS · capture (issue 10)
+
+Prerequisites: Screen Recording granted to the binary that runs the check
+(the terminal for the example), then relaunch it.
+
+```sh
+cargo run -p panowww-capture --example shot -- check
+cargo run -p panowww-capture --example shot -- list
+cargo run -p panowww-capture --example shot -- 0 100 100 1600 900
+```
+
+| # | Check | How | Pass | Result |
+|---|---|---|---|---|
+| C1 | Screen Recording check | `shot check` before and after granting, relaunch between | `false` before, `true` after; the request shows the system prompt once; System Settings opens on the Screen Recording list | |
+| C2 | Displays | `shot list` with one and two displays | Each display once, size in points, scale 2 on Retina, the id stable across a relaunch and a replug | |
+| C3 | Zone Shot | `shot 0 100 100 1600 900` with a Panowww window and the terminal over the zone | `shot.png` is 3200 × 1800 px on Retina, shows the game, not the Panowww window, no cursor | |
+| C4 | Timings at 1440p | Same, zone 2560 × 1440 | Note the first and second shot times (spike: 95–155 ms then 30–47 ms) and the PNG time | |
+| C5 | Preview | Same run, the three preview lines | About 6 frames in 3 s, 30–60 KB each, none after stop | |
+| C6 | macOS 26 picker alert | First capture of a fresh build | The "bypass the system private window picker" alert appears once; after Allow, captures work and the alert is gone | |

@@ -8,3 +8,19 @@ publish.workspace = true
 
 [lints]
 workspace = true
+
+[dependencies]
+image = { version = "0.25", default-features = false, features = ["jpeg"] }
+panowww-core = { path = "../core" }
+tracing = "0.1"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+block2 = "0.6"
+objc2 = "0.6"
+objc2-core-foundation = "0.3"
+objc2-core-graphics = { version = "0.3", features = ["CGDataProvider", "CGDirectDisplay", "CGDisplayConfiguration", "CGImage", "CGWindow"] }
+objc2-foundation = { version = "0.3", features = ["NSArray", "NSError", "NSObject", "NSString"] }
+objc2-screen-capture-kit = "0.3"
+
+[dev-dependencies]
+png = "0.18"
