@@ -1,16 +1,24 @@
 <script lang="ts">
-// Centred empty state when no Game exists (spec §11.1). The buttons act
-// once issue 15 brings the Game commands.
+// Centred empty state when no Game exists (spec §11.1, §13.5). The buttons
+// act once issue 15 brings the Game commands.
+import Button from "../components/Button.svelte";
 import { strings } from "../lib/strings";
+
+type Props = {
+  onnew?: () => void;
+  onimport?: () => void;
+};
+
+let { onnew, onimport }: Props = $props();
 </script>
 
 <section class="empty">
-  <h1>{strings.empty.title}</h1>
+  <h1 class="t-title">{strings.empty.title}</h1>
   <p>{strings.empty.body}</p>
   <p>{strings.empty.import}</p>
   <div class="actions">
-    <button type="button" class="primary" disabled>{strings.empty.newButton}</button>
-    <button type="button" class="secondary" disabled>{strings.empty.importButton}</button>
+    <Button variant="primary" size="lg" disabled={!onnew} onclick={onnew}>{strings.empty.newButton}</Button>
+    <Button size="lg" disabled={!onimport} onclick={onimport}>{strings.empty.importButton}</Button>
   </div>
 </section>
 
@@ -21,14 +29,14 @@ import { strings } from "../lib/strings";
     align-items: center;
     justify-content: center;
     height: 100%;
+    max-width: 440px;
+    margin: 0 auto;
     text-align: center;
     gap: 8px;
   }
 
   h1 {
     margin: 0;
-    font-size: 22px;
-    font-weight: 700;
   }
 
   p {
@@ -40,29 +48,5 @@ import { strings } from "../lib/strings";
     display: flex;
     gap: 8px;
     margin-top: 12px;
-  }
-
-  button {
-    height: var(--control-height);
-    padding: 0 14px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 500;
-  }
-
-  .primary {
-    border: 0;
-    background: var(--accent);
-    color: #fff;
-  }
-
-  .secondary {
-    border: 1px solid var(--line);
-    background: var(--card);
-    color: var(--lavender-text);
-  }
-
-  button:disabled {
-    opacity: 0.45;
   }
 </style>

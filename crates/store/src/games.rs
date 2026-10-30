@@ -5,6 +5,8 @@
 use std::path::{Path, PathBuf};
 
 use panowww_core::game::{FieldError, Game, GameError, NewGameDefaults, name};
+use serde::{Deserialize, Serialize};
+use ts_rs::TS;
 use uuid::Uuid;
 
 use crate::StoreError;
@@ -12,7 +14,9 @@ use crate::json;
 use crate::paths::AppPaths;
 
 /// One file of the Games folder.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(tag = "kind", rename_all = "camelCase")]
+#[ts(export)]
 pub enum GameEntry {
     Game {
         game: Game,
@@ -45,7 +49,9 @@ impl GameEntry {
 }
 
 /// What importing a file led to.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(tag = "kind", rename_all = "camelCase")]
+#[ts(export)]
 pub enum Import {
     /// Unknown id: the Game was added, its name made unique.
     Added(Game),
