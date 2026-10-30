@@ -4,7 +4,7 @@
 
 use std::sync::Arc;
 
-use panowww_core::ports::{Camera, CaptureError, DisplayInfo, Grabber};
+use panowww_core::ports::{Camera, CaptureError, DisplayId, DisplayInfo, Grabber};
 
 use crate::dto::PermissionKind;
 
@@ -18,6 +18,9 @@ pub trait Backend: Send + Sync {
     /// Whether gamepad Games can run here (ViGEmBus present on Windows).
     fn gamepad_available(&self) -> bool;
     fn displays(&self) -> Result<Vec<DisplayInfo>, CaptureError>;
+    /// Where a display sits in the global point space (top-left of the main
+    /// display at the origin), for the overlay window. `None` when gone.
+    fn display_origin(&self, id: &DisplayId) -> Option<(f64, f64)>;
     /// Asks the OS; returns whether the permission is granted now.
     fn request_permission(&self, permission: PermissionKind) -> bool;
     fn open_permission_settings(&self, permission: PermissionKind) -> std::io::Result<()>;
@@ -56,6 +59,12 @@ impl Backend for SystemBackend {
             .into_iter()
             .map(|d| d.info)
             .collect())
+    }
+
+    fn display_origin(&self, id: &DisplayId) -> Option<(f64, f64)> {
+        panowww_capture::macos::displays::find_display(id)
+            .ok()
+            .map(|entry| (entry.bounds.origin.x, entry.bounds.origin.y))
     }
 
     fn request_permission(&self, permission: PermissionKind) -> bool {
@@ -98,6 +107,10 @@ impl Backend for SystemBackend {
 
     fn displays(&self) -> Result<Vec<DisplayInfo>, CaptureError> {
         Ok(Vec::new())
+    }
+
+    fn display_origin(&self, _id: &DisplayId) -> Option<(f64, f64)> {
+        None
     }
 
     fn request_permission(&self, _permission: PermissionKind) -> bool {
@@ -272,6 +285,15 @@ pub mod fake {
 
         fn displays(&self) -> Result<Vec<DisplayInfo>, CaptureError> {
             Ok(self.displays.lock().unwrap().clone())
+        }
+
+        fn display_origin(&self, id: &DisplayId) -> Option<(f64, f64)> {
+            self.displays
+                .lock()
+                .unwrap()
+                .iter()
+                .any(|d| d.id == *id)
+                .then_some((0.0, 0.0))
         }
 
         fn request_permission(&self, _: PermissionKind) -> bool {
