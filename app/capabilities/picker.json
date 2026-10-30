@@ -1,0 +1,14 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "picker",
+  "description": "What the Capture zone picker windows may call.",
+  "windows": [
+    "picker-*"
+  ],
+  "permissions": [
+    "allow-picker-setup",
+    "allow-picker-save",
+    "allow-picker-cancel",
+    "allow-picker-frame"
+  ]
+}

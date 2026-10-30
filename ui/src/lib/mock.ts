@@ -72,6 +72,23 @@ export function installMock(): void {
   ];
   const sessions = sampleSessions(entries);
   const zones: Record<string, boolean> = { "00000000-0000-4000-8000-000000000001": true };
+  const zoneState = (has: boolean) =>
+    has
+      ? {
+          zone: {
+            displayId: "main",
+            x: 320,
+            y: 180,
+            w: 1920,
+            h: 1080,
+            displayW: 2560,
+            displayH: 1440,
+            scale: 2,
+          },
+          status: "ready",
+          displayIndex: 1,
+        }
+      : { zone: null, status: null, displayIndex: null };
   const settings: Settings = structuredClone(defaultSettings);
 
   mockWindows("main");
@@ -145,30 +162,13 @@ export function installMock(): void {
         return true;
       case "import_game":
         return null;
-      case "get_zone": {
-        const has = zones[String(args.gameId)];
-        return has
-          ? {
-              zone: {
-                displayId: "main",
-                x: 320,
-                y: 180,
-                w: 1920,
-                h: 1080,
-                displayW: 2560,
-                displayH: 1440,
-                scale: 2,
-              },
-              status: "ready",
-              displayIndex: 1,
-            }
-          : { zone: null, status: null, displayIndex: null };
+      case "get_zone":
+        return zoneState(Boolean(zones[String(args.gameId)]));
+      case "pick_zone": {
+        // The picker windows are their own pages; here the pick just lands.
+        zones[String(args.gameId)] = true;
+        return new Promise((resolve) => setTimeout(() => resolve(zoneState(true)), 300));
       }
-      case "pick_zone":
-        return Promise.reject({
-          kind: "internal",
-          message: "The Capture zone picker arrives with issue 13.",
-        });
       case "get_settings":
         return settings;
       case "save_settings":

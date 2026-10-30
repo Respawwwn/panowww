@@ -12,4 +12,4 @@ mod sck;
 mod stream;
 
 pub use displays::{DisplayEntry, list_displays};
-pub use stream::{SckGrabber, SckStream};
+pub use stream::{SckGrabber, SckStream, display_image};

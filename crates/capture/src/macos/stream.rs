@@ -69,6 +69,27 @@ impl SckStream {
     }
 }
 
+/// One screenshot of the whole display, scaled so its longer side is at
+/// most `long_side` pixels, as JPEG: the dimmed picture behind the Capture
+/// zone picker (spec §11.4).
+pub fn display_image(display: &DisplayId, long_side: u32) -> Result<Jpeg, CaptureError> {
+    let entry = find_display(display)?;
+    let native_w = pixels(entry.info.width, entry.info.scale);
+    let native_h = pixels(entry.info.height, entry.info.scale);
+    let (width, height) = fit(
+        u32::try_from(native_w).unwrap_or(u32::MAX),
+        u32::try_from(native_h).unwrap_or(u32::MAX),
+        long_side,
+    );
+    let spec = CaptureSpec {
+        source: None,
+        width: width as usize,
+        height: height as usize,
+    };
+    let (capture, _) = Capture::new(entry.cg_id, spec)?;
+    encode(&capture.screenshot()?)
+}
+
 impl Stream for SckStream {
     /// `SCScreenshotManager` captures on demand, so every frame is newer
     /// than `not_before` by construction.

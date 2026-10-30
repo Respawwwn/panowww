@@ -9,6 +9,7 @@ mod dto;
 mod error;
 mod logging;
 mod overlay;
+mod picker;
 mod runner;
 mod shortcuts;
 mod state;
@@ -80,6 +81,15 @@ pub fn run() {
                 app.state::<SharedState>().runner.shutdown();
                 app.exit(0);
             }
+            // A picker window closed by other means cancels the pick.
+            tauri::RunEvent::WindowEvent {
+                label,
+                event: tauri::WindowEvent::Destroyed,
+                ..
+            } if label.starts_with(picker::LABEL_PREFIX) => {
+                let state = app.state::<SharedState>();
+                state.picker.window_gone(app, &state.overlay, &label);
+            }
             _ => {}
         });
 }
@@ -139,6 +149,7 @@ fn build_state(app: &tauri::App) -> tauri::Result<SharedState> {
         runner,
         backend,
         overlay,
+        picker: picker::Picker::default(),
         version: env!("CARGO_PKG_VERSION").to_owned(),
         watcher: Mutex::new(watcher),
     }))
