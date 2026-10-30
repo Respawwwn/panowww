@@ -1,0 +1,5 @@
+[files]
+extend-exclude = ["target/", "spike/", "prototype/", ".wayfinder/", ".idea/"]
+
+[default.extend-words]
+# Brand names: Respawwwn and Panowww.
