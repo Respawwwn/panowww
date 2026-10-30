@@ -1,19 +1,31 @@
 <script lang="ts">
-// Lavender sidebar (spec §11.1): mark and wordmark, the Games list, the
+// Lavender sidebar (spec §11.1): mark and wordmark, the Games list (name
+// and device icon, amber ⚠ for a damaged file, selected row purple), the
 // + New / Import… toolbar, the All Sessions / Settings / About footer.
-// Greyed to 45 % during a countdown or a run. The list arrives with issue 15.
+// Greyed to 45 % during a countdown or a run.
+import { games } from "../lib/games.svelte";
 import { nav } from "../lib/nav.svelte";
 import { strings } from "../lib/strings";
+import DeviceIcon from "./DeviceIcon.svelte";
 
 type Props = {
-  onnew?: () => void;
-  onimport?: () => void;
   onsessions?: () => void;
   onsettings?: () => void;
   onabout?: () => void;
 };
 
-let { onnew, onimport, onsessions, onsettings, onabout }: Props = $props();
+let { onsessions, onsettings, onabout }: Props = $props();
+
+function fileName(path: string): string {
+  return (
+    path
+      .split("/")
+      .pop()
+      ?.replace(/\.panowww\.json$/, "") ?? path
+  );
+}
+
+const selectedPath = $derived(nav.screen.kind === "damaged" ? nav.screen.path : null);
 </script>
 
 <aside class="sidebar" class:dim={nav.busy}>
@@ -23,12 +35,41 @@ let { onnew, onimport, onsessions, onsettings, onabout }: Props = $props();
   </header>
 
   <nav class="games" aria-label="Games">
-    <!-- Game rows arrive with issue 15. -->
+    <ul>
+      {#each games.entries as entry (entry.path)}
+        {#if entry.kind === "game"}
+          <li>
+            <button
+              type="button"
+              class="game"
+              class:on={nav.gameId === entry.game.id}
+              onclick={() => games.select(entry.game.id)}
+            >
+              <DeviceIcon device={entry.game.input.device} />
+              <span>{entry.game.name}</span>
+            </button>
+          </li>
+        {:else}
+          <li>
+            <button
+              type="button"
+              class="game"
+              class:on={selectedPath === entry.path}
+              onclick={() => nav.showDamaged(entry.path)}
+              title={strings.sidebar.damaged}
+            >
+              <span class="warn" aria-label={strings.sidebar.damaged}>⚠</span>
+              <span>{fileName(entry.path)}</span>
+            </button>
+          </li>
+        {/if}
+      {/each}
+    </ul>
   </nav>
 
   <div class="actions">
-    <button type="button" class="tbtn" disabled={!onnew || nav.busy} onclick={onnew}>+ {strings.sidebar.new}</button>
-    <button type="button" class="tbtn" disabled={!onimport || nav.busy} onclick={onimport}>{strings.sidebar.import}</button>
+    <button type="button" class="tbtn" disabled={nav.busy} onclick={() => games.create()}>+ {strings.sidebar.new}</button>
+    <button type="button" class="tbtn" disabled={nav.busy} onclick={() => games.import()}>{strings.sidebar.import}</button>
   </div>
 
   <footer class="foot">
@@ -84,6 +125,62 @@ let { onnew, onimport, onsessions, onsettings, onabout }: Props = $props();
     min-height: 0;
     overflow: auto;
     padding: 0 10px;
+  }
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .game {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    height: var(--row-height);
+    padding: 0 10px;
+    border: 0;
+    border-radius: var(--rs);
+    background: transparent;
+    color: var(--fg);
+    font-weight: 500;
+    text-align: left;
+  }
+
+  .game:hover:not(.on) {
+    background: var(--hover);
+  }
+
+  .game.on {
+    background: var(--accent);
+    color: var(--accent-fg);
+  }
+
+  .game span:last-child {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .game :global(.ic) {
+    opacity: 0.85;
+  }
+
+  .warn {
+    width: 17px;
+    text-align: center;
+    color: var(--warn);
+    flex: none;
+  }
+
+  .game.on .warn {
+    color: var(--accent-fg);
   }
 
   .actions {

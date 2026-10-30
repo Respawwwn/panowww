@@ -22,6 +22,7 @@ export const strings = {
     duplicate: "Duplicate",
     share: "Share",
     delete: "Delete",
+    deleteConfirm: "Delete this Game?",
     revealInFinder: "Reveal in Finder",
     revealInExplorer: "Reveal in Explorer",
     startSession: "Start Session",
@@ -36,24 +37,53 @@ export const strings = {
     },
     input: {
       keyboard: {
+        turnRight: "Turn right",
+        lookUp: "Look up",
+        lookDown: "Look down",
+        turnHold: "Turn hold",
+        pitchHold: "Pitch hold",
+        change: "Change…",
+        cancel: "Cancel",
+        pressKey: "Press a key",
         keys: "Three distinct keys, no modifiers. Panowww presses the key at that position on your keyboard, whatever the layout.",
         hold: "How long the key stays pressed for one Step. Calibrate with the Turn and Pitch tests.",
       },
       mouse: {
+        modeLabel: "Mode",
+        move: "Move",
+        drag: "Drag",
+        dragButton: "Drag button",
+        left: "Left",
+        right: "Right",
+        middle: "Middle",
+        turnDelta: "Turn delta",
+        pitchDelta: "Pitch delta",
+        unit: "units per Step",
         mode: "Move: the cursor alone. Drag: a button held while moving, what most free cameras expect.",
         crossOs:
           "Mouse values are not promised to match between macOS and Windows: recalibrate on each.",
       },
       gamepad: {
+        deflectionLabel: "Stick deflection",
+        unit: "of full travel",
         unavailableMac:
           "Virtual gamepad is unavailable on macOS. You can set this Game up here, but it only runs on Windows, where it needs ViGEmBus.",
         deflection:
           "Needs ViGEmBus. Right stick of a virtual Xbox 360 controller, as a share of full travel.",
         hold: "How long the stick stays pushed for one Step. Calibrate with the Turn and Pitch tests.",
       },
+      vertical: "Vertical",
+      invertVertical: "Invert vertical",
     },
     grid: {
       title: "Grid & timing",
+      startPoleLabel: "Start pole",
+      nadir: "Nadir",
+      zenith: "Zenith",
+      shotsPerRowLabel: "Shots per Row",
+      rowsLabel: "Rows",
+      waitAfterMoveLabel: "Wait after move",
+      waitAfterShotLabel: "Wait after Shot",
       startPole: {
         nadir: "Start looking straight down. The first Row is the ground, the last one the sky.",
         zenith: "Start looking straight up. The first Row is the sky, the last one the ground.",
@@ -187,6 +217,7 @@ export const strings = {
     },
   },
   sessions: {
+    empty: "No Session yet. Start one from the Setup tab.",
     folder: "Sessions are saved in {path} · Change the folder in Settings",
     deleteConfirm: "Delete the whole folder?",
     failed: {
@@ -299,6 +330,13 @@ export const strings = {
   },
   update: {
     banner: "Panowww {version} is available · See what's new",
+  },
+  import: {
+    title: "This Game is already here",
+    body: "{existing} has the same id as the file you are importing ({incoming}). Replace it, keeping its Capture zone, or keep both as separate Games.",
+    replace: "Replace",
+    keepBoth: "Keep both",
+    cancel: "Cancel",
   },
   nothingMoved: {
     title: "Nothing moved?",

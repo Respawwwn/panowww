@@ -22,6 +22,9 @@ pub struct AppState {
     pub runner: Runner,
     pub backend: SharedBackend,
     pub version: String,
+    /// Keeps the Games folder watch alive for the app's lifetime.
+    #[allow(dead_code, reason = "held for its Drop")]
+    pub watcher: Mutex<Option<panowww_store::watcher::GamesWatcher>>,
 }
 
 impl AppState {

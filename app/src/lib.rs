@@ -29,6 +29,8 @@ use crate::state::{AppState, SharedState};
 
 /// The window event that carries every `RunEvent` of a run.
 pub const RUN_EVENT: &str = "run";
+/// The window event sent when a file of the Games folder changed on disk.
+pub const GAMES_CHANGED_EVENT: &str = "games-changed";
 
 /// Builds the Tauri app and runs it until the last window closes.
 ///
@@ -89,6 +91,20 @@ fn build_state(app: &tauri::App) -> tauri::Result<SharedState> {
             }
         }),
     );
+    // A Game edited by hand, or a damaged file repaired, is re-read: the
+    // window re-lists the folder on `games-changed` (spec §5).
+    let folder_handle = app.handle().clone();
+    let watcher = panowww_store::watcher::watch(&paths.games_dir(), move |event| {
+        tracing::debug!(?event, "Games folder changed");
+        if let Err(error) = folder_handle.emit(GAMES_CHANGED_EVENT, ()) {
+            tracing::warn!(%error, "games-changed not delivered");
+        }
+    })
+    .map_err(|error| {
+        tracing::warn!(%error, "Games folder not watched");
+        error
+    })
+    .ok();
     Ok(Arc::new(AppState {
         games: GamesFolder::new(&paths),
         paths,
@@ -98,6 +114,7 @@ fn build_state(app: &tauri::App) -> tauri::Result<SharedState> {
         runner,
         backend,
         version: env!("CARGO_PKG_VERSION").to_owned(),
+        watcher: Mutex::new(watcher),
     }))
 }
 
