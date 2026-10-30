@@ -73,3 +73,14 @@ Reference game in a full-screen Space on the zone's display. The overlay is a `t
 | O6 | Cannot start | Revoke Screen Recording, start a Session | The error state shows in the window and no overlay appears (or a frame shown by *Show zone* goes away) | |
 | O7 | Second display | Draw a zone on a second display with a different scale, run a Session | The overlay covers that display, the frame matches the zone there | |
 | O8 | Release build transparency | `pnpm tauri build`, run the bundle, *Show zone* | The overlay window is transparent (no white sheet over the game); if it is white, enable `app.macOSPrivateApi` in `tauri.conf.json` and the `macos-private-api` feature of `tauri` | |
+
+## macOS · Capture zone picker (issue 13)
+
+| # | Check | How | Pass | Result |
+|---|---|---|---|---|
+| P1 | One window per display | Setup → *Set zone…* with two displays connected | A borderless window covers each display with a dimmed screenshot of it, `Display n · w × h @sx` top left; the one holding the current zone (else the first) has the focus | |
+| P2 | Drawing | Drag on the picture, then drag a corner handle, then drag the rectangle body | The purple rectangle follows with its size chip; handles resize from the opposite corner; the body moves and stops at the display's edge; X / Y / W / H follow and edit it | |
+| P3 | Two scales | Draw a zone on a 2× display, Save; then on a 1× display, Save | Setup shows `Display n · w × h at (x, y)` in points for each; `local-games.json` stores `displayW` / `displayH` / `scale` of the display drawn on; a Session's Shots are `w × scale` pixels wide | |
+| P4 | Show frame on screen | Tick the checkbox while drawing, then Save | The overlay frame appears exactly on the rectangle (through the picker's dim); it goes away with the windows | |
+| P5 | Cancel and Esc | *Cancel* in one window; open again and press Esc in the other | Every picker window closes, the zone is unchanged, Setup is usable again | |
+| P6 | Display changed | Save a zone, change that display's resolution, reopen Setup | The amber *Display n is gone or its resolution changed* box; *Change zone…* opens the picker on the display as it is now | |

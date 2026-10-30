@@ -13,7 +13,9 @@ import type { Import } from "./generated/Import";
 import type { OverlayState } from "./generated/OverlayState";
 import type { PermissionKind } from "./generated/PermissionKind";
 import type { Permissions } from "./generated/Permissions";
+import type { PickerSetup } from "./generated/PickerSetup";
 import type { Pong } from "./generated/Pong";
+import type { Rect } from "./generated/Rect";
 import type { RunEvent } from "./generated/RunEvent";
 import type { RunKindDto } from "./generated/RunKindDto";
 import type { RunnerPhase } from "./generated/RunnerPhase";
@@ -142,6 +144,15 @@ export const api = {
   update: {
     /** null when up to date, offline, or the switch is off. */
     check: () => invoke<UpdateInfo | null>("check_for_updates"),
+  },
+
+  /** The picker windows' side: one window per display, `label` is its own. */
+  picker: {
+    setup: (label: string) => invoke<PickerSetup>("picker_setup", { label }),
+    save: (label: string, rect: Rect) => invoke<void>("picker_save", { label, rect }),
+    cancel: () => invoke<void>("picker_cancel"),
+    frame: (label: string, on: boolean, rect: Rect | null) =>
+      invoke<void>("picker_frame", { label, on, rect }),
   },
 
   /** The overlay window's side: what it draws, pushed by Rust. */

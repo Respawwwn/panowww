@@ -2,7 +2,7 @@
 //! defines. Every type is exported to `ui/src/lib/generated/`.
 
 use panowww_core::plan::{Axis, RunKind};
-use panowww_core::ports::Zone;
+use panowww_core::ports::{DisplayInfo, Rect, Zone};
 use panowww_core::runner::RunOutcome;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
@@ -189,6 +189,21 @@ impl From<&Zone> for OverlayZone {
 pub struct OverlayState {
     pub zone: OverlayZone,
     pub view: OverlayView,
+}
+
+/// What one picker window shows (spec §11.4): its display, the dimmed
+/// picture of it and the zone already drawn there, if any.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct PickerSetup {
+    pub display: DisplayInfo,
+    /// 1-based position among the connected displays, for `Display {n}`.
+    pub display_index: u32,
+    /// `data:` URL of the screenshot; `None` when it could not be taken.
+    pub image: Option<String>,
+    /// The Game's zone when it sits on this display, in display points.
+    pub zone: Option<Rect>,
 }
 
 /// What the Game Setup shows about the zone of a Game on this machine.

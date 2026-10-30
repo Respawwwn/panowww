@@ -157,6 +157,11 @@ export const strings = {
   zonePicker: {
     instruction: "Draw the zone over the game. Esc cancels.",
     tip: "Game in borderless windowed mode. Keep HUD and menus out of the zone.",
+    display: "Display {n} · {w} × {h} @{s}x",
+    size: "{w} × {h}",
+    showFrame: "Show frame on screen",
+    cancel: "Cancel",
+    save: "Save zone",
   },
   overlap: {
     instruction: "Two Samples one Step apart, superimposed. Slide until they line up.",

@@ -11,6 +11,7 @@ use uuid::Uuid;
 
 use crate::backend::SharedBackend;
 use crate::overlay::SharedOverlay;
+use crate::picker::Picker;
 use crate::runner::Runner;
 
 pub struct AppState {
@@ -24,6 +25,8 @@ pub struct AppState {
     pub backend: SharedBackend,
     /// Shared with the Runner; the Setup's Show zone draws the frame alone.
     pub overlay: SharedOverlay,
+    /// The Capture zone pick in progress, if any.
+    pub picker: Picker,
     pub version: String,
     /// Keeps the Games folder watch alive for the app's lifetime.
     #[allow(dead_code, reason = "held for its Drop")]

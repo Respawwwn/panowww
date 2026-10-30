@@ -1,11 +1,11 @@
 //! The Capture zone of a Game on this machine, and the displays.
 
-use panowww_core::ports::{DisplayInfo, Zone};
+use panowww_core::ports::{DisplayInfo, Rect, Zone};
 use panowww_store::local::zone_status;
-use tauri::State;
+use tauri::{AppHandle, Runtime, State};
 use uuid::Uuid;
 
-use crate::dto::{RunnerPhase, ZoneState};
+use crate::dto::{PickerSetup, RunnerPhase, ZoneState};
 use crate::error::{AppError, AppErrorKind, CmdResult};
 use crate::state::SharedState;
 
@@ -57,13 +57,92 @@ pub fn set_zone(state: State<'_, SharedState>, game_id: Uuid, zone: Zone) -> Cmd
     zone_state(&state, game_id)
 }
 
-/// Opens the picker windows (issue 13). Until then: not available.
+/// Opens one picker window per display and resolves once one of them
+/// saved a zone, or the pick was cancelled (spec §11.4).
 #[tauri::command]
-pub fn pick_zone(_state: State<'_, SharedState>, _game_id: Uuid) -> CmdResult<ZoneState> {
-    Err(AppError::new(
-        AppErrorKind::Internal,
-        "The Capture zone picker arrives with issue 13.",
-    ))
+pub async fn pick_zone<R: Runtime>(
+    app: AppHandle<R>,
+    state: State<'_, SharedState>,
+    game_id: Uuid,
+) -> CmdResult<ZoneState> {
+    let state = state.inner().clone();
+    let current = state
+        .local
+        .read()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
+        .zone(game_id)
+        .cloned();
+    let rx = state
+        .picker
+        .open(&app, &state.backend, game_id, current.as_ref())?;
+    // The reply comes from a picker window's command, on another thread.
+    tauri::async_runtime::spawn_blocking(move || rx.recv())
+        .await
+        .map_err(|e| AppError::internal(format!("picker wait: {e}")))?
+        .map_err(|_| AppError::internal("the picker went away"))?;
+    zone_state(&state, game_id)
+}
+
+/// What a picker window shows: called by the page when it loads.
+#[tauri::command]
+pub fn picker_setup(state: State<'_, SharedState>, label: String) -> CmdResult<PickerSetup> {
+    let current = state.picker.game_id().and_then(|game_id| {
+        state
+            .local
+            .read()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .zone(game_id)
+            .cloned()
+    });
+    state.picker.setup(&state.backend, &label, current.as_ref())
+}
+
+/// *Save zone*: stores the zone record keyed by the Game and ends the pick.
+#[tauri::command]
+pub fn picker_save<R: Runtime>(
+    app: AppHandle<R>,
+    state: State<'_, SharedState>,
+    label: String,
+    rect: Rect,
+) -> CmdResult<()> {
+    let zone = state.picker.zone_for(&label, rect)?;
+    let game_id = state
+        .picker
+        .game_id()
+        .ok_or_else(|| AppError::new(AppErrorKind::NotFound, "No pick in progress."))?;
+    {
+        let mut local = state
+            .local
+            .write()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        local.set_zone(game_id, zone.clone());
+        local.save(&state.paths)?;
+    }
+    state.picker.finish(&app, &state.overlay, Some(zone));
+    Ok(())
+}
+
+/// *Cancel* or Esc in any picker window.
+#[tauri::command]
+pub fn picker_cancel<R: Runtime>(app: AppHandle<R>, state: State<'_, SharedState>) {
+    state.picker.finish(&app, &state.overlay, None);
+}
+
+/// *Show frame on screen*: the overlay frame of the rectangle being drawn.
+#[tauri::command]
+pub fn picker_frame(
+    state: State<'_, SharedState>,
+    label: String,
+    on: bool,
+    rect: Option<Rect>,
+) -> CmdResult<()> {
+    match (on, rect) {
+        (true, Some(rect)) => state
+            .overlay
+            .show_frame(&state.picker.zone_for(&label, rect)?),
+        _ => state.overlay.hide(),
+    }
+    Ok(())
 }
 
 /// The Setup's Show zone / Hide zone toggle: the overlay frame alone, so
