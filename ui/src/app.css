@@ -1,0 +1,78 @@
+/* Design tokens of spec §12, direction B. Follows the OS appearance. */
+:root {
+  color-scheme: light dark;
+
+  --font: "Inter Variable", Inter, system-ui, sans-serif;
+
+  --content: #fbfbfd;
+  --sidebar: #ebe8f6;
+  --card: #fff;
+  --line: #e6e3f1;
+  --lavender: #efecf9;
+  --lavender-text: #4a3c96;
+  --accent: #6454b5;
+  --accent-deep: #4a3c96;
+  --text: #1b1740;
+  --muted: #6b6788;
+  --faint: #9a96b6;
+  --ok: #2eaa5d;
+  --warn: #d98c00;
+  --bad: #e5365f;
+  --shadow: 0 1px 2px rgb(0 0 0 / 6%);
+
+  --radius-card: 14px;
+  --radius-field: 8px;
+  --sidebar-width: 240px;
+  --row-height: 34px;
+  --control-height: 28px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --content: #15122b;
+    --sidebar: #201b44;
+    --card: #1e1a38;
+    --line: #2d2852;
+    --lavender: #2a2550;
+    --lavender-text: #c4b9f6;
+    --accent: #a596ea;
+    --accent-deep: #a596ea;
+    --text: #ecebf5;
+    --muted: #a8a4c6;
+    --faint: #6b6788;
+    --ok: #4cd17a;
+    --warn: #f0b544;
+    --bad: #ff6b8d;
+    --shadow: none;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text);
+  background: var(--content);
+  font-feature-settings: "tnum";
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  overflow: hidden;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
