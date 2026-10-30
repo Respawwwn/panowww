@@ -1,0 +1,52 @@
+import { describe, expect, test } from "vitest";
+import { defaultInput, disabledReason, gridSummary, inputSummary } from "./game";
+import type { Game } from "./generated/Game";
+
+const game: Game = {
+  format: "panowww-game",
+  version: 1,
+  id: "3f6c1e2a-0000-4000-8000-000000000001",
+  name: "Elden Ring",
+  startPole: "nadir",
+  shotsPerRow: 13,
+  rows: 6,
+  waitAfterMoveMs: 300,
+  waitAfterShotMs: 300,
+  input: defaultInput("keyboard"),
+};
+
+describe("defaultInput", () => {
+  test("mirrors the Rust defaults per device", () => {
+    expect(defaultInput("keyboard")).toEqual({
+      device: "keyboard",
+      turnRightKey: "ArrowRight",
+      lookUpKey: "ArrowUp",
+      lookDownKey: "ArrowDown",
+      turnHoldMs: 100,
+      pitchHoldMs: 100,
+    });
+    expect(defaultInput("mouse")).toMatchObject({ device: "mouse", mode: "move", turnDelta: 500 });
+    expect(defaultInput("mouse")).not.toHaveProperty("dragButton");
+    expect(defaultInput("gamepad")).toMatchObject({ device: "gamepad", stickDeflection: 0.8 });
+  });
+});
+
+describe("summaries", () => {
+  test("say the device and its numbers", () => {
+    expect(inputSummary(defaultInput("keyboard"))).toBe("Keyboard · 100 / 100 ms");
+    expect(inputSummary({ ...defaultInput("mouse"), mode: "drag", dragButton: "right" })).toBe(
+      "Mouse · drag right · 500 / 500",
+    );
+    expect(gridSummary(game)).toBe("13 × 6 · 300 / 300 ms");
+  });
+});
+
+describe("disabledReason", () => {
+  test("gamepad on macOS beats a missing zone", () => {
+    const gamepad = { ...game, input: defaultInput("gamepad") };
+    expect(disabledReason(gamepad, false, "macos")).toBe("gamepadMac");
+    expect(disabledReason(gamepad, true, "windows")).toBeNull();
+    expect(disabledReason(game, false, "macos")).toBe("noZone");
+    expect(disabledReason(game, true, "macos")).toBeNull();
+  });
+});

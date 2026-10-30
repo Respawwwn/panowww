@@ -1,0 +1,186 @@
+// A browser stand-in for the Rust side, for looking at the screens outside
+// Tauri: `pnpm --dir ui dev` then `http://localhost:1420/?mock`. Never
+// bundled into the app: `main.ts` imports it only in dev with `?mock`.
+import { mockIPC, mockWindows } from "@tauri-apps/api/mocks";
+import { defaultInput } from "./game";
+import type { Game } from "./generated/Game";
+import type { GameEntry } from "./generated/GameEntry";
+import type { Settings } from "./generated/Settings";
+import { defaultSettings } from "./settings.svelte";
+
+function game(id: string, name: string, input: Game["input"], notes?: string): Game {
+  return {
+    format: "panowww-game",
+    version: 1,
+    id,
+    name,
+    ...(notes ? { notes } : {}),
+    startPole: "nadir",
+    shotsPerRow: 13,
+    rows: 6,
+    waitAfterMoveMs: 300,
+    waitAfterShotMs: 300,
+    input,
+  };
+}
+
+export function installMock(): void {
+  const entries: GameEntry[] = [
+    {
+      kind: "game",
+      game: game(
+        "00000000-0000-4000-8000-000000000001",
+        "Elden Ring – photo mode",
+        {
+          ...defaultInput("mouse"),
+          mode: "drag",
+          dragButton: "right",
+          turnDelta: 840,
+          pitchDelta: 610,
+        },
+        "FOV 90, HUD off",
+      ),
+      path: "/Users/me/Library/Application Support/com.respawwwn.panowww/games/Elden Ring – photo mode.panowww.json",
+    },
+    {
+      kind: "game",
+      game: game("00000000-0000-4000-8000-000000000002", "Outer Wilds", defaultInput("keyboard")),
+      path: "/games/Outer Wilds.panowww.json",
+    },
+    {
+      kind: "game",
+      game: game(
+        "00000000-0000-4000-8000-000000000003",
+        "Forza Horizon 5",
+        defaultInput("gamepad"),
+      ),
+      path: "/games/Forza Horizon 5.panowww.json",
+    },
+    {
+      kind: "damaged",
+      path: "/games/broken.panowww.json",
+      message: "This Game has 2 invalid field(s).",
+      errors: [
+        { field: "rows", message: "Rows must be between 2 and 36." },
+        { field: "input.turnRightKey", message: "Pick a key on the keyboard." },
+      ],
+    },
+  ];
+  const zones: Record<string, boolean> = { "00000000-0000-4000-8000-000000000001": true };
+  const settings: Settings = structuredClone(defaultSettings);
+
+  mockWindows("main");
+  mockIPC((cmd, rawArgs) => {
+    const args = (rawArgs ?? {}) as Record<string, unknown>;
+    switch (cmd) {
+      case "ping":
+        return { app: "Panowww", version: "0.0.1-mock" };
+      case "list_games":
+        return entries;
+      case "save_game": {
+        const g = args.game as Game;
+        if (g.rows < 2 || g.rows > 36) {
+          return Promise.reject({
+            kind: "validation",
+            message: "Some fields are invalid.",
+            fields: [{ field: "rows", message: "Rows must be between 2 and 36." }],
+          });
+        }
+        const i = entries.findIndex((e) => e.kind === "game" && e.game.id === g.id);
+        if (i >= 0) {
+          entries[i] = { kind: "game", game: g, path: `/games/${g.name}.panowww.json` };
+        }
+        return `/games/${g.name}.panowww.json`;
+      }
+      case "create_game": {
+        const g = game(crypto.randomUUID(), String(args.name), defaultInput("keyboard"));
+        entries.push({ kind: "game", game: g, path: `/games/${g.name}.panowww.json` });
+        return g;
+      }
+      case "duplicate_game": {
+        const src = entries.find((e) => e.kind === "game" && e.game.id === args.id);
+        if (src?.kind !== "game") {
+          return Promise.reject({ kind: "notFound", message: "The Game was not found." });
+        }
+        const g = { ...src.game, id: crypto.randomUUID(), name: `${src.game.name} copy` };
+        entries.push({ kind: "game", game: g, path: `/games/${g.name}.panowww.json` });
+        return g;
+      }
+      case "delete_game": {
+        const i = entries.findIndex((e) => e.kind === "game" && e.game.id === args.id);
+        if (i >= 0) {
+          entries.splice(i, 1);
+        }
+        return null;
+      }
+      case "delete_game_file": {
+        const i = entries.findIndex((e) => e.path === args.path);
+        if (i >= 0) {
+          entries.splice(i, 1);
+        }
+        return null;
+      }
+      case "estimate_session": {
+        const g = args.game as Game;
+        const shots = g.shotsPerRow * g.rows;
+        const ms = 5000 + shots * (g.waitAfterShotMs + g.waitAfterMoveMs + 386);
+        return {
+          durationMs: ms,
+          duration: `≈ ${Math.floor(ms / 60000)} min ${Math.round((ms % 60000) / 1000)} s`,
+          shots,
+        };
+      }
+      case "select_game":
+      case "show_zone":
+      case "reveal_path":
+      case "open_url":
+        return null;
+      case "share_game":
+        return true;
+      case "import_game":
+        return null;
+      case "get_zone": {
+        const has = zones[String(args.gameId)];
+        return has
+          ? {
+              zone: {
+                displayId: "main",
+                x: 320,
+                y: 180,
+                w: 1920,
+                h: 1080,
+                displayW: 2560,
+                displayH: 1440,
+                scale: 2,
+              },
+              status: "ready",
+              displayIndex: 1,
+            }
+          : { zone: null, status: null, displayIndex: null };
+      }
+      case "pick_zone":
+        return Promise.reject({
+          kind: "internal",
+          message: "The Capture zone picker arrives with issue 13.",
+        });
+      case "get_settings":
+        return settings;
+      case "save_settings":
+        return null;
+      case "start_run":
+        return true;
+      case "stop_run":
+        return null;
+      case "runner_phase":
+        return "idle";
+      case "check_for_updates":
+        return { version: "0.2.0", url: "https://github.com/Respawwwn/panowww/releases" };
+      case "list_sessions":
+        return [];
+      case "permissions":
+        return { accessibility: true, screenRecording: true, vigem: true };
+      default:
+        return Promise.reject({ kind: "internal", message: `mock: ${cmd} is not mocked` });
+    }
+  });
+}
