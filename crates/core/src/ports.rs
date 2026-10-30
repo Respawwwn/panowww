@@ -132,7 +132,7 @@ pub struct PreviewFrame {
 }
 
 /// Where the capture adapter sends preview frames, from its own thread.
-pub type PreviewSink = Box<dyn Fn(PreviewFrame) + Send + 'static>;
+pub type PreviewSink = Box<dyn Fn(PreviewFrame) + Send + Sync + 'static>;
 
 /// Why an input primitive failed.
 #[derive(Debug, Clone, PartialEq, Eq, Error)]
