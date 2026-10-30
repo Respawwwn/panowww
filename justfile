@@ -40,3 +40,7 @@ fmt:
 # Run the app with hot reload.
 dev: generate
     pnpm tauri dev
+
+# Render app/icons from assets/icon/panowww.svg (needs rsvg-convert).
+icons:
+    assets/icon/build.sh

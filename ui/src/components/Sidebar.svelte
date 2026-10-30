@@ -7,6 +7,7 @@ import { games } from "../lib/games.svelte";
 import { nav } from "../lib/nav.svelte";
 import { strings } from "../lib/strings";
 import DeviceIcon from "./DeviceIcon.svelte";
+import Mark from "./Mark.svelte";
 
 type Props = {
   onsessions?: () => void;
@@ -30,7 +31,7 @@ const selectedPath = $derived(nav.screen.kind === "damaged" ? nav.screen.path : 
 
 <aside class="sidebar" class:dim={nav.busy}>
   <header class="brand" data-tauri-drag-region>
-    <span class="mark" aria-hidden="true"></span>
+    <Mark />
     <span>{strings.app.name}</span>
   </header>
 
@@ -110,14 +111,6 @@ const selectedPath = $derived(nav.screen.kind === "damaged" ? nav.screen.path : 
     font-weight: 700;
     font-size: 14px;
     letter-spacing: -0.01em;
-  }
-
-  .mark {
-    width: 22px;
-    height: 22px;
-    border-radius: 6px;
-    background: #6454b5;
-    flex: none;
   }
 
   .games {

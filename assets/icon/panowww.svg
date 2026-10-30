@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Panowww app icon, concept "Lens + orbit" (spec §12): purple ground,
+       white glyph, thick black rounded outline. Full bleed; the macOS
+       squircle and the Windows square are cut from this by build.sh. -->
+  <!-- glyph -->
+  <rect width="256" height="256" fill="#6454B5"/>
+  <path d="M63.7 176A84 84 0 1 1 192.3 176" fill="none" stroke="#000" stroke-width="40" stroke-linecap="round"/>
+  <path d="M210.7 191.4L173.9 160.6L169.2 203.6z" fill="#fff" stroke="#000" stroke-width="16" stroke-linejoin="round" paint-order="stroke"/>
+  <path d="M63.7 176A84 84 0 1 1 192.3 176" fill="none" stroke="#fff" stroke-width="20" stroke-linecap="round"/>
+  <path d="M210.7 191.4L173.9 160.6L169.2 203.6z" fill="#fff"/>
+  <circle cx="128" cy="122" r="36" fill="#fff" stroke="#000" stroke-width="16" paint-order="stroke"/>
+  <circle cx="128" cy="122" r="16" fill="#000"/>
+  <circle cx="134" cy="116" r="5" fill="#fff"/>
+  <!-- /glyph -->
+</svg>
