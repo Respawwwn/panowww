@@ -1,5 +1,17 @@
 [files]
-extend-exclude = ["target/", "spike/", "prototype/", ".wayfinder/", ".idea/"]
+extend-exclude = [
+    "target/",
+    "node_modules/",
+    "pnpm-lock.yaml",
+    "ui/dist/",
+    "ui/src/lib/generated/",
+    "app/gen/",
+    "app/icons/",
+    "spike/",
+    "prototype/",
+    ".wayfinder/",
+    ".idea/",
+]
 
 [default.extend-words]
 # Brand names: Respawwwn and Panowww.

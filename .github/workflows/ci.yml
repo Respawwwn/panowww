@@ -27,11 +27,21 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: pnpm/action-setup@d9184bf108216479bc5a137cc391f4d7b14c870b # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
       # The toolchain pinned in rust-toolchain.toml installs on first use.
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
       - uses: taiki-e/install-action@86f7a0ffb25f40114606501a311ebcfaf882ea32 # v2.88.0
         with:
           tool: cargo-nextest,cargo-deny
+      - name: install UI dependencies
+        run: pnpm install --frozen-lockfile
+      # The app crate embeds the UI bundle, so it is built first.
+      - name: build UI
+        run: pnpm --dir ui build
       - name: rustfmt
         run: cargo fmt --all --check
       - name: clippy
@@ -40,6 +50,14 @@ jobs:
         run: cargo nextest run --workspace --all-features --no-tests=warn
       - name: doc tests
         run: cargo test --workspace --all-features --doc
+      - name: generate TypeScript types
+        run: cargo test --workspace --all-features export_bindings
+      - name: UI lint
+        run: pnpm lint
+      - name: UI types
+        run: pnpm check
+      - name: UI tests
+        run: pnpm test
       - name: typos
         uses: crate-ci/typos@7f9d0819ca1c008ade73f4b41fa9d258d48f605b # v1.51.1
       - name: cargo-deny
@@ -56,9 +74,10 @@ jobs:
       - uses: taiki-e/install-action@86f7a0ffb25f40114606501a311ebcfaf882ea32 # v2.88.0
         with:
           tool: cargo-nextest
-      # input and capture build through their `unsupported` modules here.
-      - name: build workspace
-        run: cargo check --workspace --all-targets --all-features
+      # input and capture build through their `unsupported` modules here;
+      # the Tauri app needs system libraries and stays on macOS and Windows.
+      - name: build library crates
+        run: cargo check --workspace --exclude panowww-app --all-targets --all-features
       - name: clippy
         run: cargo clippy -p panowww-core -p panowww-store --all-targets --all-features -- -D warnings
       - name: nextest
