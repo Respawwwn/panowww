@@ -1,0 +1,11 @@
+{
+  "format": "panowww-game",
+  "version": 1,
+  "id": "3f6c1e2a-0000-4000-8000-000000000001",
+  "name": "Mouse field in a keyboard block",
+  "shotsPerRow": 13,
+  "rows": 6,
+  "waitAfterMoveMs": 300,
+  "waitAfterShotMs": 300,
+  "input": { "device": "keyboard", "turnRightKey": "ArrowRight", "lookUpKey": "ArrowUp", "lookDownKey": "ArrowDown", "turnHoldMs": 100, "pitchHoldMs": 100, "turnDelta": 840 }
+}

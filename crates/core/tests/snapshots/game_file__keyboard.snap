@@ -1,0 +1,23 @@
+---
+source: crates/core/tests/game_file.rs
+expression: game.to_json()
+---
+{
+  "format": "panowww-game",
+  "version": 1,
+  "id": "3f6c1e2a-0000-4000-8000-000000000001",
+  "name": "Outer Wilds – keyboard",
+  "startPole": "nadir",
+  "shotsPerRow": 13,
+  "rows": 6,
+  "waitAfterMoveMs": 300,
+  "waitAfterShotMs": 300,
+  "input": {
+    "device": "keyboard",
+    "turnRightKey": "KeyD",
+    "lookUpKey": "ArrowUp",
+    "lookDownKey": "ArrowDown",
+    "turnHoldMs": 120,
+    "pitchHoldMs": 90
+  }
+}

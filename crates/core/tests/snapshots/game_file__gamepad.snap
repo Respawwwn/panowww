@@ -1,0 +1,22 @@
+---
+source: crates/core/tests/game_file.rs
+expression: game.to_json()
+---
+{
+  "format": "panowww-game",
+  "version": 1,
+  "id": "3f6c1e2a-0000-4000-8000-000000000003",
+  "name": "Forza Horizon 5 – gamepad",
+  "startPole": "zenith",
+  "shotsPerRow": 16,
+  "rows": 8,
+  "waitAfterMoveMs": 300,
+  "waitAfterShotMs": 300,
+  "input": {
+    "device": "gamepad",
+    "stickDeflection": 0.8,
+    "turnHoldMs": 100,
+    "pitchHoldMs": 100,
+    "invertVertical": true
+  }
+}

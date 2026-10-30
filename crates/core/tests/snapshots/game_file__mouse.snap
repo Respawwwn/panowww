@@ -1,0 +1,24 @@
+---
+source: crates/core/tests/game_file.rs
+expression: game.to_json()
+---
+{
+  "format": "panowww-game",
+  "version": 1,
+  "id": "3f6c1e2a-0000-4000-8000-000000000002",
+  "name": "Elden Ring – photo mode",
+  "notes": "FOV 90, HUD off",
+  "startPole": "nadir",
+  "shotsPerRow": 13,
+  "rows": 6,
+  "waitAfterMoveMs": 300,
+  "waitAfterShotMs": 300,
+  "input": {
+    "device": "mouse",
+    "mode": "drag",
+    "dragButton": "right",
+    "turnDelta": 840,
+    "pitchDelta": 610,
+    "invertVertical": false
+  }
+}
