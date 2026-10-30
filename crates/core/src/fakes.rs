@@ -117,7 +117,9 @@ impl Camera for RecordingCamera {
 }
 
 /// A `Stream` serving numbered frames: the n-th call fills its frame with
-/// the byte `n`, so a test can tell which capture produced a Sample.
+/// the byte `n`, so a test can tell which capture produced a Sample. Those
+/// frames differ by one level, which the screen-unchanged detector reads as
+/// a still screen; [`FakeStream::moving`] makes them differ widely instead.
 #[derive(Debug)]
 pub struct FakeStream {
     pub width: u32,
@@ -129,6 +131,9 @@ pub struct FakeStream {
     /// The `not_before` of every call.
     pub freshness_marks: Vec<Instant>,
     pub preview_on: bool,
+    /// Fill frames with `64 × n` instead of `n`, so consecutive frames
+    /// look like a moving screen.
+    pub moving: bool,
 }
 
 impl FakeStream {
@@ -140,6 +145,7 @@ impl FakeStream {
             fail_on_calls: Vec::new(),
             freshness_marks: Vec::new(),
             preview_on: false,
+            moving: false,
         }
     }
 
@@ -147,6 +153,14 @@ impl FakeStream {
     #[must_use]
     pub fn failing_on(mut self, calls: impl IntoIterator<Item = u32>) -> Self {
         self.fail_on_calls = calls.into_iter().collect();
+        self
+    }
+
+    /// The same stream, with frames that change a lot from call to call.
+    /// [`FakeStream::frame_number`] no longer applies.
+    #[must_use]
+    pub fn moving(mut self) -> Self {
+        self.moving = true;
         self
     }
 
@@ -166,7 +180,8 @@ impl Stream for FakeStream {
                 self.calls
             )));
         }
-        let fill = u8::try_from(self.calls % 256).unwrap_or(0);
+        let step = if self.moving { 64 } else { 1 };
+        let fill = u8::try_from(self.calls * step % 256).unwrap_or(0);
         Ok(Frame::solid(self.width, self.height, [fill; 3]))
     }
 

@@ -11,6 +11,7 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 use crate::constants::{DRAG_SETTLE, MOUSE_SUB_MOVE_INTERVAL};
+use crate::detector;
 use crate::game::Game;
 use crate::plan::{Axis, CapturePlan, Motion, MouseDelta, Op, SampleSlot, Step};
 use crate::ports::{
@@ -205,6 +206,8 @@ pub fn run(
         col: 1,
         not_before: clock.now(),
         session_begun: false,
+        first_shot: None,
+        before_first_step: None,
     };
     progress(Progress::Started {
         expected: expected_shots(request.plan),
@@ -233,6 +236,10 @@ struct Runner<'r> {
     /// When the last Step ended: a Shot's frame must be newer than this.
     not_before: Instant,
     session_begun: bool,
+    /// Shot 1, kept until Shot 2 for the screen-unchanged detector.
+    first_shot: Option<Frame>,
+    /// The detector's Sample before the first Step of a Test.
+    before_first_step: Option<Frame>,
 }
 
 impl Runner<'_> {
@@ -252,7 +259,11 @@ impl Runner<'_> {
                 Op::Shot { row, col } => self.shot(*row, *col)?,
                 Op::Sample(slot) => {
                     let (frame, _) = self.capture()?;
+                    let still = self.detect_from_sample(*slot, &frame);
                     (self.progress)(Progress::Sample { slot: *slot, frame });
+                    if still {
+                        (self.progress)(Progress::ScreenUnchanged);
+                    }
                 }
             }
         }
@@ -354,6 +365,7 @@ impl Runner<'_> {
         }
         let (frame, capture_ms) = self.capture()?;
         let index = self.shots + 1;
+        let still = self.detect_from_shot(index, &frame);
         let thumbnail = thumbnail::thumbnail(&frame);
         if self.session_begun {
             let record = ShotRecord {
@@ -374,7 +386,43 @@ impl Runner<'_> {
             capture_ms,
             thumbnail,
         });
+        if still {
+            (self.progress)(Progress::ScreenUnchanged);
+        }
         Ok(())
+    }
+
+    /// Screen-unchanged detector of a Session (spec §4.6): Shots 1 and 2
+    /// are compared while both are still in memory. `true` when nothing
+    /// moved between them.
+    fn detect_from_shot(&mut self, index: u32, frame: &Frame) -> bool {
+        match index {
+            1 => {
+                self.first_shot = Some(frame.clone());
+                false
+            }
+            2 => self
+                .first_shot
+                .take()
+                .is_some_and(|first| detector::unchanged(&first, frame)),
+            _ => false,
+        }
+    }
+
+    /// Screen-unchanged detector of a Test: the Samples around the first
+    /// Step. Check overlap's Samples are not compared.
+    fn detect_from_sample(&mut self, slot: SampleSlot, frame: &Frame) -> bool {
+        match slot {
+            SampleSlot::BeforeFirstStep => {
+                self.before_first_step = Some(frame.clone());
+                false
+            }
+            SampleSlot::AfterFirstStep => self
+                .before_first_step
+                .take()
+                .is_some_and(|before| detector::unchanged(&before, frame)),
+            SampleSlot::First | SampleSlot::Second => false,
+        }
     }
 
     /// A fresh frame and how long it took. A failure is retried once after a
