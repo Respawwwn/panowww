@@ -209,6 +209,7 @@ export const strings = {
   },
   session: {
     running: {
+      title: "Session running",
       hint: "The game keeps the focus. Do not touch the mouse or the keyboard. Stop with [stop]: the Shots already taken are kept.",
       identical: "The first two Shots are identical. Nothing moved? Stop and run a Turn test.",
       row: "Row {row} of {rows}",
@@ -230,6 +231,7 @@ export const strings = {
       next: "Next: drop the folder or the zip into PTGui or Autopano Giga.",
       zip: "Zip Session",
       backToGame: "Back to Game",
+      shots: "{n} Shots",
     },
   },
   test: {

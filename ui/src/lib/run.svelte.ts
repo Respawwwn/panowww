@@ -38,6 +38,8 @@ export interface CurrentRun {
   screenUnchanged: boolean;
   samples: { first: string | null; second: string | null };
   preview: Preview | null;
+  /** When the run proper started (after the countdown), epoch ms. */
+  startedAt: number | null;
 }
 
 /** How the last run ended, for result lines and the end screen. */
@@ -48,6 +50,8 @@ export interface LastRun {
   shots: ShotTaken[];
   screenUnchanged: boolean;
   samples: { first: string | null; second: string | null };
+  startedAt: number | null;
+  endedAt: number;
   ended:
     | { by: "finished"; outcome: RunOutcome; folder: string | null }
     | { by: "cancelled" }
@@ -73,6 +77,7 @@ function fresh(gameId: string, kind: RunKindDto): CurrentRun {
     screenUnchanged: false,
     samples: { first: null, second: null },
     preview: null,
+    startedAt: null,
   };
 }
 
@@ -86,6 +91,8 @@ function end(ended: LastRun["ended"]) {
       shots: c.shots,
       screenUnchanged: c.screenUnchanged,
       samples: c.samples,
+      startedAt: c.startedAt,
+      endedAt: Date.now(),
       ended,
     };
   }
@@ -118,6 +125,7 @@ export function applyRunEvent(event: RunEvent): void {
       }
       current.phase = "running";
       current.expected = event.expected;
+      current.startedAt = Date.now();
       return;
     case "shot":
       current?.shots.push({
@@ -190,6 +198,11 @@ export const run = {
   /** The shortcut tells no one which Game: the sidebar's selection does. */
   expectShortcut(gameId: string | null) {
     requested = gameId ? { gameId, kind: { kind: "session" } } : null;
+  },
+
+  /** What the next events belong to, for tests. */
+  expect(gameId: string, kind: RunKindDto) {
+    requested = { gameId, kind };
   },
 
   stop(): Promise<void> {

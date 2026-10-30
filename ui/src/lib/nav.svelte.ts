@@ -58,4 +58,8 @@ export const nav = {
   showGallery() {
     screen = { kind: "gallery" };
   },
+  /** Any screen, for the run flow. */
+  show(next: Screen) {
+    screen = next;
+  },
 };

@@ -179,6 +179,10 @@ export function installMock(): void {
         return "idle";
       case "check_for_updates":
         return { version: "0.2.0", url: "https://github.com/Respawwwn/panowww/releases" };
+      case "session_size":
+        return 483_000_000;
+      case "zip_session":
+        return `${args.folder}.zip`;
       case "list_sessions":
         return [];
       case "permissions":
@@ -202,7 +206,33 @@ function simulateRun(kind: RunKindDto): void {
     { event: "countdown", secondsLeft: 1 },
     { event: "started", expected: kind.kind === "session" ? 78 : 0 },
   ];
-  if (kind.kind === "checkOverlap") {
+  if (kind.kind === "session") {
+    steps.push({
+      event: "preview",
+      image: sample(30),
+      displayW: 2560,
+      displayH: 1440,
+      zone: {
+        displayId: "main",
+        x: 320,
+        y: 180,
+        w: 1920,
+        h: 1080,
+        displayW: 2560,
+        displayH: 1440,
+        scale: 2,
+      },
+    });
+    for (let i = 1; i <= 8; i += 1) {
+      const row = Math.floor((i - 1) / 13) + 1;
+      const col = ((i - 1) % 13) + 1;
+      steps.push({ event: "shot", index: i, row, col, captureMs: 40, thumbnail: sample(10 * i) });
+      steps.push({ event: "moved", row, col: col + 1 });
+      if (i === 2) {
+        steps.push({ event: "screenUnchanged" });
+      }
+    }
+  } else if (kind.kind === "checkOverlap") {
     steps.push({ event: "sample", slot: "first", image: sample(20) });
     steps.push({ event: "moved", row: 1, col: 2 });
     steps.push({ event: "sample", slot: "second", image: sample(60) });
@@ -216,11 +246,15 @@ function simulateRun(kind: RunKindDto): void {
   } else if (kind.kind === "stepOnce") {
     steps.push({ event: "moved", row: 1, col: 2 });
   }
-  steps.push({
-    event: "finished",
-    outcome: { status: "completed", shots: 0 },
-    folder: null,
-  });
+  steps.push(
+    kind.kind === "session"
+      ? {
+          event: "finished",
+          outcome: { status: "interrupted", shots: 8 },
+          folder: "/Users/me/Pictures/Panowww/Elden Ring - photo mode/2026-10-30_16-30-00",
+        }
+      : { event: "finished", outcome: { status: "completed", shots: 0 }, folder: null },
+  );
   for (const [i, step] of steps.entries()) {
     setTimeout(() => applyRunEvent(step), 200 * (i + 1));
   }
