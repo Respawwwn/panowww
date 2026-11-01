@@ -129,15 +129,16 @@ cargo run -p panowww-input --example turn_test -- check
 
 | # | Check | How | Pass | Result |
 |---|---|---|---|---|
-| WI1 | Prerequisites | `turn_test check` from a normal terminal, then from one run as administrator | `elevated` false then true; `ViGEmBus: installed` with the driver, `The virtual gamepad driver is not installed.` after `sc stop ViGEmBus` (as administrator; `sc start ViGEmBus` afterwards) | |
-| WI2 | Key hold | `turn_test keyboard KeyD 120 13` on NoClip with the arrow keys, landmark picked | The camera turns 13 times and ends on the landmark | |
-| WI3 | Mouse move | `turn_test mouse move 840 13` on Battlefront 2 | Same as WI2; note the delta that closes the turn | |
-| WI4 | Mouse drag | `turn_test mouse drag left 840 13` on NoClip | The cursor is parked, the camera orbits 13 times and ends on the landmark | |
-| WI5 | Stop releases everything | Start WI4, press Ctrl+C after two Steps | No key or button stays held (the game is not dragging on its own) | |
-| WI6 | Virtual pad | `turn_test gamepad 0.8 120 13`: it plugs the pad and waits; start or restart the game (some only look for controllers at launch), pick a landmark, press Enter in the terminal and switch to the game | The game shows pad prompts, the camera turns 13 times and ends on the landmark; `virtual pad plugged: true` at the end | |
+| WI1 | Prerequisites | `turn_test check` from a normal terminal, then from one run as administrator | `elevated` false then true; `ViGEmBus: installed` with the driver, `The virtual gamepad driver is not installed.` after `sc stop ViGEmBus` (as administrator; `sc start ViGEmBus` afterwards) | Pass from an administrator prompt: `elevated: true`, `ViGEmBus: installed` (driver 1.17.333). The non-elevated prompt and the stopped-driver message were not tried (2026-11-01, 1dc654d) |
+| WI2 | Key hold | `turn_test keyboard ArrowRight 120 13` on NoClip with the arrow keys, landmark picked | The camera turns 13 times and ends on the landmark | Pass on NoClip (2026-11-01, 1dc654d) |
+| WI3 | Mouse move | `turn_test mouse move 840 13` on Battlefront 2 | Same as WI2; note the delta that closes the turn | Pass on Battlefront 2, offline Arcade (2026-11-01, 1dc654d) |
+| WI4 | Mouse drag | `turn_test mouse drag left 840 13` on NoClip | The cursor is parked, the camera orbits 13 times and ends on the landmark | Pass on NoClip, left button (2026-11-01, 1dc654d) |
+| WI5 | Stop releases everything | Start WI4, press Ctrl+C after two Steps | No key or button stays held (the game is not dragging on its own) | Pass: Ctrl+C ends the run, nothing stays held (2026-11-01, 1dc654d) |
+| WI6 | Virtual pad | `turn_test gamepad 0.8 120 13`: it plugs the pad and waits; start or restart the game (some only look for controllers at launch), pick a landmark, press Enter in the terminal and switch to the game | The game shows pad prompts, the camera turns 13 times and ends on the landmark; `virtual pad plugged: true` at the end | Pass on Battlefront 2 with the physical Xbox One pad unplugged, ViGEmBus 1.17.333 (2026-11-01, 1dc654d) |
 
 Game matrix:
 
 | Game | Input device | Mode | Display mode | WI2 | WI3 | WI4 | WI6 | Notes |
 |---|---|---|---|---|---|---|---|---|
-| | | | | | | | | |
+| NoClip (noclip.website) | Keyboard, Mouse | Arrow keys; drag, left button | Maximized browser, primary display | ✓ 2026-11-01 | – | ✓ 2026-11-01 | – | Plain mouse moves do nothing in NoClip, only drags |
+| Star Wars Battlefront 2 (2017) | Mouse, Gamepad | Move (raw input); right stick | Borderless, primary display | – | ✓ 2026-11-01 | – | ✓ 2026-11-01 | Offline Arcade only (anti-cheat online); physical pad unplugged for WI6 |
