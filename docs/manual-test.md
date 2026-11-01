@@ -163,3 +163,22 @@ cargo run -p panowww-capture --example shot -- 0 100 100 1600 900
 | WC4 | Preview | Same run, the preview lines | About 6 frames in 3 s, 30–60 KB each, none after stop | Pass: 6 frames in 3 s at 32 KB when the display composes continuously, 4 in 3 s on a still screen (same cause as WC3), none after stop once the late-frame race was fixed (2026-11-01, 8250840) |
 | WC5 | Nothing composes | `shot 0 0 0 1920 1080` on a display showing a still picture, cursor parked elsewhere and not moved | The first Shot fails after 2 s with `no frame newer than the move`: WGC delivers frames only when the display composes a new one, a running game always does | Not reproduced: the still secondary display still composed every 0.5–1 s (Shots 124 and 105 ms, 6 preview frames). The 2 s timeout stays as the safety net (2026-11-01, 21e4312) |
 | WC6 | HDR flag | `shot list` with HDR on for one display (Settings → System → Display), then off | `· HDR` after that display's line, gone after turning it off | Not available: neither display of the test machine supports HDR; the flag reads `false` for both (2026-11-01) |
+
+## Windows · app (issue 25)
+
+Reference games as for the input rows: NoClip in a maximized browser and
+Star Wars Battlefront 2 in offline Arcade, borderless, on the primary
+display. The app runs elevated (UAC prompt at launch).
+
+| # | Check | How | Pass | Result |
+|---|---|---|---|---|
+| WA1 | Elevation | Launch the built app (`pnpm tauri build`, then the exe in `target/release`); then `cargo test -p panowww-app` | The app asks for UAC at launch and onboarding shows the *Running as administrator* card; the test binaries ask nothing | |
+| WA2 | Show zone | Setup → *Show zone*, switch to the game | The lavender frame sits exactly on the zone over the game; the game keeps the focus (keep moving the camera with the real mouse); clicks inside the frame reach the game; *Hide zone* removes it | |
+| WA3 | Countdown digit | Start a Session with Ctrl+Shift+8 from the game | 3, 2, 1 centred in the frame over the game, the game never loses the focus, the Panowww window does not come forward | |
+| WA4 | Progress and end pill | Let the Session run, then run another and stop it with Ctrl+Shift+9 | Bar and `k / n` pill inside the frame; `Done · n Shots` then gone after about 2 s; `Stopped · k / n` after a stop | |
+| WA5 | Not in the Shots | Open the Session folder | No frame, digit, bar or pill in any PNG, no Panowww window, no yellow border was visible during the run | |
+| WA6 | Close quits | Close the main window with ✕ while idle, then while a Session runs | The process is gone within a second (Task Manager); the Session reads `interrupted` with its Shots; a plugged virtual pad disappears from Device Manager | |
+| WA7 | Windows chrome | Look at the main window | Native caption bar (─ ☐ ✕), 8 px cards and 4 px small radii, no space reserved for macOS traffic lights | |
+| WA8 | Reveal in Explorer | Sessions tab → *Reveal* on a row; Settings → *Reveal logs* | Explorer opens with the folder selected | |
+| WA9 | Nothing moved? popover | Open it from a Windows mouse Game and a gamepad Game | Item 4 ends with "Use a gamepad Game for them."; the gamepad line mentions player 1 and the restart | |
+| WA10 | Second display at 125 % | Set the secondary display to 125 %, draw a zone there, *Show zone*, run a Session | The picker covers that display exactly, the frame lands where the Shot is taken | |
