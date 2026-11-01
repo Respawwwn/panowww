@@ -449,15 +449,15 @@ export const strings = {
       "The three keys match the game's camera bindings. Panowww presses the key at that position on your keyboard: check them on your layout.",
     mouse:
       "Switch between Move and Drag, or try another drag button. Some games read the mouse only after a click inside their window.",
-    gamepad: "ViGEmBus is installed and the game accepts an Xbox 360 controller.",
+    gamepad:
+      "ViGEmBus is installed and the game accepts an Xbox 360 controller. Unplug physical controllers: the virtual pad must be player 1. Some games only look for controllers at launch: restart the game once after the first countdown.",
     mac: {
       controllerMouse:
         "Some Mac games read the mouse through the game-controller path and ignore injected moves. Use the game's keyboard camera controls if it has them.",
     },
     win: {
-      // Ending pending the Windows verification (spec §15, W10).
       rawInput:
-        "Some games read the mouse and keyboard straight from the device and ignore injected input.",
+        "Some games read the mouse and keyboard straight from the device and ignore injected input. Use a gamepad Game for them.",
     },
     antiCheat:
       "Multiplayer games with anti-cheat block injected input and may ban you for it. Use Panowww offline, in single-player.",

@@ -13,6 +13,7 @@ import { nav } from "./lib/nav.svelte";
 import { run } from "./lib/run.svelte";
 import { viewFromLast } from "./lib/sessionView";
 import { settings } from "./lib/settings.svelte";
+import { detectPlatform } from "./lib/shortcut";
 import { applyAppearance } from "./lib/theme";
 import { update } from "./lib/update.svelte";
 import { windows } from "./lib/windows.svelte";
@@ -95,6 +96,9 @@ const endedView = $derived.by(() => {
     : null;
 });
 
+// Windows radii and chrome (spec §12): the shell carries the platform.
+const platform = detectPlatform();
+
 // Cmd+, / Ctrl+, opens Settings (§11).
 function onKeyDown(event: KeyboardEvent) {
   if (event.key === "," && (event.metaKey || event.ctrlKey) && !nav.busy) {
@@ -109,7 +113,7 @@ function onKeyDown(event: KeyboardEvent) {
 {#if nav.screen.kind === "gallery"}
   <Gallery />
 {:else}
-  <div class="shell">
+  <div class="shell" data-platform={platform === "windows" ? "windows" : undefined}>
     <Sidebar
       onsessions={() => nav.showAllSessions()}
       onsettings={() => windows.show("settings")}
@@ -188,5 +192,9 @@ function onKeyDown(event: KeyboardEvent) {
     right: 0;
     height: 48px;
     z-index: 1;
+  }
+  /* The native caption bar moves the window on Windows. */
+  .shell[data-platform="windows"] .drag {
+    display: none;
   }
 </style>

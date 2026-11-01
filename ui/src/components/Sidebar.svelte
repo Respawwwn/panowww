@@ -169,6 +169,11 @@ function dragEnd() {
     transition: opacity 0.15s ease-out;
   }
 
+  /* Windows has its own caption bar above the window: no traffic lights. */
+  :global(.shell[data-platform="windows"]) .sidebar {
+    padding-top: 12px;
+  }
+
   .sidebar.dim {
     opacity: 0.45;
     pointer-events: none;
