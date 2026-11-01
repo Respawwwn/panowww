@@ -8,6 +8,12 @@
 //! now and then with Win32 error 483 (`ERROR_DEVICE_HARDWARE_ERROR`) from
 //! the wait-ready call, so a pad unplugs itself when dropped and
 //! [`Pad::plug`] retries once.
+//!
+//! The pad the Cameras drive is **one per process** ([`plug_shared`]):
+//! games that only look for controllers at launch need the pad to outlive
+//! a run, so the user can restart the game once and run again (spec §8.3).
+
+use std::sync::{Mutex, MutexGuard, PoisonError};
 
 use panowww_core::ports::InputError;
 use vigem_client::{Client, TargetId, XGamepad, Xbox360Wired};
@@ -15,6 +21,45 @@ use vigem_client::{Client, TargetId, XGamepad, Xbox360Wired};
 /// One plugged virtual pad. Dropping it unplugs the controller.
 pub struct Pad {
     target: Xbox360Wired<Client>,
+}
+
+// SAFETY: the client wraps a kernel handle to the bus device, which any
+// thread of the process may use; the target keeps no thread affinity. Every
+// use goes through the mutex of the shared pad or an exclusive borrow.
+unsafe impl Send for Pad {}
+
+static SHARED: Mutex<Option<Pad>> = Mutex::new(None);
+
+fn shared() -> MutexGuard<'static, Option<Pad>> {
+    SHARED.lock().unwrap_or_else(PoisonError::into_inner)
+}
+
+/// Plugs the process-wide pad unless it is already plugged.
+pub fn plug_shared() -> Result<(), InputError> {
+    let mut slot = shared();
+    if slot.as_ref().is_none_or(|pad| !pad.is_plugged()) {
+        *slot = Some(Pad::plug()?);
+    }
+    Ok(())
+}
+
+/// Whether the process-wide pad is plugged.
+pub fn shared_plugged() -> bool {
+    shared().as_ref().is_some_and(Pad::is_plugged)
+}
+
+/// Right stick of the process-wide pad; [`InputError::DeviceMissing`] when
+/// nothing is plugged.
+pub fn shared_stick(x: f64, y: f64) -> Result<(), InputError> {
+    shared()
+        .as_mut()
+        .ok_or(InputError::DeviceMissing)?
+        .stick(x, y)
+}
+
+/// Unplugs the process-wide pad, if any.
+pub fn unplug_shared() {
+    *shared() = None;
 }
 
 impl std::fmt::Debug for Pad {
@@ -119,6 +164,14 @@ mod tests {
         ));
     }
 
+    #[test]
+    fn the_shared_stick_needs_a_plugged_pad() {
+        // Nothing plugged in the test process: no driver call is made.
+        assert!(!shared_plugged());
+        assert_eq!(shared_stick(0.5, 0.0), Err(InputError::DeviceMissing));
+        unplug_shared();
+    }
+
     /// Needs the driver: plugs a pad, waits for an `XInput` slot, drops it.
     #[test]
     #[ignore = "needs ViGEmBus installed; run by hand on the Windows machine"]
@@ -128,5 +181,11 @@ mod tests {
         assert!(pad.is_plugged());
         assert!(pad.user_index().is_some());
         pad.stick(0.8, -0.2).unwrap();
+        drop(pad);
+        plug_shared().unwrap();
+        assert!(shared_plugged());
+        shared_stick(0.0, 0.0).unwrap();
+        unplug_shared();
+        assert!(!shared_plugged());
     }
 }

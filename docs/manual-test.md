@@ -128,7 +128,7 @@ cargo run -p panowww-input --example turn_test -- check
 | WI3 | Mouse move | `turn_test mouse move 840 13` on Battlefront 2 | Same as WI2; note the delta that closes the turn | |
 | WI4 | Mouse drag | `turn_test mouse drag left 840 13` on NoClip | The cursor is parked, the camera orbits 13 times and ends on the landmark | |
 | WI5 | Stop releases everything | Start WI4, press Ctrl+C after two Steps | No key or button stays held (the game is not dragging on its own) | |
-| WI6 | Virtual pad | `turn_test gamepad 0.8 120 13` on a game started after a first `turn_test gamepad` run (some games only look for controllers at launch) | The game shows pad prompts, the camera turns 13 times and ends on the landmark; `virtual pad plugged: true` at the end | |
+| WI6 | Virtual pad | `turn_test gamepad 0.8 120 13`: it plugs the pad and waits; start or restart the game (some only look for controllers at launch), pick a landmark, press Enter in the terminal and switch to the game | The game shows pad prompts, the camera turns 13 times and ends on the landmark; `virtual pad plugged: true` at the end | |
 
 Game matrix:
 

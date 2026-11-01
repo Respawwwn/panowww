@@ -155,6 +155,18 @@ fn main() {
         return;
     }
     let game = shared::game_from_args(&args);
+    if args.first().map(String::as_str) == Some("gamepad") {
+        // The app keeps the pad plugged across runs; here the process is the
+        // run, so plug first and let the user (re)start the game.
+        if let Err(e) = gamepad::plug_shared() {
+            eprintln!("virtual pad: {e}");
+            std::process::exit(1);
+        }
+        println!(
+            "virtual pad plugged. Start or restart the game if it only looks for controllers at launch, then press Enter."
+        );
+        let _ = std::io::stdin().read_line(&mut String::new());
+    }
     // Park the cursor at the middle of a 1080p primary display; adjust to
     // your Capture zone when drag parking matters.
     let zone = Rect {
@@ -166,6 +178,7 @@ fn main() {
     let mut camera = SendInputCamera::new();
     shared::turn(&mut camera, &game, zone);
     println!("virtual pad plugged: {}", camera.pad_plugged());
+    gamepad::unplug_shared();
 }
 
 #[cfg(not(any(target_os = "macos", target_os = "windows")))]

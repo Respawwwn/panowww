@@ -28,37 +28,17 @@ use windows::Win32::UI::WindowsAndMessaging::SetCursorPos;
 use crate::keys;
 
 /// The `Camera` of a Windows machine. Remembers what it holds so
-/// `release_all` can let go of every key and button, and plugs the virtual
-/// pad the first time a Game asks for the stick.
+/// `release_all` can let go of every key and button, and plugs the
+/// process-wide virtual pad the first time a Game asks for the stick.
+#[derive(Debug, Default)]
 pub struct SendInputCamera {
     held_keys: Vec<PhysicalKey>,
     held_buttons: Vec<MouseButton>,
-    pad: Option<gamepad::Pad>,
-}
-
-impl std::fmt::Debug for SendInputCamera {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("SendInputCamera")
-            .field("held_keys", &self.held_keys)
-            .field("held_buttons", &self.held_buttons)
-            .field("pad_plugged", &self.pad.is_some())
-            .finish()
-    }
-}
-
-impl Default for SendInputCamera {
-    fn default() -> Self {
-        Self::new()
-    }
 }
 
 impl SendInputCamera {
     pub fn new() -> Self {
-        Self {
-            held_keys: Vec::new(),
-            held_buttons: Vec::new(),
-            pad: None,
-        }
+        Self::default()
     }
 
     /// What is held right now, for logs and tests.
@@ -68,7 +48,7 @@ impl SendInputCamera {
 
     /// Whether the virtual pad is plugged, for the gamepad Game's setup.
     pub fn pad_plugged(&self) -> bool {
-        self.pad.as_ref().is_some_and(gamepad::Pad::is_plugged)
+        gamepad::shared_plugged()
     }
 
     fn key(key: &PhysicalKey, down: bool) -> Result<(), InputError> {
@@ -131,13 +111,13 @@ impl Camera for SendInputCamera {
             .map_err(|e| InputError::Failed(format!("SetCursorPos failed: {e}")))
     }
 
-    /// Right stick to (`x`, `y`), each axis in −1..1, plugging the virtual
-    /// pad on the first call.
+    /// Right stick to (`x`, `y`), each axis in −1..1, plugging the
+    /// process-wide pad on the first call. The pad stays plugged after the
+    /// run so a game that enumerates controllers at launch can be restarted
+    /// once and find it.
     fn stick(&mut self, x: f64, y: f64) -> Result<(), InputError> {
-        if self.pad.is_none() {
-            self.pad = Some(gamepad::Pad::plug()?);
-        }
-        self.pad.as_mut().expect("plugged just above").stick(x, y)
+        gamepad::plug_shared()?;
+        gamepad::shared_stick(x, y)
     }
 
     /// Releases every held key and button, keys first, centres the stick,
@@ -154,8 +134,8 @@ impl Camera for SendInputCamera {
                 first_error.get_or_insert(e);
             }
         }
-        if let Some(pad) = self.pad.as_mut()
-            && let Err(e) = pad.stick(0.0, 0.0)
+        if gamepad::shared_plugged()
+            && let Err(e) = gamepad::shared_stick(0.0, 0.0)
         {
             first_error.get_or_insert(e);
         }
