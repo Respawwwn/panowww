@@ -117,6 +117,12 @@ the example runs from a normal terminal and reaches any game that is not
 elevated; the app itself runs elevated (spec §8.4). Never inject into a
 multiplayer game with anti-cheat.
 
+Gamepad rows: **unplug every physical controller** first, the virtual pad
+must be XInput player 1. ViGEmBus 1.22.0 is the version the README names;
+1.17.333 works but answers the wait-ready call at random (Win32 483, 259),
+which the adapter only logs. A pad left plugged by a killed process stays
+listed until a reboot.
+
 ```sh
 cargo run -p panowww-input --example turn_test -- check
 ```

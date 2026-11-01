@@ -4,14 +4,17 @@
 //! and the pre-flight whether it is installed.
 //!
 //! Verified 2026-11-01: the pad shows up as an Xbox 360 controller and its
-//! sticks move. Plugging while a previous target is still attached fails
-//! now and then with Win32 error 483 (`ERROR_DEVICE_HARDWARE_ERROR`) from
-//! the wait-ready call, so a pad unplugs itself when dropped and
-//! [`Pad::plug`] retries once.
+//! sticks move. The bus's wait-ready call is unreliable on an old driver
+//! (1.17.333 answered Win32 483 and 259 at random while the pad was in
+//! fact attached), so [`Pad::plug`] only logs its failure: readiness comes
+//! from the seconds of countdown between the pre-flight plug and the first
+//! move. A pad unplugs itself when dropped.
 //!
 //! The pad the Cameras drive is **one per process** ([`plug_shared`]):
 //! games that only look for controllers at launch need the pad to outlive
 //! a run, so the user can restart the game once and run again (spec §8.3).
+//! The virtual pad must be `XInput` player 1: physical controllers take the
+//! lower slots and most games read only the first.
 
 use std::sync::{Mutex, MutexGuard, PoisonError};
 
@@ -71,18 +74,17 @@ impl std::fmt::Debug for Pad {
 }
 
 impl Pad {
-    /// Connects to the bus, plugs a wired Xbox 360 target and waits until
-    /// the system sees it. [`InputError::DeviceMissing`] when the driver is
-    /// not installed.
+    /// Connects to the bus and plugs a wired Xbox 360 target.
+    /// [`InputError::DeviceMissing`] when the driver is not installed. The
+    /// wait-ready answer of the bus is logged, not trusted (see the module
+    /// doc); [`Pad::user_index`] tells when the system has enumerated it.
     pub fn plug() -> Result<Self, InputError> {
         let client = Client::connect().map_err(map_error)?;
         let mut target = Xbox360Wired::new(client, TargetId::XBOX360_WIRED);
         target.plugin().map_err(map_error)?;
-        if let Err(first) = target.wait_ready() {
-            tracing::warn!(error = %first, "virtual pad not ready, plugging again");
-            let _ = target.unplug();
-            target.plugin().map_err(map_error)?;
-            target.wait_ready().map_err(map_error)?;
+        match target.wait_ready() {
+            Ok(()) => tracing::debug!("virtual pad ready"),
+            Err(e) => tracing::warn!(error = %e, "wait-ready refused; the pad is plugged anyway"),
         }
         Ok(Self { target })
     }
@@ -179,7 +181,11 @@ mod tests {
         check().unwrap();
         let mut pad = Pad::plug().unwrap();
         assert!(pad.is_plugged());
-        assert!(pad.user_index().is_some());
+        let slot = (0..40).find_map(|_| {
+            std::thread::sleep(std::time::Duration::from_millis(50));
+            pad.user_index()
+        });
+        assert!(slot.is_some(), "no XInput slot within 2 s");
         pad.stick(0.8, -0.2).unwrap();
         drop(pad);
         plug_shared().unwrap();
