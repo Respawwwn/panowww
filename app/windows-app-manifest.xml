@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  Embedded by the linker in every binary of the app crate, test binaries
+  included (see build.rs). Same content as tauri-build's default manifest:
+  without the Common-Controls v6 dependency, `TaskDialogIndirect` is not
+  found and the test binaries exit with STATUS_ENTRYPOINT_NOT_FOUND.
+-->
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+  <dependency>
+    <dependentAssembly>
+      <assemblyIdentity
+        type="win32"
+        name="Microsoft.Windows.Common-Controls"
+        version="6.0.0.0"
+        processorArchitecture="*"
+        publicKeyToken="6595b64144ccf1df"
+        language="*"
+      />
+    </dependentAssembly>
+  </dependency>
+</assembly>
