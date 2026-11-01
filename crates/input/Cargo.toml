@@ -18,6 +18,16 @@ objc2-application-services = { version = "0.3", features = ["HIServices", "AXUIE
 objc2-core-foundation = "0.3"
 objc2-core-graphics = { version = "0.3", features = ["CGEvent", "CGEventTypes", "CGEventSource", "CGRemoteOperation"] }
 
+[target.'cfg(target_os = "windows")'.dependencies]
+vigem-client = "0.1"
+windows = { version = "0.62", features = [
+    "Win32_Foundation",
+    "Win32_Security",
+    "Win32_System_Threading",
+    "Win32_UI_Input_KeyboardAndMouse",
+    "Win32_UI_WindowsAndMessaging",
+] }
+
 [dev-dependencies]
 # The turn_test example drives the Runner with the core fakes for the rest.
 panowww-core = { path = "../core", features = ["test-support"] }

@@ -107,3 +107,38 @@ Reference game in a full-screen Space on the zone's display. The overlay is a `t
 | P4 | Show frame on screen | Tick the checkbox while drawing, then Save | The overlay frame appears exactly on the rectangle (through the picker's dim); it goes away with the windows | Pass (2026-11-01, f46c8df) |
 | P5 | Cancel and Esc | *Cancel* in one window; open again and press Esc in the other | Every picker window closes, the zone is unchanged, Setup is usable again | Found: Esc did nothing (the panel was not the key responder). Fixed: the focused picker window takes the keyboard. Retest: pass, Esc and Cancel both close (2026-11-01) |
 | P6 | Display changed | Save a zone, change that display's resolution, reopen Setup | The amber *Display n is gone or its resolution changed* box; *Change zone…* opens the picker on the display as it is now | Second display not available on 2026-11-01; planned with one |
+
+## Windows · input (issue 23)
+
+Reference games on Windows: **NoClip** (drag camera, left button, in a
+maximized browser) and **Star Wars Battlefront 2** in offline Arcade
+(raw-input mouse-look, takes an Xbox pad). Windows has no input permission:
+the example runs from a normal terminal and reaches any game that is not
+elevated; the app itself runs elevated (spec §8.4). Never inject into a
+multiplayer game with anti-cheat.
+
+Gamepad rows: **unplug every physical controller** first, the virtual pad
+must be XInput player 1. ViGEmBus 1.22.0 is the version the README names;
+1.17.333 works but answers the wait-ready call at random (Win32 483, 259),
+which the adapter only logs. A pad left plugged by a killed process stays
+listed until a reboot.
+
+```sh
+cargo run -p panowww-input --example turn_test -- check
+```
+
+| # | Check | How | Pass | Result |
+|---|---|---|---|---|
+| WI1 | Prerequisites | `turn_test check` from a normal terminal, then from one run as administrator | `elevated` false then true; `ViGEmBus: installed` with the driver, `The virtual gamepad driver is not installed.` after `sc stop ViGEmBus` (as administrator; `sc start ViGEmBus` afterwards) | Pass from an administrator prompt: `elevated: true`, `ViGEmBus: installed` (driver 1.17.333). The non-elevated prompt and the stopped-driver message were not tried (2026-11-01, 1dc654d) |
+| WI2 | Key hold | `turn_test keyboard ArrowRight 120 13` on NoClip with the arrow keys, landmark picked | The camera turns 13 times in equal Steps; it ends on the landmark only once the hold is calibrated for the game (the example's 120 ms is a fixed guess, calibration is per Game in the app) | Pass on NoClip: 13 equal turns, landmark far off with the uncalibrated hold, as expected (2026-11-01, 1dc654d) |
+| WI3 | Mouse move | `turn_test mouse move 840 13` on Battlefront 2 | Same as WI2 with the example's fixed 840-unit delta | Pass on Battlefront 2, offline Arcade: 13 equal turns, landmark not closed with the uncalibrated delta (2026-11-01, 1dc654d) |
+| WI4 | Mouse drag | `turn_test mouse drag left 840 13` on NoClip | The cursor is parked, the camera orbits 13 times in equal Steps (landmark as in WI2) | Pass on NoClip, left button: parked, 13 equal orbits (2026-11-01, 1dc654d) |
+| WI5 | Stop releases everything | Start WI4, press Ctrl+C after two Steps | No key or button stays held (the game is not dragging on its own) | Pass: Ctrl+C ends the run, nothing stays held (2026-11-01, 1dc654d) |
+| WI6 | Virtual pad | `turn_test gamepad 0.8 120 13`: it plugs the pad and waits; start or restart the game (some only look for controllers at launch), pick a landmark, press Enter in the terminal and switch to the game | The game shows pad prompts, the camera turns 13 times in equal Steps (landmark as in WI2); `virtual pad plugged: true` at the end | Pass on Battlefront 2 with the physical Xbox One pad unplugged, ViGEmBus 1.17.333: 13 equal turns with the uncalibrated 0.8 / 120 ms stick (2026-11-01, 1dc654d) |
+
+Game matrix:
+
+| Game | Input device | Mode | Display mode | WI2 | WI3 | WI4 | WI6 | Notes |
+|---|---|---|---|---|---|---|---|---|
+| NoClip (noclip.website) | Keyboard, Mouse | Arrow keys; drag, left button | Maximized browser, primary display | ✓ 2026-11-01 | – | ✓ 2026-11-01 | – | Plain mouse moves do nothing in NoClip, only drags |
+| Star Wars Battlefront 2 (2017) | Mouse, Gamepad | Move (raw input); right stick | Borderless, primary display | – | ✓ 2026-11-01 | – | ✓ 2026-11-01 | Offline Arcade only (anti-cheat online); physical pad unplugged for WI6 |
