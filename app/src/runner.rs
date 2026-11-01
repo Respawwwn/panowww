@@ -342,8 +342,7 @@ impl Worker {
         if !self.backend.accessibility_granted() {
             return Err(StartFailure::Accessibility);
         }
-        if spec.game.device() == panowww_core::game::Device::Gamepad
-            && !self.backend.gamepad_available()
+        if spec.game.device() == panowww_core::game::Device::Gamepad && !self.backend.plug_gamepad()
         {
             return Err(StartFailure::Vigem);
         }

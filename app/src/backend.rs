@@ -17,6 +17,10 @@ pub trait Backend: Send + Sync {
     fn screen_recording_granted(&self) -> bool;
     /// Whether gamepad Games can run here (ViGEmBus present on Windows).
     fn gamepad_available(&self) -> bool;
+    /// Plugs the virtual pad for a gamepad Game at the pre-flight, so the
+    /// game sees it before the first move; `true` when it is plugged. The
+    /// pad stays plugged across runs (spec §8.3).
+    fn plug_gamepad(&self) -> bool;
     fn displays(&self) -> Result<Vec<DisplayInfo>, CaptureError>;
     /// Where a display sits in the global point space (top-left of the main
     /// display at the origin), for the overlay window. `None` when gone.
@@ -51,6 +55,10 @@ impl Backend for SystemBackend {
     }
 
     fn gamepad_available(&self) -> bool {
+        false
+    }
+
+    fn plug_gamepad(&self) -> bool {
         false
     }
 
@@ -108,6 +116,16 @@ impl Backend for SystemBackend {
         panowww_input::windows::gamepad::check().is_ok()
     }
 
+    fn plug_gamepad(&self) -> bool {
+        match panowww_input::windows::gamepad::plug_shared() {
+            Ok(()) => true,
+            Err(e) => {
+                tracing::warn!(error = %e, "virtual pad not plugged");
+                false
+            }
+        }
+    }
+
     fn displays(&self) -> Result<Vec<DisplayInfo>, CaptureError> {
         Ok(Vec::new())
     }
@@ -148,6 +166,10 @@ impl Backend for SystemBackend {
     }
 
     fn gamepad_available(&self) -> bool {
+        false
+    }
+
+    fn plug_gamepad(&self) -> bool {
         false
     }
 
@@ -327,6 +349,10 @@ pub mod fake {
 
         fn gamepad_available(&self) -> bool {
             false
+        }
+
+        fn plug_gamepad(&self) -> bool {
+            true
         }
 
         fn displays(&self) -> Result<Vec<DisplayInfo>, CaptureError> {
