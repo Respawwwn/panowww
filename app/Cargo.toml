@@ -13,6 +13,9 @@ name = "panowww_app"
 [[bin]]
 name = "panowww"
 path = "src/main.rs"
+# main.rs only hands over to the library, and on Windows the binary's
+# manifest asks for elevation (build.rs): no test harness of it.
+test = false
 
 [lints]
 workspace = true
