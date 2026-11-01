@@ -11,3 +11,6 @@ node_modules/
 
 spike/
 prototype/
+
+# The capture crate's shot example writes its Shot in the working directory.
+/shot.png
