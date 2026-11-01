@@ -85,10 +85,10 @@ Vocabulary is in [GLOSSARY.md](../GLOSSARY.md). Relationships:
 |---|---|---|
 | Toolchain | Rust stable pinned in `rust-toolchain.toml` (1.99.x at planning time), edition 2024 | `unsafe` forbidden in `core` and `store` |
 | Shell | **Tauri 2.x** (2.12.x; no 3.0 alpha) | All logic in Rust; the webview renders only |
-| Overlay | macOS: `tauri-nspanel` 2.1.x. Windows: tao window flags (`focusable: false`, ignore cursor events) ⏳ | §10 |
+| Overlay | macOS: `tauri-nspanel` 2.1.x. Windows: tao window flags (`focusable: false`, ignore cursor events), verified 2026-11-01 | §10 |
 | Global shortcuts | `tauri-plugin-global-shortcut` (`global-hotkey`: Carbon `RegisterEventHotKey` / `RegisterHotKey`) | §10 |
 | Input | own module: `objc2-core-graphics` 0.3 (CGEvent); `windows` 0.62 (`SendInput`); `vigem-client` 0.1.x behind our own trait | §8 |
-| Capture | own module: **`objc2-screen-capture-kit` 0.3** (not the `screencapturekit` crate, whose `apple-metal` dependency needs the macOS 26 SDK); `windows-capture` 2.0.x on Windows Graphics Capture ⏳ | §9 |
+| Capture | own module: **`objc2-screen-capture-kit` 0.3** (not the `screencapturekit` crate, whose `apple-metal` dependency needs the macOS 26 SDK); `windows-capture` 2.0.x on Windows Graphics Capture, verified 2026-11-01 | §9 |
 | Images | `png` 0.18 `Compression::Fast`, RGB8 no alpha; `fast_image_resize` for thumbnails, previews and the detector; JPEG encoder for previews / thumbnails | §9 |
 | Errors / logs | `thiserror` per crate, no `anyhow`; `tracing` + rotating file in Tauri's logs folder | §4.7 |
 | Tests / quality | `cargo nextest`, `insta`, `proptest`, clippy pedantic, `cargo-deny`, `typos` | §4.8 |
@@ -107,9 +107,9 @@ Svelte 5 + TypeScript + Vite SPA (no SvelteKit, no router: state-based navigatio
 | Mouse move | `MouseMoved` / `*MouseDragged` with `kCGMouseEventDeltaX/Y` set | `MOUSEEVENTF_MOVE` (relative, never `ABSOLUTE`) |
 | Gamepad | none | ViGEmBus + `vigem-client` (`BusNotFound` = driver missing) |
 | Input permission | `AXIsProcessTrustedWithOptions`, `CGPreflightPostEventAccess` / `CGRequestPostEventAccess` | app manifest `requireAdministrator` (UIPI) |
-| Capture | ScreenCaptureKit: `SCScreenshotManager` for Shots and Samples, low-rate `SCStream` for the preview, content filter excluding our own windows | Windows Graphics Capture, one session, frames cropped to the zone; own windows `WDA_EXCLUDEFROMCAPTURE` ⏳ |
+| Capture | ScreenCaptureKit: `SCScreenshotManager` for Shots and Samples, low-rate `SCStream` for the preview, content filter excluding our own windows | Windows Graphics Capture, one session, frames cropped to the zone; own windows `WDA_EXCLUDEFROMCAPTURE` (verified 2026-11-01) |
 | Capture permission | `CGPreflightScreenCaptureAccess` / `CGRequestScreenCaptureAccess` | none |
-| Overlay | `NSPanel` non-activating, `CanJoinAllSpaces \| FullScreenAuxiliary \| Stationary`, level ScreenSaver, `ignoresMouseEvents` | `WS_EX_NOACTIVATE \| WS_EX_TRANSPARENT \| WS_EX_LAYERED` via tao ⏳ |
+| Overlay | `NSPanel` non-activating, `CanJoinAllSpaces \| FullScreenAuxiliary \| Stationary`, level ScreenSaver, `ignoresMouseEvents` | `WS_EX_NOACTIVATE \| WS_EX_TRANSPARENT \| WS_EX_LAYERED` via tao (verified 2026-11-01) |
 | Reveal / open settings | Finder, `x-apple.systempreferences:` URLs | Explorer `/select`, `ms-settings:` |
 
 ---
@@ -205,7 +205,7 @@ pub fn run(
 ### 4.5 Countdown, pre-flight and stream opening (in `app`)
 
 At the start of a countdown, in this order, before the first tick is drawn:
-1. **Pre-flight**: macOS `AXIsProcessTrusted()` for every Game; Windows ViGEmBus present for gamepad Games. ⏳ `BusNotFound` as the ViGEmBus test is to confirm.
+1. **Pre-flight**: macOS `AXIsProcessTrusted()` for every Game; Windows ViGEmBus present for gamepad Games. ⏳ `BusNotFound` as the ViGEmBus test is still to confirm (the driver was installed on the 2026-11-01 test machine, so the missing-driver path was not exercised).
 2. **Open the capture `Stream`** on the zone's display (absorbs the ≈ 3× first-Shot warm-up; the preview is visible during the 3-2-1).
 3. Any failure above → countdown **cancelled, nothing created**; the countdown screen shows the error state (§11.9) with the reason's action; the overlay is hidden.
 
@@ -428,12 +428,12 @@ Relative moves only: macOS `MouseMoved` (move mode) or `<button>MouseDragged` (d
 
 ### 8.3 Gamepad (Windows)
 
-Virtual Xbox 360 controller through ViGEmBus 1.22.0 + `vigem-client` behind our own trait (`vigem-rust` is the swap). ViGEmBus is archived since 2023-11 and never redistributed: onboarding links to the official release page. ⏳ to confirm: the virtual stick moves a camera; `BusNotFound` reliably means "driver missing".
+Virtual Xbox 360 controller through ViGEmBus 1.22.0 + `vigem-client` behind our own trait (`vigem-rust` is the swap). ViGEmBus is archived since 2023-11 and never redistributed: onboarding links to the official release page. Verified 2026-11-01: the virtual pad is detected as an Xbox 360 controller and its sticks move (hardwaretester.com; no gamepad game tried yet). Plugging a pad while the previous one is still attached fails intermittently with Win32 error 483 (`ERROR_DEVICE_HARDWARE_ERROR`) from the wait-ready call, so the adapter unplugs before it plugs, retries wait-ready once, and the gamepad Game's setup shows *plugged* / *not plugged* (XInput user index). ⏳ `BusNotFound` as "driver missing" is unverified (driver present on the test machine).
 
 ### 8.4 Prerequisites and failure modes
 
 - macOS Accessibility: checked at launch (onboarding), at every countdown (pre-flight). Unsigned builds lose the grant on update; the self-signed certificate (§14) keeps it.
-- Windows: Panowww always runs elevated (UIPI drops input into elevated games otherwise). ⏳ the `requireAdministrator` build driving a game launched as administrator is to confirm.
+- Windows: Panowww always runs elevated (UIPI drops input into elevated games otherwise). ⏳ the `requireAdministrator` build driving a game launched as administrator is still to confirm (not tried on 2026-11-01).
 - Known, undetectable: raw-input games on Windows ⏳, SDL / GameController-mouse games on macOS, anti-cheat. Covered by the *Nothing moved?* checklist.
 
 ---
@@ -442,7 +442,7 @@ Virtual Xbox 360 controller through ViGEmBus 1.22.0 + `vigem-client` behind our 
 
 - One `Stream` per run on one display, opened by `app` before the countdown (§4.5). Shots and Samples are full-resolution frames cropped to the zone; the adapter guarantees a **fresh frame after the move** (`not_before` timestamp).
 - **macOS**: `SCScreenshotManager` per Shot/Sample with a display content filter **excluding Panowww's own windows** (overlay never in a Shot); output size = points × scale; no cursor; SDR. Measured in release: first Shot 95–155 ms, then 30–47 ms; PNG `fast` ≈ 6 ms at 1080p, ≈ 10 ms at 1440p (≈ 25 ms expected at 4K). Preview = a separate low-rate `SCStream` whose output size is reduced in the SCK configuration, same filter.
-- **Windows** ⏳: one WGC session for the display, Shots cropped on the CPU, preview = downscaled copy of one frame in N; own windows `WDA_EXCLUDEFROMCAPTURE`; frame timestamp checked against the move; DXGI Desktop Duplication as fallback; HDR detected per display → amber warning in the zone status.
+- **Windows** (verified 2026-11-01 over NoClip at 1920×1080): one WGC session for the display, Shots cropped on the CPU, preview = downscaled copy of one frame in N; own windows `WDA_EXCLUDEFROMCAPTURE` (never in a Shot; no yellow border without a package manifest); frame timestamp checked against the move (every Shot's frame arrived 420–620 ms after it); no DXGI Desktop Duplication fallback needed; HDR detected per display → amber warning in the zone status. Measured in release at 1080p: grab 5–21 ms, PNG `fast` 31–48 ms for ≈ 2 MB (5× the Mac's PNG time, so the PNG worker queue matters more). 1440p / 4K not measured (1080p displays only); by pixel count expect PNG ≈ 60–80 ms and ≈ 130–180 ms.
 - **Display preview**: 2 frames/s, longest side 640 px, JPEG ≈ 70 (30–60 KB), sent on the progress Channel with the display size and zone rect; **the UI draws the zone frame** over it. Encoded on the adapter's own callback thread, latest-wins. Not encoded while the main window is minimised or hidden. `set_preview(false)` cuts the source (no `SCStream`, no downscale). Preview failure while Shots work = placeholder, run continues, logged.
 - **PNG**: `png` 0.18, `Compression::Fast`, RGB8, on the `store` worker thread (bounded queue). **Live thumbnails**: downscaled in memory to a small JPEG from the same buffer, sent on the progress Channel, never written to the Session folder. **History thumbnails**: generated on demand into `cache/thumbnails/`.
 - **Permission**: `CGPreflightScreenCaptureAccess` / `CGRequestScreenCaptureAccess`; the app usually needs a relaunch after a grant (onboarding says so). **macOS 26** shows a "requesting to bypass the system private window picker" alert on the first capture of a new build even when granted; capture works, the alert lands in the first Shot; onboarding tells the user to click Allow first.
@@ -451,9 +451,9 @@ Virtual Xbox 360 controller through ViGEmBus 1.22.0 + `vigem-client` behind our 
 
 ## 10. Overlay and global shortcuts
 
-- **Overlay**: one transparent, always-on-top, click-through, **non-activating** window per run, sized to the zone's display. macOS: `tauri-nspanel` panel validated over a full-screen-Space game. Windows ⏳: tao `focusable: false` + ignore cursor events; if the Windows verification shows it refocuses the game on show, the Windows build uses the **in-app countdown fallback** (the Session view already shows the digit and "Switch to the game").
+- **Overlay**: one transparent, always-on-top, click-through, **non-activating** window per run, sized to the zone's display. macOS: `tauri-nspanel` panel validated over a full-screen-Space game. Windows (verified 2026-11-01 over NoClip, maximized browser, both displays): tao `focusable: false` + ignore cursor events; the game kept focus and real-mouse camera control while the overlay showed, clicks on the frame reached it, countdown and frame drew in place. The **in-app countdown fallback** (the Session view already shows the digit and "Switch to the game") stays as the degraded path only.
 - Drawing, all **inside the zone frame** (the zone may be the whole display; nothing is drawn outside it): frame `#a596ea` 2 px just outside the rectangle; countdown digit centred; during a run a 2 px progress bar along the top inner edge filling left→right (Shots taken / expected) and a `17 / 78` pill top right; at the end `Done · 78 Shots` / `Stopped · 47 / 78` for ≈ 2 s. Excluded from capture.
-- **Shortcuts**: `tauri-plugin-global-shortcut`, defaults `Ctrl+Shift+8` (start) and `Ctrl+Shift+9` (stop), rebindable in Settings with a recorder. Never F12, Win-key combos, Option-only / Option+Shift-only on macOS; F-keys discouraged on Mac laptops (media keys without `fn`). Registered at launch and re-registered when changed; a combo that fails to register shows an inline error in Settings. ⏳ Windows raw-input games may silence `RegisterHotKey` (`RIDEV_NOHOTKEYS`); a `RIDEV_INPUTSINK` listener is the candidate fallback.
+- **Shortcuts**: `tauri-plugin-global-shortcut`, defaults `Ctrl+Shift+8` (start) and `Ctrl+Shift+9` (stop), rebindable in Settings with a recorder. Never F12, Win-key combos, Option-only / Option+Shift-only on macOS; F-keys discouraged on Mac laptops (media keys without `fn`). Registered at launch and re-registered when changed; a combo that fails to register shows an inline error in Settings. ⏳ Windows raw-input games may silence `RegisterHotKey` (`RIDEV_NOHOTKEYS`); a `RIDEV_INPUTSINK` listener is the candidate fallback (2026-11-01: `RegisterHotKey` fires over NoClip; no raw-input game tried yet; the listener, if kept, must match the configured keys, not F-keys as the spike does).
 
 ---
 
@@ -726,18 +726,27 @@ Full process in [docs/release.md](release.md). Summary:
 
 Everything marked ⏳ waits on *Windows verification of the spike* (branch `prototype/overlay-shortcut-spike`, `spike/README.md` protocol). When it closes, fold its answers here and remove the markers; then the spec is **final**.
 
-| # | Open fact | Design as written | If it fails |
-|---|---|---|---|
-| W1 | Spike's Windows code compiles | — | small fixes |
-| W2 | tao `focusable: false` overlay stays non-activating when re-shown over a borderless game | overlay on Windows | in-app countdown fallback only; overlay never shown on Windows |
-| W3 | `Ctrl+Shift+8/9` fire over a raw-input game; `RIDEV_INPUTSINK` listener sees them under `RIDEV_NOHOTKEYS` | `RegisterHotKey` | add the raw-input listener as a second shortcut source in `app` |
-| W4 | Which mouse sub-move settings move cameras | 20 px / 8 ms app constants | per-OS constants; a Game field only in schema v2 |
-| W5 | ViGEm virtual stick moves a camera; `BusNotFound` as the pre-flight | gamepad device, `countdown.error.vigem` | gamepad out of v1 |
-| W6 | WGC yellow border hidden without a package manifest; every Shot fresh (timestamp after the move) | WGC | DXGI Desktop Duplication fallback |
-| W7 | Grab and PNG timings at 1440p / 4K | 50 ms capture constant in the estimate | adjust the constant |
-| W8 | WebView2 RAM idle with `MemoryUsageTargetLevel=LOW` | set it while the game has focus | — |
-| W9 | `requireAdministrator` build drives a game launched as administrator | always elevated | README caveat |
-| W10 | Ending of `nothingMoved.win.rawInput` | depends on W3 | "Use a gamepad Game for them." |
+**First Windows pass, 2026-11-01** (Windows 11 Home, two 1920×1080 displays, GTX 1070, ViGEmBus 1.22.0, NoClip in a maximized browser as the only game): W1, W2, W6 settled, W5 settled for the stick, W7 at 1080p only. W3, W4, W9 and W10 need **one raw-input mouse-look game** (Team Fortress 2 would also cover the gamepad and the administrator launch); W8 needs two Task Manager readings; W7 at 1440p / 4K needs NVIDIA DSR. The spike protocol rows still to run there: D with `Ctrl+Shift+F8` (the spike's sink matches F-keys only), E/F with the three sub-move settings, H, K, L, optionally J and M.
+
+| # | Open fact | Design as written | If it fails | Result |
+|---|---|---|---|---|
+| W1 | Spike's Windows code compiles | — | small fixes | ✅ 2026-11-01. Builds unchanged on Rust 1.99.1 (3 unused warnings). One fix: a missing `;` in `ui/index.html` left every list of the page empty; the spike's last commit had never been run. |
+| W2 | tao `focusable: false` overlay stays non-activating when re-shown over a borderless game | overlay on Windows | in-app countdown fallback only; overlay never shown on Windows | ✅ 2026-11-01 over NoClip (maximized browser), both displays: game kept focus and camera control, clicks reached it, countdown and frame drawn in place. A borderless game was not tried. |
+| W3 | `Ctrl+Shift+8/9` fire over a raw-input game; `RIDEV_INPUTSINK` listener sees them under `RIDEV_NOHOTKEYS` | `RegisterHotKey` | add the raw-input listener as a second shortcut source in `app` | ◐ 2026-11-01: `Ctrl+Shift+8` / `9` start and stop a run through `RegisterHotKey` over NoClip. ⏳ raw-input game and the sink untested. |
+| W4 | Which mouse sub-move settings move cameras | 20 px / 8 ms app constants | per-OS constants; a Game field only in schema v2 | ⏳ Not answered: NoClip ignores plain mouse moves (Shots byte-identical), only drags and keys move it; 20 px / 8 ms drags turned it. A mouse-look game sets the constants. |
+| W5 | ViGEm virtual stick moves a camera; `BusNotFound` as the pre-flight | gamepad device, `countdown.error.vigem` | gamepad out of v1 | ✅ 2026-11-01: pad detected as Xbox 360, sticks move (hardwaretester.com). Plugging while a pad is still attached fails intermittently with Win32 483 → unplug first, retry once, show *plugged* / *not plugged* (§8.3). ⏳ `BusNotFound` unverified (driver present). |
+| W6 | WGC yellow border hidden without a package manifest; every Shot fresh (timestamp after the move) | WGC | DXGI Desktop Duplication fallback | ✅ 2026-11-01: no yellow border, own windows absent from Shots, every frame 420–620 ms after the move. No DXGI fallback. |
+| W7 | Grab and PNG timings at 1440p / 4K | 50 ms capture constant in the estimate | adjust the constant | ◐ 2026-11-01 at 1080p only: grab 5–21 ms, PNG `fast` 31–48 ms, ≈ 2 MB. 50 ms grab constant holds; ⏳ 1440p / 4K by DSR or extrapolation (×1.8, ×4). |
+| W8 | WebView2 RAM idle with `MemoryUsageTargetLevel=LOW` | set it while the game has focus | — | ⏳ not measured. |
+| W9 | `requireAdministrator` build drives a game launched as administrator | always elevated | README caveat | ⏳ not tried. |
+| W10 | Ending of `nothingMoved.win.rawInput` | depends on W3 | "Use a gamepad Game for them." | ⏳ follows W3. |
+
+Side findings for issues 23 to 25, same day:
+
+- `tauri-build` embeds its Windows manifest in the app binary only, so the app crate's test binaries die with `STATUS_ENTRYPOINT_NOT_FOUND` and `just generate` / `check` / `test` fail on Windows. Fixed on `feat/windows-test-manifest` (the linker embeds `app/windows-app-manifest.xml` in every binary); `requireAdministrator` must go into the app binary's manifest only, or every test run prompts UAC (issue 25).
+- Closing the spike's main window leaves the process alive (the overlay window keeps it up). Closing the app's main window must quit on Windows (issue 25).
+- The ViGEm adapter: unplug before plugging, one wait-ready retry, a plugged / not plugged status in the gamepad Game's setup (issue 23).
+- The raw-input shortcut listener, if W3 asks for it, matches the configured shortcut keys (issue 25).
 
 ---
 
