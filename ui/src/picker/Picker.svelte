@@ -54,6 +54,8 @@ const displayText = $derived(
 const canSave = $derived(isUsable(rect) && drag === null);
 
 onMount(() => {
+  // Esc and the fields need the page to hold the keyboard focus.
+  window.focus();
   if (mock) {
     setup = {
       display: { id: "mock", width: 1440, height: 900, scale: 2, hdr: false },

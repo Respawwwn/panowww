@@ -196,9 +196,6 @@ function dragEnd() {
     letter-spacing: -0.01em;
   }
 
-  .home:hover:not(:disabled) {
-    background: var(--hover);
-  }
 
   .home > :global(*) {
     pointer-events: none;
@@ -363,7 +360,7 @@ function dragEnd() {
     text-align: left;
   }
 
-  .footrow:hover:not(:disabled) {
+  .footrow:hover:not(:disabled):not(.on) {
     background: var(--hover);
   }
 

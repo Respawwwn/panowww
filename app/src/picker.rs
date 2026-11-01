@@ -253,8 +253,12 @@ fn build_windows<R: Runtime>(
         if let Err(error) = macos::raise(app, &window, i == focus) {
             tracing::warn!(%error, label, "picker window stays a plain window");
         }
-        #[cfg(not(target_os = "macos"))]
-        let _ = &window;
+        // The keyboard (Esc, the fields) goes to the focused window's page.
+        if i == focus
+            && let Err(error) = window.set_focus()
+        {
+            tracing::warn!(%error, label, "picker window not focused");
+        }
         windows.push(PickerWindow {
             label,
             display,

@@ -85,12 +85,17 @@ function onKeyDown(event: KeyboardEvent) {
   }
 
   .close {
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     border: 0;
     background: transparent;
     color: var(--muted);
     font-size: 12px;
-    padding: 4px 6px;
-    border-radius: 4px;
+    padding: 0;
+    border-radius: 6px;
   }
 
   .close:hover {
