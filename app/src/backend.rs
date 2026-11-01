@@ -82,8 +82,54 @@ impl Backend for SystemBackend {
     }
 }
 
-/// Windows arrives with issues 23 to 25; until then every run is refused.
-#[cfg(not(target_os = "macos"))]
+/// Windows: the `SendInput` Camera and the virtual pad (issue 23); capture
+/// arrives with issue 24, so every run still stops at the Stream. Windows
+/// has no input or capture permission to grant: UIPI is handled by running
+/// elevated (spec §8.4), hence `true` for both.
+#[cfg(target_os = "windows")]
+impl Backend for SystemBackend {
+    fn camera(&self) -> Box<dyn Camera> {
+        Box::new(panowww_input::windows::SendInputCamera::new())
+    }
+
+    fn grabber(&self) -> Box<dyn Grabber> {
+        Box::new(Unsupported)
+    }
+
+    fn accessibility_granted(&self) -> bool {
+        true
+    }
+
+    fn screen_recording_granted(&self) -> bool {
+        true
+    }
+
+    fn gamepad_available(&self) -> bool {
+        panowww_input::windows::gamepad::check().is_ok()
+    }
+
+    fn displays(&self) -> Result<Vec<DisplayInfo>, CaptureError> {
+        Ok(Vec::new())
+    }
+
+    fn display_origin(&self, _id: &DisplayId) -> Option<(f64, f64)> {
+        None
+    }
+
+    fn request_permission(&self, _permission: PermissionKind) -> bool {
+        true
+    }
+
+    fn open_permission_settings(&self, _permission: PermissionKind) -> std::io::Result<()> {
+        Err(std::io::Error::new(
+            std::io::ErrorKind::Unsupported,
+            "Windows has no permission to grant",
+        ))
+    }
+}
+
+/// Other operating systems: the workspace builds, every run is refused.
+#[cfg(not(any(target_os = "macos", target_os = "windows")))]
 impl Backend for SystemBackend {
     fn camera(&self) -> Box<dyn Camera> {
         Box::new(Unsupported)
@@ -128,7 +174,7 @@ impl Backend for SystemBackend {
 #[cfg(not(target_os = "macos"))]
 struct Unsupported;
 
-#[cfg(not(target_os = "macos"))]
+#[cfg(not(any(target_os = "macos", target_os = "windows")))]
 impl Camera for Unsupported {
     fn key_down(
         &mut self,
@@ -185,7 +231,7 @@ impl Grabber for Unsupported {
     }
 }
 
-#[cfg(not(target_os = "macos"))]
+#[cfg(not(any(target_os = "macos", target_os = "windows")))]
 fn unsupported_input() -> panowww_core::ports::InputError {
     panowww_core::ports::InputError::Failed("not available on this OS yet".to_owned())
 }
