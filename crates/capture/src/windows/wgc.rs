@@ -142,12 +142,17 @@ impl Handler {
             *last = Some(Instant::now());
         }
         match preview_of(frame) {
-            Ok(jpeg) => (self.shared.sink)(PreviewFrame {
-                jpeg,
-                display_w: self.shared.display_w,
-                display_h: self.shared.display_h,
-                zone: self.shared.zone,
-            }),
+            // The downscale takes a while: a frame finished after
+            // `set_preview(false)` is dropped, not delivered late.
+            Ok(jpeg) if self.shared.preview_on.load(Ordering::SeqCst) => {
+                (self.shared.sink)(PreviewFrame {
+                    jpeg,
+                    display_w: self.shared.display_w,
+                    display_h: self.shared.display_h,
+                    zone: self.shared.zone,
+                });
+            }
+            Ok(_) => {}
             Err(error) => tracing::warn!(%error, "preview frame skipped"),
         }
     }
