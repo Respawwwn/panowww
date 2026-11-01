@@ -153,8 +153,6 @@ export const api = {
     setup: (label: string) => invoke<PickerSetup>("picker_setup", { label }),
     save: (label: string, rect: Rect) => invoke<void>("picker_save", { label, rect }),
     cancel: () => invoke<void>("picker_cancel"),
-    frame: (label: string, on: boolean, rect: Rect | null) =>
-      invoke<void>("picker_frame", { label, on, rect }),
   },
 
   /** The overlay window's side: what it draws, pushed by Rust. */

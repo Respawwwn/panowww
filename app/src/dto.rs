@@ -200,10 +200,10 @@ pub struct PickerSetup {
     pub display: DisplayInfo,
     /// 1-based position among the connected displays, for `Display {n}`.
     pub display_index: u32,
-    /// `data:` URL of the screenshot; `None` when it could not be taken.
-    pub image: Option<String>,
     /// The Game's zone when it sits on this display, in display points.
     pub zone: Option<Rect>,
+    /// The app's appearance, so the bottom card matches the main window.
+    pub appearance: panowww_store::settings::Appearance,
 }
 
 /// What the Game Setup shows about the zone of a Game on this machine.

@@ -69,11 +69,23 @@ function dragEnd() {
 
 <aside class="sidebar" class:dim={nav.busy}>
   <header class="brand" data-tauri-drag-region>
-    <Mark />
-    <span>{strings.app.name}</span>
+    <button type="button" class="home" disabled={nav.busy} onclick={() => games.select(null)}>
+      <Mark />
+      <span>{strings.app.name}</span>
+    </button>
   </header>
 
-  <div class="side-title">{strings.sidebar.games}</div>
+  <div class="side-title">
+    <span>{strings.sidebar.games}</span>
+    <span class="side-actions">
+      <button type="button" class="ibtn" disabled={nav.busy} onclick={() => games.create()} title={strings.sidebar.new} aria-label={strings.sidebar.new}>
+        <Icon name="plus" size={14} />
+      </button>
+      <button type="button" class="ibtn" disabled={nav.busy} onclick={() => games.import()} title={strings.sidebar.import} aria-label={strings.sidebar.import}>
+        <Icon name="import" size={14} />
+      </button>
+    </span>
+  </div>
   <nav class="games" aria-label={strings.sidebar.games}>
     {#if games.loaded && games.entries.length === 0}
       <p class="none">{strings.sidebar.noGames}</p>
@@ -120,16 +132,6 @@ function dragEnd() {
     <div class="tail" class:over={over === "end"} ondragover={(e) => dragOver(e, "end")} ondrop={() => drop("end")}></div>
   </nav>
 
-  <div class="actions">
-    <button type="button" class="tbtn" disabled={nav.busy} onclick={() => games.create()}>
-      <Icon name="plus" />
-      {strings.sidebar.new}
-    </button>
-    <button type="button" class="tbtn" disabled={nav.busy} onclick={() => games.import()}>
-      <Icon name="import" />
-      {strings.sidebar.import}
-    </button>
-  </div>
 
   <footer class="foot">
     <button
@@ -159,6 +161,8 @@ function dragEnd() {
     grid-area: sidebar;
     display: flex;
     flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
     background: var(--sidebar);
     /* Room for the macOS traffic lights under the overlay title bar. */
     padding-top: 52px;
@@ -170,23 +174,41 @@ function dragEnd() {
     pointer-events: none;
   }
 
-  /* The drag region only counts when the press lands on the header itself. */
-  .brand > :global(*) {
-    pointer-events: none;
-  }
-
   .brand {
     display: flex;
     align-items: center;
-    gap: 8px;
     padding: 4px 16px 12px;
+  }
+
+  /* The mark and the name go home; the rest of the header drags the window. */
+  .home {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: -6px;
+    padding: 2px 6px;
+    border: 0;
+    border-radius: var(--rs);
+    background: transparent;
+    color: var(--fg);
     font-weight: 700;
     font-size: 14px;
     letter-spacing: -0.01em;
   }
 
+  .home:hover:not(:disabled) {
+    background: var(--hover);
+  }
+
+  .home > :global(*) {
+    pointer-events: none;
+  }
+
   .side-title {
-    padding: 6px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 10px 4px 16px;
     font-size: 11px;
     font-weight: 600;
     color: var(--faint);
@@ -194,9 +216,35 @@ function dragEnd() {
     letter-spacing: 0.06em;
   }
 
-  /* The list grows with its rows; the actions follow it, the footer sits
-     at the bottom. */
+  .side-actions {
+    display: flex;
+    gap: 2px;
+  }
+
+  .ibtn {
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: var(--rs);
+    background: transparent;
+    color: var(--lav-fg);
+    padding: 0;
+  }
+
+  .ibtn:hover:not(:disabled) {
+    background: var(--hover);
+  }
+
+  .ibtn:disabled {
+    opacity: 0.45;
+  }
+
+  /* The list scrolls on its own; the footer always stays in view. */
   .games {
+    flex: 1;
     min-height: 0;
     overflow: auto;
     padding: 0 10px;
@@ -290,38 +338,12 @@ function dragEnd() {
     color: var(--accent-fg);
   }
 
-  .actions {
-    display: flex;
-    gap: 6px;
-    padding: 10px;
-  }
-
-  .tbtn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    height: 28px;
-    padding: 1px 10px 0;
-    border-radius: var(--rs);
-    background: transparent;
-    border: 1px solid transparent;
-    color: var(--lav-fg);
-    font-size: 12px;
-    font-weight: 500;
-    line-height: 1;
-  }
-
-  .tbtn:hover:not(:disabled) {
-    background: var(--hover);
-  }
-
-  .tbtn:disabled,
   .footrow:disabled {
     opacity: 0.45;
   }
 
   .foot {
-    margin-top: auto;
+    flex: none;
     padding: 10px;
     display: flex;
     flex-direction: column;

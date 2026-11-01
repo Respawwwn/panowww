@@ -5,6 +5,7 @@
 import Button from "../components/Button.svelte";
 import Icon from "../components/Icon.svelte";
 import Mark from "../components/Mark.svelte";
+import { games } from "../lib/games.svelte";
 import { strings } from "../lib/strings";
 
 type Props = {
@@ -13,12 +14,15 @@ type Props = {
 };
 
 let { onnew, onimport }: Props = $props();
+
+/** No Game at all: the first-launch wording. Otherwise the home wording. */
+const first = $derived(games.loaded && games.entries.length === 0);
 </script>
 
 <section class="empty">
   <Mark size={88} radius={20} />
-  <h1 class="t-title">{strings.empty.title}</h1>
-  <p class="sub">{strings.empty.body}</p>
+  <h1 class="t-title">{first ? strings.empty.title : strings.empty.homeTitle}</h1>
+  <p class="sub">{first ? strings.empty.body : strings.empty.homeBody}</p>
   <div class="actions">
     <Button variant="primary" size="lg" disabled={!onnew} onclick={onnew}>
       <Icon name="plus" size={15} />
@@ -29,7 +33,9 @@ let { onnew, onimport }: Props = $props();
       {strings.empty.importButton}
     </Button>
   </div>
-  <p class="t-tip">{strings.empty.import}</p>
+  {#if first}
+    <p class="t-tip">{strings.empty.import}</p>
+  {/if}
 </section>
 
 <style>

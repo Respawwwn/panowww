@@ -4,7 +4,7 @@
 
 use std::sync::Arc;
 
-use panowww_core::ports::{Camera, CaptureError, DisplayId, DisplayInfo, Grabber, Jpeg};
+use panowww_core::ports::{Camera, CaptureError, DisplayId, DisplayInfo, Grabber};
 
 use crate::dto::PermissionKind;
 
@@ -21,9 +21,6 @@ pub trait Backend: Send + Sync {
     /// Where a display sits in the global point space (top-left of the main
     /// display at the origin), for the overlay window. `None` when gone.
     fn display_origin(&self, id: &DisplayId) -> Option<(f64, f64)>;
-    /// A screenshot of the whole display, longer side at most `long_side`
-    /// pixels, for the Capture zone picker.
-    fn display_image(&self, id: &DisplayId, long_side: u32) -> Result<Jpeg, CaptureError>;
     /// Asks the OS; returns whether the permission is granted now.
     fn request_permission(&self, permission: PermissionKind) -> bool;
     fn open_permission_settings(&self, permission: PermissionKind) -> std::io::Result<()>;
@@ -70,10 +67,6 @@ impl Backend for SystemBackend {
             .map(|entry| (entry.bounds.origin.x, entry.bounds.origin.y))
     }
 
-    fn display_image(&self, id: &DisplayId, long_side: u32) -> Result<Jpeg, CaptureError> {
-        panowww_capture::macos::display_image(id, long_side)
-    }
-
     fn request_permission(&self, permission: PermissionKind) -> bool {
         match permission {
             PermissionKind::Accessibility => panowww_input::macos::accessibility::request(),
@@ -118,12 +111,6 @@ impl Backend for SystemBackend {
 
     fn display_origin(&self, _id: &DisplayId) -> Option<(f64, f64)> {
         None
-    }
-
-    fn display_image(&self, _id: &DisplayId, _long_side: u32) -> Result<Jpeg, CaptureError> {
-        Err(CaptureError::Unavailable(
-            "not available on this OS yet".to_owned(),
-        ))
     }
 
     fn request_permission(&self, _permission: PermissionKind) -> bool {
@@ -211,7 +198,7 @@ pub mod fake {
 
     use panowww_core::fakes::{FakeStream, RecordingCamera};
     use panowww_core::ports::{
-        CaptureError, DisplayId, DisplayInfo, Grabber, Jpeg, PreviewSink, Rect, Stream,
+        CaptureError, DisplayId, DisplayInfo, Grabber, PreviewSink, Rect, Stream,
     };
 
     use super::{Backend, Camera};
@@ -307,12 +294,6 @@ pub mod fake {
                 .iter()
                 .any(|d| d.id == *id)
                 .then_some((0.0, 0.0))
-        }
-
-        fn display_image(&self, id: &DisplayId, _: u32) -> Result<Jpeg, CaptureError> {
-            self.display_origin(id)
-                .map(|_| Jpeg(vec![0xFF, 0xD8, 0xFF, 0xD9]))
-                .ok_or(CaptureError::DisplayGone)
         }
 
         fn request_permission(&self, _: PermissionKind) -> bool {

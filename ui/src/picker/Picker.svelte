@@ -11,6 +11,7 @@ import { api } from "../lib/api";
 import type { PickerSetup } from "../lib/generated/PickerSetup";
 import type { Rect } from "../lib/generated/Rect";
 import { interpolate, strings } from "../lib/strings";
+import { applyAppearance } from "../lib/theme";
 import {
   anchorOf,
   between,
@@ -34,7 +35,9 @@ type Drag =
 let setup = $state<PickerSetup | null>(null);
 let rect = $state<Rect | null>(null);
 let drag = $state<Drag | null>(null);
-let showFrame = $state(false);
+/** Off: the dim and the rectangle go, so the game shows as it is; the
+ * bottom card stays to bring them back. */
+let showFrame = $state(true);
 let error = $state<string | null>(null);
 
 const display = $derived(setup ? { w: setup.display.width, h: setup.display.height } : null);
@@ -55,8 +58,8 @@ onMount(() => {
     setup = {
       display: { id: "mock", width: 1440, height: 900, scale: 2, hdr: false },
       displayIndex: 1,
-      image: null,
       zone: { x: 240, y: 160, w: 960, h: 540 },
+      appearance: "auto",
     };
     rect = setup.zone;
     return;
@@ -66,6 +69,7 @@ onMount(() => {
     .then((s) => {
       setup = s;
       rect = s.zone;
+      applyAppearance(s.appearance);
     })
     .catch((e) => {
       error = String(e?.message ?? e);
@@ -80,6 +84,8 @@ function startDraw(e: PointerEvent) {
   if (e.button !== 0 || !display) {
     return;
   }
+  // No text selection while the rectangle is drawn over the chips.
+  e.preventDefault();
   const start = point(e);
   drag = { kind: "draw", start };
   rect = between(start, start);
@@ -130,7 +136,6 @@ function end() {
   if (!isUsable(rect)) {
     rect = null;
   }
-  void syncFrame();
 }
 
 function edit(field: keyof Rect, input: HTMLInputElement) {
@@ -138,24 +143,11 @@ function edit(field: keyof Rect, input: HTMLInputElement) {
     rect = withField(rect, field, input.value, display);
     // Clamped or ignored values show as what was kept.
     input.value = String(rect[field]);
-    void syncFrame();
-  }
-}
-
-async function syncFrame() {
-  if (mock) {
-    return;
-  }
-  try {
-    await api.picker.frame(label, showFrame, isUsable(rect) ? rect : null);
-  } catch {
-    // The frame is a convenience; drawing goes on.
   }
 }
 
 function toggleFrame(on: boolean) {
   showFrame = on;
-  void syncFrame();
 }
 
 async function save() {
@@ -197,17 +189,16 @@ function onkeydown(e: KeyboardEvent) {
   onpointerup={end}
   onpointercancel={end}
 >
-  {#if setup?.image}
-    <img class="shot" src={setup.image} alt="" draggable="false" />
+  {#if showFrame}
+    <div class="dim"></div>
   {/if}
-  <div class="dim"></div>
 
   <div class="top">
     <span class="chip display">{displayText}</span>
     <span class="chip instruction">{strings.zonePicker.instruction}</span>
   </div>
 
-  {#if rect}
+  {#if rect && showFrame}
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
       class="zone"
@@ -247,7 +238,7 @@ function onkeydown(e: KeyboardEvent) {
         />
       {/each}
     </div>
-    <Checkbox checked={showFrame} label={strings.zonePicker.showFrame} disabled={!rect} onchange={toggleFrame} />
+    <Checkbox checked={showFrame} label={strings.zonePicker.showFrame} onchange={toggleFrame} />
     {#if error}
       <span class="error">{error}</span>
     {/if}
@@ -263,8 +254,20 @@ function onkeydown(e: KeyboardEvent) {
     width: 100%;
     height: 100%;
     overflow: hidden;
-    background: #4a4458;
+    /* The live display shows through; the dim layer sits on top of it. */
+    background: transparent;
+    -webkit-user-select: none;
     user-select: none;
+  }
+
+  :global(body *) {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  :global(input) {
+    -webkit-user-select: text;
+    user-select: text;
   }
 
   .stage {
@@ -283,15 +286,6 @@ function onkeydown(e: KeyboardEvent) {
       radial-gradient(circle at 30% 40%, #7a6aa0 0, transparent 45%),
       radial-gradient(circle at 70% 70%, #3f6a9a 0, transparent 50%),
       #4a4458;
-  }
-
-  .shot {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: fill;
-    pointer-events: none;
   }
 
   .dim {

@@ -94,7 +94,9 @@ pub fn picker_setup(state: State<'_, SharedState>, label: String) -> CmdResult<P
             .zone(game_id)
             .cloned()
     });
-    state.picker.setup(&state.backend, &label, current.as_ref())
+    state
+        .picker
+        .setup(&label, current.as_ref(), state.settings().appearance)
 }
 
 /// *Save zone*: stores the zone record keyed by the Game and ends the pick.
@@ -126,23 +128,6 @@ pub fn picker_save<R: Runtime>(
 #[tauri::command]
 pub fn picker_cancel<R: Runtime>(app: AppHandle<R>, state: State<'_, SharedState>) {
     state.picker.finish(&app, &state.overlay, None);
-}
-
-/// *Show frame on screen*: the overlay frame of the rectangle being drawn.
-#[tauri::command]
-pub fn picker_frame(
-    state: State<'_, SharedState>,
-    label: String,
-    on: bool,
-    rect: Option<Rect>,
-) -> CmdResult<()> {
-    match (on, rect) {
-        (true, Some(rect)) => state
-            .overlay
-            .show_frame(&state.picker.zone_for(&label, rect)?),
-        _ => state.overlay.hide(),
-    }
-    Ok(())
 }
 
 /// The Setup's Show zone / Hide zone toggle: the overlay frame alone, so

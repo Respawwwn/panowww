@@ -158,7 +158,8 @@ function onKeyDown(event: KeyboardEvent) {
   .shell {
     display: grid;
     grid-template-columns: var(--sidebar-width) 1fr;
-    grid-template-rows: 1fr auto;
+    /* minmax(0, …): a long Games list must scroll, not stretch the row. */
+    grid-template-rows: minmax(0, 1fr) auto;
     grid-template-areas:
       "sidebar detail"
       "bottom bottom";

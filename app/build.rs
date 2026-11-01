@@ -24,7 +24,6 @@ const COMMANDS: &[&str] = &[
     "picker_setup",
     "picker_save",
     "picker_cancel",
-    "picker_frame",
     "list_displays",
     "start_run",
     "stop_run",

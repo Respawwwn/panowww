@@ -318,6 +318,8 @@ export const strings = {
     stopped: "Stopped · {k} / {n}",
   },
   empty: {
+    homeTitle: "Choose a Game",
+    homeBody: "Pick a Game on the left to set it up and start a Session, or add a new one.",
     title: "Add your first Game",
     body: "A Game holds the camera moves, the grid and the delays for one title. Set it up once, then shoot as many panoramas as you like.",
     import: "Someone already set up this title? Import their shared .panowww.json file.",
