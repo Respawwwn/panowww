@@ -107,3 +107,31 @@ Reference game in a full-screen Space on the zone's display. The overlay is a `t
 | P4 | Show frame on screen | Tick the checkbox while drawing, then Save | The overlay frame appears exactly on the rectangle (through the picker's dim); it goes away with the windows | Pass (2026-11-01, f46c8df) |
 | P5 | Cancel and Esc | *Cancel* in one window; open again and press Esc in the other | Every picker window closes, the zone is unchanged, Setup is usable again | Found: Esc did nothing (the panel was not the key responder). Fixed: the focused picker window takes the keyboard. Retest: pass, Esc and Cancel both close (2026-11-01) |
 | P6 | Display changed | Save a zone, change that display's resolution, reopen Setup | The amber *Display n is gone or its resolution changed* box; *Change zone…* opens the picker on the display as it is now | Second display not available on 2026-11-01; planned with one |
+
+## Windows · input (issue 23)
+
+Reference games on Windows: **NoClip** (drag camera, left button, in a
+maximized browser) and **Star Wars Battlefront 2** in offline Arcade
+(raw-input mouse-look, takes an Xbox pad). Windows has no input permission:
+the example runs from a normal terminal and reaches any game that is not
+elevated; the app itself runs elevated (spec §8.4). Never inject into a
+multiplayer game with anti-cheat.
+
+```sh
+cargo run -p panowww-input --example turn_test -- check
+```
+
+| # | Check | How | Pass | Result |
+|---|---|---|---|---|
+| WI1 | Prerequisites | `turn_test check` from a normal terminal, then from one run as administrator | `elevated` false then true; `ViGEmBus: installed` with the driver, `The virtual gamepad driver is not installed.` after `sc stop ViGEmBus` (as administrator; `sc start ViGEmBus` afterwards) | |
+| WI2 | Key hold | `turn_test keyboard KeyD 120 13` on NoClip with the arrow keys, landmark picked | The camera turns 13 times and ends on the landmark | |
+| WI3 | Mouse move | `turn_test mouse move 840 13` on Battlefront 2 | Same as WI2; note the delta that closes the turn | |
+| WI4 | Mouse drag | `turn_test mouse drag left 840 13` on NoClip | The cursor is parked, the camera orbits 13 times and ends on the landmark | |
+| WI5 | Stop releases everything | Start WI4, press Ctrl+C after two Steps | No key or button stays held (the game is not dragging on its own) | |
+| WI6 | Virtual pad | `turn_test gamepad 0.8 120 13` on a game started after a first `turn_test gamepad` run (some games only look for controllers at launch) | The game shows pad prompts, the camera turns 13 times and ends on the landmark; `virtual pad plugged: true` at the end | |
+
+Game matrix:
+
+| Game | Input device | Mode | Display mode | WI2 | WI3 | WI4 | WI6 | Notes |
+|---|---|---|---|---|---|---|---|---|
+| | | | | | | | | |
