@@ -90,8 +90,27 @@ impl Backend for SystemBackend {
     }
 }
 
-/// Windows: the `SendInput` Camera and the virtual pad (issue 23); capture
-/// arrives with issue 24, so every run still stops at the Stream. Windows
+/// Hides one of our windows from every screen capture on Windows
+/// (`WDA_EXCLUDEFROMCAPTURE`, spec §9): the overlay never lands in a Shot
+/// and the app never shows in the Display preview. A no-op elsewhere:
+/// macOS excludes the whole process through the capture filter.
+pub fn hide_from_capture<R: tauri::Runtime>(window: &tauri::WebviewWindow<R>) {
+    #[cfg(target_os = "windows")]
+    {
+        let result = window
+            .hwnd()
+            .map_err(|e| CaptureError::Unavailable(e.to_string()))
+            .and_then(|hwnd| panowww_capture::windows::exclude_from_capture(hwnd.0));
+        if let Err(error) = result {
+            tracing::warn!(%error, label = window.label(), "window not hidden from capture");
+        }
+    }
+    #[cfg(not(target_os = "windows"))]
+    let _ = window;
+}
+
+/// Windows: the `SendInput` Camera and the virtual pad (issue 23), the
+/// Windows Graphics Capture Stream and the display list (issue 24). Windows
 /// has no input or capture permission to grant: UIPI is handled by running
 /// elevated (spec §8.4), hence `true` for both.
 #[cfg(target_os = "windows")]
@@ -101,7 +120,7 @@ impl Backend for SystemBackend {
     }
 
     fn grabber(&self) -> Box<dyn Grabber> {
-        Box::new(Unsupported)
+        Box::new(panowww_capture::windows::WgcGrabber)
     }
 
     fn accessibility_granted(&self) -> bool {
@@ -127,11 +146,16 @@ impl Backend for SystemBackend {
     }
 
     fn displays(&self) -> Result<Vec<DisplayInfo>, CaptureError> {
-        Ok(Vec::new())
+        Ok(panowww_capture::windows::list_displays()?
+            .into_iter()
+            .map(|d| d.info)
+            .collect())
     }
 
-    fn display_origin(&self, _id: &DisplayId) -> Option<(f64, f64)> {
-        None
+    fn display_origin(&self, id: &DisplayId) -> Option<(f64, f64)> {
+        panowww_capture::windows::find_display(id)
+            .ok()
+            .map(|entry| (f64::from(entry.left), f64::from(entry.top)))
     }
 
     fn request_permission(&self, _permission: PermissionKind) -> bool {
@@ -193,7 +217,7 @@ impl Backend for SystemBackend {
     }
 }
 
-#[cfg(not(target_os = "macos"))]
+#[cfg(not(any(target_os = "macos", target_os = "windows")))]
 struct Unsupported;
 
 #[cfg(not(any(target_os = "macos", target_os = "windows")))]
@@ -239,7 +263,7 @@ impl Camera for Unsupported {
     }
 }
 
-#[cfg(not(target_os = "macos"))]
+#[cfg(not(any(target_os = "macos", target_os = "windows")))]
 impl Grabber for Unsupported {
     fn start(
         &mut self,
