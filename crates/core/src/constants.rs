@@ -3,7 +3,9 @@
 
 use std::time::Duration;
 
-/// Longest single relative mouse motion, in raw units.
+/// Longest single relative mouse motion, in raw units. The same on both
+/// OSes: 20 px / 8 ms turned a drag camera on macOS and a raw-input
+/// mouse-look game on Windows (spec §15, W4).
 pub const MOUSE_SUB_MOVE_MAX: u32 = 20;
 /// Pause between two mouse sub-moves.
 pub const MOUSE_SUB_MOVE_INTERVAL: Duration = Duration::from_millis(8);
