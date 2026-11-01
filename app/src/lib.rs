@@ -76,6 +76,9 @@ pub fn run() {
             // closed last window as `ExitRequested`; shutdown is idempotent.
             tauri::RunEvent::ExitRequested { .. } | tauri::RunEvent::Exit => {
                 app.state::<SharedState>().runner.shutdown();
+                // The virtual pad outlives runs (spec §8.3), not the app.
+                #[cfg(target_os = "windows")]
+                panowww_input::windows::gamepad::unplug_shared();
             }
             // The hidden overlay window would keep the app alive.
             tauri::RunEvent::WindowEvent {

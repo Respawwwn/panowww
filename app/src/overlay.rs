@@ -11,7 +11,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use panowww_core::ports::Zone;
-use tauri::{AppHandle, Emitter, LogicalPosition, LogicalSize, Manager, Runtime, WebviewWindow};
+use tauri::{AppHandle, Emitter, Manager, Runtime, WebviewWindow};
 
 use crate::backend::SharedBackend;
 use crate::dto::{OverlayState, OverlayView, OverlayZone};
@@ -97,12 +97,7 @@ impl<R: Runtime> WindowOverlay<R> {
                 tracing::warn!("no overlay window");
                 return;
             };
-            if let Err(error) = window.set_position(LogicalPosition::new(origin.0, origin.1)) {
-                tracing::warn!(%error, "overlay not moved");
-            }
-            if let Err(error) = window.set_size(LogicalSize::new(size.0, size.1)) {
-                tracing::warn!(%error, "overlay not sized");
-            }
+            place(&window, origin, size);
             if let Err(error) = app.emit_to(OVERLAY_WINDOW, OVERLAY_EVENT, &state) {
                 tracing::warn!(%error, "overlay state not delivered");
             }
@@ -196,6 +191,41 @@ impl<R: Runtime> Overlay for WindowOverlay<R> {
             .unwrap_or_else(std::sync::PoisonError::into_inner)
             .clone()
     }
+}
+
+/// Covers the zone's display: `origin` and `size` are display coordinates
+/// as the backend reports them, points on macOS and physical pixels on
+/// Windows (spec §4.2), so each OS gets the matching window API.
+fn place<R: Runtime>(window: &WebviewWindow<R>, origin: (f64, f64), size: (f64, f64)) {
+    #[cfg(target_os = "windows")]
+    let (position, dimensions) = (
+        tauri::Position::Physical(tauri::PhysicalPosition::new(px(origin.0), px(origin.1))),
+        tauri::Size::Physical(tauri::PhysicalSize::new(
+            px(size.0).unsigned_abs(),
+            px(size.1).unsigned_abs(),
+        )),
+    );
+    #[cfg(not(target_os = "windows"))]
+    let (position, dimensions) = (
+        tauri::Position::Logical(tauri::LogicalPosition::new(origin.0, origin.1)),
+        tauri::Size::Logical(tauri::LogicalSize::new(size.0, size.1)),
+    );
+    if let Err(error) = window.set_position(position) {
+        tracing::warn!(%error, "overlay not moved");
+    }
+    if let Err(error) = window.set_size(dimensions) {
+        tracing::warn!(%error, "overlay not sized");
+    }
+}
+
+/// Rounds a physical coordinate to whole pixels.
+#[cfg(target_os = "windows")]
+#[expect(
+    clippy::cast_possible_truncation,
+    reason = "display coordinates are far inside i32 once rounded"
+)]
+fn px(value: f64) -> i32 {
+    value.round() as i32
 }
 
 /// Makes the hidden `overlay` window click-through and, on macOS, a

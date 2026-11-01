@@ -242,6 +242,13 @@ fn build_windows<R: Runtime>(
     for (i, (display, (x, y))) in displays.into_iter().enumerate() {
         let index = u32::try_from(i + 1).unwrap_or(u32::MAX);
         let label = format!("{LABEL_PREFIX}{index}");
+        // The builder takes logical coordinates; the backend reports points
+        // on macOS and physical pixels on Windows (spec §4.2).
+        let per_pixel = if cfg!(target_os = "windows") && display.scale > 0.0 {
+            1.0 / display.scale
+        } else {
+            1.0
+        };
         let built = WebviewWindowBuilder::new(app, &label, WebviewUrl::App("picker.html".into()))
             .title("Capture zone")
             .decorations(false)
@@ -250,8 +257,11 @@ fn build_windows<R: Runtime>(
             .resizable(false)
             .always_on_top(true)
             .skip_taskbar(true)
-            .position(x, y)
-            .inner_size(f64::from(display.width), f64::from(display.height))
+            .position(x * per_pixel, y * per_pixel)
+            .inner_size(
+                f64::from(display.width) * per_pixel,
+                f64::from(display.height) * per_pixel,
+            )
             .focused(i == focus)
             .initialization_script(format!("window.__PANOWWW_PICKER__ = {label:?};"))
             .build();
