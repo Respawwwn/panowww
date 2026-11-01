@@ -22,9 +22,18 @@ async function refresh() {
   permissions = await api.onboarding.permissions().catch(() => null);
 }
 
+// Polls while open and asks again the moment the window comes back to the
+// front: the user ticks a switch in System Settings and returns here.
 const timer = setInterval(() => void refresh(), 1000);
+const onFocus = () => void refresh();
+window.addEventListener("focus", onFocus);
+document.addEventListener("visibilitychange", onFocus);
 void refresh();
-onDestroy(() => clearInterval(timer));
+onDestroy(() => {
+  clearInterval(timer);
+  window.removeEventListener("focus", onFocus);
+  document.removeEventListener("visibilitychange", onFocus);
+});
 
 async function grant(kind: PermissionKind) {
   const granted = await api.onboarding.request(kind).catch(() => false);

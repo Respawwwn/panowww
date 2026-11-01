@@ -6,7 +6,6 @@ import Button from "../components/Button.svelte";
 import Chip from "../components/Chip.svelte";
 import PreviewCard from "../components/PreviewCard.svelte";
 import RichLine from "../components/RichLine.svelte";
-import Tip from "../components/Tip.svelte";
 import { api, type Estimate } from "../lib/api";
 import type { Game } from "../lib/generated/Game";
 import type { RunKindDto } from "../lib/generated/RunKindDto";
@@ -125,16 +124,17 @@ async function act(f: StartFailure) {
 <div class="countdown">
   {#if failure}
     {@const f = failureText(failure)}
+    {@const [head, ...rest] = interpolate(f.text, f.values ?? {}).split(/(?<=\.)\s+/)}
     <h1>{strings.countdown.error.title}</h1>
     <div class="box">
-      <Tip kind="warn" text={f.text} values={f.values} />
+      <b>{head}</b>
+      {#if rest.length > 0}<span>{rest.join(" ")}</span>{/if}
     </div>
-    <div class="actions">
-      {#if f.action}
+    {#if f.action}
+      <div class="actions">
         <Button variant="primary" onclick={() => act(failure)}>{f.action}</Button>
-      {/if}
-      <Button variant="ghost" onclick={() => nav.showGame(game.id)}>{strings.countdown.error.back}</Button>
-    </div>
+      </div>
+    {/if}
   {:else}
     <div class="ring" aria-live="polite">
       <svg viewBox="0 0 180 180" aria-hidden="true">
@@ -230,9 +230,23 @@ async function act(f: StartFailure) {
     margin-top: 6px;
   }
 
+  /* The amber box of the error state: the first sentence on its own line,
+     the rest under it, everything centred like the title. */
   .box {
-    width: min(480px, 100%);
-    text-align: left;
+    width: min(420px, 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 14px;
+    border-radius: var(--rs);
+    background: var(--warn-soft);
+    color: var(--warn-fg);
+    font-size: 12.5px;
+    text-align: center;
+  }
+
+  .box b {
+    font-weight: 600;
   }
 
   .ring {
