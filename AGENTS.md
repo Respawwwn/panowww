@@ -2,7 +2,7 @@
 
 Captures 360° panorama source Shots inside video games by driving the in-game camera and capturing a zone of the screen. Rust + Tauri 2, Svelte UI, macOS first, then Windows.
 
-- Spec: `docs/spec.md`. Backlog: `docs/implementation-plan.md`. Decisions: `docs/adr/`.
+- Spec: `docs/spec.md`. Backlog: `docs/implementation-plan.md`. Decisions: `docs/adr/`. Desk research behind them: `docs/research/`.
 - Read `GLOSSARY.md` before writing code or prose.
 
 ## Workflow

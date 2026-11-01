@@ -7,9 +7,12 @@ and `docs/implementation-plan.md`. Delete it when issue 26 is closed.
 
 ## Where things stand (2026-11-01)
 
-- Issues 1 to 20 are merged in `main`. Issue 19 sits on `feat/19-macos-pass`
-  (every macOS row of `docs/manual-test.md` passes except O7, P3, P6, which
-  wait for a second display, and I3, which needs a mouse-look game).
+- Issues 1 to 20 are merged in `main`, the macOS pass (19) too: every macOS
+  row of `docs/manual-test.md` passes except O7, P3, P6, which wait for a
+  second display, and I3, which needs a mouse-look game.
+- The desk research the spec was written from is in `docs/research/`; the
+  Windows sections of `app-shell.md`, `input-injection.md` and
+  `screen-capture.md` are the starting point of issues 23 to 25.
 - No Windows code exists yet: `crates/input` and `crates/capture` have a
   `macos` module and an `unsupported` module, nothing else. The `app` crate
   builds on Windows but has no overlay flags, manifest or NSIS specifics.
