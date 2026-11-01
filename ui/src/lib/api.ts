@@ -58,6 +58,8 @@ export const api = {
 
   games: {
     list: () => invoke<GameEntry[]>("list_games"),
+    /** The sidebar's order after a drag, every valid Game's id top down. */
+    reorder: (ids: string[]) => invoke<void>("reorder_games", { ids }),
     create: (name: string) => invoke<Game>("create_game", { name }),
     /** Autosave on every valid change; renames the file when the name changed. */
     save: (game: Game) => invoke<string>("save_game", { game }),
@@ -128,6 +130,8 @@ export const api = {
     /** Folder picker; null when cancelled. */
     chooseSessionsFolder: () => invoke<string | null>("choose_sessions_folder"),
     revealLogs: () => invoke<void>("reveal_logs"),
+    /** Settings open: the global shortcuts pause. */
+    setShortcutsEnabled: (enabled: boolean) => invoke<void>("set_shortcuts_enabled", { enabled }),
     revealPath: (path: string) => invoke<void>("reveal_path", { path }),
     /** Re-registers the global shortcuts; rejects naming the failing combo. */
     applyShortcuts: () => invoke<void>("apply_shortcuts"),
@@ -151,8 +155,6 @@ export const api = {
     setup: (label: string) => invoke<PickerSetup>("picker_setup", { label }),
     save: (label: string, rect: Rect) => invoke<void>("picker_save", { label, rect }),
     cancel: () => invoke<void>("picker_cancel"),
-    frame: (label: string, on: boolean, rect: Rect | null) =>
-      invoke<void>("picker_frame", { label, on, rect }),
   },
 
   /** The overlay window's side: what it draws, pushed by Rust. */

@@ -1,6 +1,7 @@
-// The secondary windows (spec §11): All Sessions, Settings, About,
-// Onboarding. Drawn over the main window, one at a time.
-export type WindowName = "sessions" | "settings" | "about" | "onboarding";
+// The secondary windows (spec §11): Settings, About, Onboarding. Drawn
+// over the main window, one at a time. All Sessions is a screen of the
+// detail area, selected from the sidebar like a Game.
+export type WindowName = "settings" | "about" | "onboarding";
 
 let open = $state<WindowName | null>(null);
 

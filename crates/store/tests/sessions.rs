@@ -292,6 +292,7 @@ fn a_running_session_is_marked_interrupted_at_the_next_launch() {
     record.status = SessionStatus::Running;
     record.ended_at = None;
     record.shots_taken = 0;
+    record.shots.clear();
     record.write(&folder).unwrap();
     std::fs::remove_file(folder.join("r02_c03.png")).unwrap();
 
@@ -303,8 +304,9 @@ fn a_running_session_is_marked_interrupted_at_the_next_launch() {
         record.ended_at.as_deref(),
         Some("2026-10-31T09:00:00+01:00")
     );
-    assert_eq!(record.shots_taken, 5, "only the Shots still on disk");
+    assert_eq!(record.shots_taken, 5, "the Shots found on disk");
     assert_eq!(record.shots.len(), 5);
+    assert_eq!(record.shots[0].file, "r01_c01.png");
     assert_eq!(
         mark_stale_running(root.path(), &clock).unwrap(),
         0,

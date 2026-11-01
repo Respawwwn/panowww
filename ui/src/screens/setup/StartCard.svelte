@@ -1,9 +1,9 @@
 <script lang="ts">
-// Card 3 · Start (spec §11.2): the purple block with the estimate line,
-// the Sessions folder, *Start Session*; under it the two shortcut lines,
-// or the reason the Start is disabled.
+// Card 3 · Start (spec §11.2, board DirectionB): the purple block with the
+// estimate big, the configuration line under it, *Start Session* with its
+// play icon top right, the Sessions folder path on one line.
 import Button from "../../components/Button.svelte";
-import RichLine from "../../components/RichLine.svelte";
+import Icon from "../../components/Icon.svelte";
 import type { GameEditor } from "../../lib/editor.svelte";
 import type { DisabledReason } from "../../lib/game";
 import { interpolate, strings } from "../../lib/strings";
@@ -17,42 +17,48 @@ type Props = {
 
 let { editor, sessionsFolder, disabled, onstart }: Props = $props();
 
-const line = $derived(
+const big = $derived(
   editor.estimate
-    ? interpolate(strings.setup.start.estimate, {
-        duration: editor.estimate.duration,
+    ? interpolate(strings.setup.start.estimate, { duration: editor.estimate.duration })
+    : "",
+);
+const detail = $derived(
+  editor.estimate
+    ? interpolate(strings.setup.start.estimateDetail, {
         shots: editor.estimate.shots,
         rows: editor.game.rows,
         shotsPerRow: editor.game.shotsPerRow,
+        pole: (editor.game.startPole === "nadir"
+          ? strings.setup.grid.nadir
+          : strings.setup.grid.zenith
+        ).toLowerCase(),
+        move: editor.game.waitAfterMoveMs,
+        shot: editor.game.waitAfterShotMs,
       })
     : "",
 );
+const folder = $derived(`${sessionsFolder.replace(/\/$/, "")}/${editor.game.name}/`);
 </script>
 
 <section class="start">
-  <div class="text">
-    <p class="line">{line}</p>
-    <p class="folder" title={sessionsFolder}>{sessionsFolder}</p>
+  <div class="top">
+    <div class="est">
+      <p class="big">{big}</p>
+      <p class="sub">{detail}</p>
+    </div>
+    <Button variant="primary" size="lg" disabled={disabled !== null} onclick={onstart}>
+      <Icon name="play" size={13} />
+      {strings.detail.startSession}
+    </Button>
   </div>
-  <Button variant="primary" size="lg" disabled={disabled !== null} onclick={onstart}>
-    {strings.detail.startSession}
-  </Button>
+  <p class="path" title={folder}>{folder}</p>
 </section>
-<div class="under">
-  {#if disabled}
-    <p class="t-tip">{strings.setup.start.disabled[disabled]}</p>
-  {:else}
-    <p class="t-tip"><RichLine text={strings.setup.start.shortcutStart} /></p>
-    <p class="t-tip"><RichLine text={strings.setup.start.shortcutStop} /></p>
-  {/if}
-</div>
 
 <style>
   .start {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
+    flex-direction: column;
+    gap: 10px;
     padding: 16px 18px;
     border-radius: var(--r);
     background: var(--startcard);
@@ -64,37 +70,39 @@ const line = $derived(
     color: #4a3c96;
   }
 
-  .text {
-    min-width: 0;
+  .top {
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    align-items: flex-start;
+    gap: 16px;
   }
 
-  .line {
-    margin: 0;
-    font-size: 15px;
-    font-weight: 600;
+  .est {
+    flex: 1;
+    min-width: 0;
   }
 
-  .folder {
+  p {
     margin: 0;
+  }
+
+  .big {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .sub {
+    margin-top: 2px;
     font-size: 12px;
+    color: var(--startcard-sub);
+  }
+
+  .path {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11.5px;
     color: var(--startcard-sub);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-
-  .under {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
-    padding: 8px 4px 0;
-  }
-
-  .under p {
-    margin: 0;
   }
 </style>

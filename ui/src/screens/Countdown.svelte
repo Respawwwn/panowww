@@ -3,9 +3,9 @@
 // Session or a tool, the Display preview card, the stop line, Cancel. The
 // same screen shows the error state when the run could not start.
 import Button from "../components/Button.svelte";
+import Chip from "../components/Chip.svelte";
 import PreviewCard from "../components/PreviewCard.svelte";
 import RichLine from "../components/RichLine.svelte";
-import Tip from "../components/Tip.svelte";
 import { api, type Estimate } from "../lib/api";
 import type { Game } from "../lib/generated/Game";
 import type { RunKindDto } from "../lib/generated/RunKindDto";
@@ -87,6 +87,12 @@ function failureText(f: StartFailure): {
   }
 }
 
+/** Back forgets the failed start first; the flow keeps this screen while it stands. */
+function back() {
+  run.clearLast();
+  nav.showGame(game.id);
+}
+
 async function act(f: StartFailure) {
   switch (f.reason) {
     case "accessibility":
@@ -100,7 +106,7 @@ async function act(f: StartFailure) {
       return;
     case "displayGone":
     case "noZone":
-      nav.showGame(game.id);
+      back();
       return;
     case "captureUnavailable":
       await run.start(game.id, kind);
@@ -109,110 +115,169 @@ async function act(f: StartFailure) {
 }
 </script>
 
-<div class="countdown">
-  <div class="main">
-    <p class="t-overline">{game.name}</p>
-    {#if failure}
-      {@const f = failureText(failure)}
-      <h1 class="t-title">{strings.countdown.error.title}</h1>
-      <Tip kind="warn" text={f.text} values={f.values} />
-      <div class="actions">
-        {#if f.action}
-          <Button variant="primary" onclick={() => act(failure)}>{f.action}</Button>
-        {/if}
-        <Button variant="ghost" onclick={() => nav.showGame(game.id)}>{strings.countdown.error.back}</Button>
-      </div>
-    {:else}
-      <div class="ring" aria-live="polite">
-        <svg viewBox="0 0 120 120" aria-hidden="true">
-          <circle class="track" cx="60" cy="60" r="54" />
-          <circle class="fill" cx="60" cy="60" r="54" style:stroke-dashoffset={339 * (1 - Math.min(1, (current?.secondsLeft ?? 0) / 5))} />
-        </svg>
-        <span class="digit t-counter">{current?.secondsLeft ?? ""}</span>
-      </div>
-      <h1 class="t-title">{strings.countdown.title}</h1>
-      {#if kind.kind === "session"}
-        <p class="body">
-          {interpolate(strings.countdown.body, {
-            n: estimate?.shots ?? game.shotsPerRow * game.rows,
-            duration: estimate?.duration ?? "",
-          })}
-        </p>
-      {:else}
-        <p class="body">{interpolate(strings.countdown.bodyTool, { tool: toolName(kind) })}</p>
-      {/if}
-      <p class="t-tip"><RichLine text={strings.countdown.stop} /></p>
-      <Button onclick={() => run.stop()}>{strings.countdown.cancel}</Button>
-    {/if}
+<div class="toolbar" data-tauri-drag-region>
+  <div class="who">
+    <Chip tone={failure ? "bad" : "lav"}>{failure ? strings.countdown.error.title : strings.countdown.starting}</Chip>
+    <span class="name">{game.name}</span>
   </div>
-  <aside class="side">
-    <PreviewCard
-      src={current?.preview?.image ?? null}
-      displayW={current?.preview?.displayW ?? 16}
-      displayH={current?.preview?.displayH ?? 9}
-      zone={current?.preview?.zone ?? null}
-      on={previewOn && !failure}
-      ontoggle={togglePreview}
-    />
-  </aside>
+  {#if failure}
+    <Button size="lg" onclick={back}>{strings.countdown.error.back}</Button>
+  {:else}
+    <Button size="lg" onclick={() => run.stop()}>{strings.countdown.cancel}</Button>
+  {/if}
+</div>
+
+<div class="countdown">
+  {#if failure}
+    {@const f = failureText(failure)}
+    {@const [head, ...rest] = interpolate(f.text, f.values ?? {}).split(/(?<=\.)\s+/)}
+    <h1>{strings.countdown.error.title}</h1>
+    <div class="box">
+      <b>{head}</b>
+      {#if rest.length > 0}<span>{rest.join(" ")}</span>{/if}
+    </div>
+    {#if f.action}
+      <div class="actions">
+        <Button variant="primary" onclick={() => act(failure)}>{f.action}</Button>
+      </div>
+    {/if}
+  {:else}
+    <div class="ring" aria-live="polite">
+      <svg viewBox="0 0 180 180" aria-hidden="true">
+        <circle class="fill" cx="90" cy="90" r="86" style:stroke-dashoffset={540 * (1 - Math.min(1, (current?.secondsLeft ?? 0) / 5))} />
+      </svg>
+      <span class="digit">{current?.secondsLeft ?? ""}</span>
+    </div>
+    <h1>{strings.countdown.title}</h1>
+    {#if kind.kind === "session"}
+      <p class="sub">
+        {interpolate(strings.countdown.body, {
+          n: estimate?.shots ?? game.shotsPerRow * game.rows,
+          duration: estimate?.duration ?? "",
+        })}
+      </p>
+    {:else}
+      <p class="sub">{interpolate(strings.countdown.bodyTool, { tool: toolName(kind) })}</p>
+    {/if}
+    <p class="sub stop"><RichLine text={strings.countdown.stop} /></p>
+    <div class="preview">
+      <PreviewCard
+        src={current?.preview?.image ?? null}
+        displayW={current?.preview?.displayW ?? 16}
+        displayH={current?.preview?.displayH ?? 9}
+        zone={current?.preview?.zone ?? null}
+        on={previewOn}
+        ontoggle={togglePreview}
+      />
+    </div>
+  {/if}
 </div>
 
 <style>
-  .countdown {
-    flex: 1;
-    display: grid;
-    grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr);
-    gap: 24px;
-    padding: 24px;
-    min-height: 0;
-    overflow: auto;
+  .toolbar {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--line);
+    flex: none;
   }
 
-  .main {
+  .who {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .name {
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .countdown {
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 10px;
+    padding: 16px 24px 20px;
+    min-height: 0;
+    overflow: auto;
     text-align: center;
-    gap: 12px;
   }
 
-  .main h1,
-  .main p {
+  h1,
+  p {
     margin: 0;
   }
 
-  .body {
+  h1 {
+    margin-top: 10px;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .sub {
     max-width: 420px;
     color: var(--muted);
+    font-size: 12.5px;
+  }
+
+  .stop {
+    margin-top: 6px;
+  }
+
+  /* The amber box of the error state: the first sentence on its own line,
+     the rest under it, everything centred like the title. */
+  .box {
+    width: min(420px, 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 14px;
+    border-radius: var(--rs);
+    background: var(--warn-soft);
+    color: var(--warn-fg);
+    font-size: 12.5px;
+    text-align: center;
+  }
+
+  .box b {
+    font-weight: 600;
   }
 
   .ring {
     position: relative;
-    width: 160px;
-    height: 160px;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: var(--lav);
+    color: var(--lav-fg);
   }
 
   .ring svg {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     transform: rotate(-90deg);
   }
 
-  .track,
   .fill {
     fill: none;
-    stroke-width: 6;
-    stroke-linecap: round;
-  }
-
-  .track {
-    stroke: var(--lav);
-  }
-
-  .fill {
     stroke: var(--accent);
-    stroke-dasharray: 339;
+    stroke-width: 5;
+    stroke-linecap: round;
+    stroke-dasharray: 540;
     transition: stroke-dashoffset 0.9s linear;
   }
 
@@ -222,16 +287,21 @@ async function act(f: StartFailure) {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 56px;
+    font-size: 96px;
+    font-weight: 700;
+    line-height: 1;
+    /* Proportional digits: a tabular "1" sits off-centre in its box. */
+    font-variant-numeric: proportional-nums;
+    letter-spacing: 0;
+  }
+
+  .preview {
+    width: 320px;
+    margin-top: 18px;
   }
 
   .actions {
     display: flex;
     gap: 8px;
-  }
-
-  .side {
-    display: flex;
-    align-items: flex-start;
   }
 </style>

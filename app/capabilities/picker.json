@@ -8,7 +8,6 @@
   "permissions": [
     "allow-picker-setup",
     "allow-picker-save",
-    "allow-picker-cancel",
-    "allow-picker-frame"
+    "allow-picker-cancel"
   ]
 }

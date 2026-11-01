@@ -6,6 +6,8 @@ import type { Snippet } from "svelte";
 type Props = {
   title: string;
   width?: number;
+  /** A fixed height, for a window laid out top to bottom (About). */
+  height?: number;
   onclose: () => void;
   children?: Snippet;
   footer?: Snippet;
@@ -13,7 +15,7 @@ type Props = {
   aside?: Snippet;
 };
 
-let { title, width = 640, onclose, children, footer, aside }: Props = $props();
+let { title, width = 640, height, onclose, children, footer, aside }: Props = $props();
 
 function onKeyDown(event: KeyboardEvent) {
   if (event.key === "Escape") {
@@ -25,7 +27,13 @@ function onKeyDown(event: KeyboardEvent) {
 <svelte:window onkeydown={onKeyDown} />
 
 <div class="scrim" role="presentation" onpointerdown={(e) => e.target === e.currentTarget && onclose()}>
-  <div class="win" role="dialog" aria-label={title} style:width="min({width}px, 94vw)">
+  <div
+    class="win"
+    role="dialog"
+    aria-label={title}
+    style:width="min({width}px, 94vw)"
+    style:height={height ? `min(${height}px, 92vh)` : undefined}
+  >
     <header class="win-t">
       <h2>{title}</h2>
       {@render aside?.()}
@@ -77,12 +85,17 @@ function onKeyDown(event: KeyboardEvent) {
   }
 
   .close {
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     border: 0;
     background: transparent;
     color: var(--muted);
     font-size: 12px;
-    padding: 4px 6px;
-    border-radius: 4px;
+    padding: 0;
+    border-radius: 6px;
   }
 
   .close:hover {

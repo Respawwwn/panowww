@@ -40,6 +40,7 @@ pub fn handler<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + 
     tauri::generate_handler![
         ping,
         games::list_games,
+        games::reorder_games,
         games::create_game,
         games::save_game,
         games::duplicate_game,
@@ -60,7 +61,6 @@ pub fn handler<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + 
         zone::picker_setup,
         zone::picker_save,
         zone::picker_cancel,
-        zone::picker_frame,
         zone::list_displays,
         run::start_run,
         run::stop_run,
@@ -77,6 +77,7 @@ pub fn handler<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + 
         settings::choose_sessions_folder,
         settings::reveal_logs,
         settings::apply_shortcuts,
+        settings::set_shortcuts_enabled,
         onboarding::permissions,
         onboarding::request_permission,
         onboarding::open_system_settings,

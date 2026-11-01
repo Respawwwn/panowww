@@ -4,13 +4,15 @@ import { interpolate, splitKeyCaps, strings } from "./strings";
 describe("interpolate", () => {
   test("fills every placeholder", () => {
     expect(
-      interpolate(strings.setup.start.estimate, {
-        duration: "≈ 4 min 20 s",
+      interpolate(strings.setup.start.estimateDetail, {
         shots: 78,
         rows: 6,
         shotsPerRow: 13,
+        pole: "nadir",
+        move: 400,
+        shot: 250,
       }),
-    ).toBe("≈ 4 min 20 s · 78 Shots · 6 Rows × 13");
+    ).toBe("78 Shots · 6 Rows × 13 · from nadir · wait 400 / 250 ms");
   });
 
   test("leaves a missing value visible", () => {
@@ -30,13 +32,12 @@ describe("splitKeyCaps", () => {
         text: "The game keeps the focus. Do not touch the mouse or the keyboard. Stop with ",
       },
       { kind: "keys", shortcut: "stop" },
-      { kind: "text", text: ": the Shots already taken are kept." },
     ]);
   });
 
   test("keeps a marker at the end and plain text as is", () => {
     expect(splitKeyCaps(strings.setup.start.shortcutStart)).toEqual([
-      { kind: "text", text: "Start with the game in front  " },
+      { kind: "text", text: "Start from the game  " },
       { kind: "keys", shortcut: "start" },
     ]);
     expect(splitKeyCaps("No caps [here]")).toEqual([{ kind: "text", text: "No caps [here]" }]);

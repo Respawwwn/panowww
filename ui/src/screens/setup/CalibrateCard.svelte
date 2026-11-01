@@ -5,9 +5,10 @@
 // permanent Nothing moved? link.
 import Badge from "../../components/Badge.svelte";
 import Button from "../../components/Button.svelte";
+import HelpButton from "../../components/HelpButton.svelte";
 import NothingMovedPopover from "../../components/NothingMovedPopover.svelte";
-import Tip from "../../components/Tip.svelte";
-import { api } from "../../lib/api";
+import Popover from "../../components/Popover.svelte";
+import { api, isAppError } from "../../lib/api";
 import type { DisabledReason } from "../../lib/game";
 import type { Game } from "../../lib/generated/Game";
 import type { RunKindDto } from "../../lib/generated/RunKindDto";
@@ -26,6 +27,8 @@ let { game, disabled, onadjusted, onopenoverlap }: Props = $props();
 
 let popover = $state(false);
 let adjustError = $state<string | null>(null);
+/** Which step's `?` explanation is open. */
+let help = $state<Tool | "overlapTurn" | "overlapPitch" | null>(null);
 
 const s = strings.setup.calibrate;
 
@@ -101,7 +104,7 @@ async function adjust(
   try {
     onadjusted(await api.games.adjustStep(game.id, axis, observation, magnitude));
   } catch (error) {
-    adjustError = error instanceof Error ? error.message : String(error);
+    adjustError = isAppError(error) || error instanceof Error ? error.message : String(error);
   }
 }
 
@@ -109,8 +112,11 @@ const locked = $derived(disabled !== null || run.busy);
 </script>
 
 <section class="card calibrate">
-  <h2 class="t-section">{s.title}</h2>
-  <Tip text={s.countdown} />
+  <div class="head">
+    <h2 class="t-section">{s.title}</h2>
+    <button type="button" class="link" onclick={() => (popover = !popover)}>{s.nothingMoved.link}</button>
+    <NothingMovedPopover open={popover} onclose={() => (popover = false)} device={game.input.device} align="right" />
+  </div>
 
   {#if running}
     <div class="running">
@@ -121,14 +127,22 @@ const locked = $derived(disabled !== null || run.busy);
 
   {#snippet adjustRow(axis: "turn" | "pitch")}
     <div class="adjust">
-      <span class="t-label">{s.overshot}</span>
-      <Button size="sm" disabled={locked} onclick={() => adjust(axis, "overshot", "coarse")}>−10 %</Button>
-      <Button size="sm" disabled={locked} onclick={() => adjust(axis, "overshot", "fine")}>−2 %</Button>
-      <span class="gap"></span>
-      <Button size="sm" disabled={locked} onclick={() => adjust(axis, "undershot", "fine")}>+2 %</Button>
-      <Button size="sm" disabled={locked} onclick={() => adjust(axis, "undershot", "coarse")}>+10 %</Button>
-      <span class="t-label">{s.undershot}</span>
+      <span>{s.overshot}</span>
+      <Button disabled={locked} onclick={() => adjust(axis, "overshot", "coarse")}>−10 %</Button>
+      <Button disabled={locked} onclick={() => adjust(axis, "overshot", "fine")}>−2 %</Button>
+      <Button disabled={locked} onclick={() => adjust(axis, "undershot", "fine")}>+2 %</Button>
+      <Button disabled={locked} onclick={() => adjust(axis, "undershot", "coarse")}>+10 %</Button>
+      <span>{s.undershot}</span>
     </div>
+  {/snippet}
+
+  {#snippet helpFor(tool: Tool | "overlapTurn" | "overlapPitch", text: string)}
+    <span class="help">
+      <HelpButton subtle label={text} on={help === tool} onclick={() => (help = help === tool ? null : tool)} />
+      <Popover open={help === tool} onclose={() => (help = null)} align="right">
+        <p class="helptext">{text}</p>
+      </Popover>
+    </span>
   {/snippet}
 
   {#snippet result(tool: Tool)}
@@ -140,51 +154,57 @@ const locked = $derived(disabled !== null || run.busy);
     {/if}
   {/snippet}
 
-  <ol class="tools">
-    <li>
-      <div class="tool">
-        <Badge n={1} />
+  <div class="step">
+    <Badge n={1} />
+    <div class="t">
+      <div class="n">
         <b>{s.turnTestTitle}</b>
+        {@render helpFor("turnTest", s.turnTest)}
         <Button size="sm" disabled={locked} onclick={() => start({ kind: "turnTest" })}>{s.run}</Button>
       </div>
       {@render adjustRow("turn")}
-      <Tip text={s.turnTest} />
       {@render result("turnTest")}
-    </li>
-    <li>
-      <div class="tool">
-        <Badge n={2} />
+    </div>
+  </div>
+  <div class="step">
+    <Badge n={2} />
+    <div class="t">
+      <div class="n">
         <b>{s.overlapTurnTitle}</b>
-        <Button size="sm" disabled={locked} onclick={() => onopenoverlap("turn")}>{s.open}</Button>
+        {@render helpFor("overlapTurn", strings.overlap.instruction)}
+        <Button size="sm" disabled={locked} onclick={() => onopenoverlap("turn")}>{s.run}</Button>
       </div>
-      <Tip text={s.overlapTurn} />
-    </li>
-    <li>
-      <div class="tool">
-        <Badge n={3} />
+    </div>
+  </div>
+  <div class="sep"></div>
+  <div class="step">
+    <Badge n={3} />
+    <div class="t">
+      <div class="n">
         <b>{s.pitchTestTitle}</b>
+        {@render helpFor("pitchTest", game.startPole === "nadir" ? s.pitchTest.nadir : s.pitchTest.zenith)}
         <Button size="sm" disabled={locked} onclick={() => start({ kind: "pitchTest" })}>{s.run}</Button>
       </div>
       {@render adjustRow("pitch")}
-      <Tip text={game.startPole === "nadir" ? s.pitchTest.nadir : s.pitchTest.zenith} />
       {@render result("pitchTest")}
-    </li>
-    <li>
-      <div class="tool">
-        <Badge n={4} />
+    </div>
+  </div>
+  <div class="step">
+    <Badge n={4} />
+    <div class="t">
+      <div class="n">
         <b>{s.overlapPitchTitle}</b>
-        <Button size="sm" disabled={locked} onclick={() => onopenoverlap("pitch")}>{s.open}</Button>
+        {@render helpFor("overlapPitch", strings.overlap.instruction)}
+        <Button size="sm" disabled={locked} onclick={() => onopenoverlap("pitch")}>{s.run}</Button>
       </div>
-      <Tip text={s.overlapPitch} />
-    </li>
-  </ol>
-
+    </div>
+  </div>
+  <div class="sep"></div>
   <div class="once">
-    <b>{s.stepOnceTitle}</b>
+    <span>{s.stepOnceTitle}</span>
     <Button size="sm" disabled={locked} onclick={() => start({ kind: "stepOnce", axis: "turn" })}>{s.turn}</Button>
     <Button size="sm" disabled={locked} onclick={() => start({ kind: "stepOnce", axis: "pitch" })}>{s.pitch}</Button>
   </div>
-  <Tip text={s.stepOnce} />
   {@render result("stepOnce")}
 
   {#if disabled}
@@ -193,11 +213,6 @@ const locked = $derived(disabled !== null || run.busy);
   {#if adjustError}
     <p class="error">{adjustError}</p>
   {/if}
-
-  <div class="foot">
-    <NothingMovedPopover open={popover} onclose={() => (popover = false)} device={game.input.device} />
-    <button type="button" class="link" onclick={() => (popover = !popover)}>{s.nothingMoved.link}</button>
-  </div>
 </section>
 
 <style>
@@ -226,50 +241,76 @@ const locked = $derived(disabled !== null || run.busy);
     font-weight: 500;
   }
 
-  .tools {
-    list-style: none;
-    margin: 0;
-    padding: 0;
+  .step {
     display: flex;
-    flex-direction: column;
-    gap: 12px;
+    align-items: flex-start;
+    gap: 10px;
   }
 
-  .tools li {
+  .t {
+    flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 6px;
   }
 
-  .tool {
+  .n {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
   }
 
-  .tool b,
-  .once b {
-    flex: 1;
+  .n b {
     font-weight: 600;
+  }
+
+  .n .help {
+    position: relative;
+    display: inline-flex;
+  }
+
+  /* Run / Open sit at the right edge, with or without a `?`. */
+  .n > :global(.btn) {
+    margin-left: auto;
+  }
+
+  .helptext {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.45;
   }
 
   .adjust {
     display: flex;
     align-items: center;
     gap: 4px;
-    padding-left: 34px;
+    font-size: 11px;
+    color: var(--muted);
   }
 
-  .adjust .gap {
-    width: 8px;
+  .adjust :global(.btn) {
+    height: 22px;
+    min-width: 32px;
+    padding: 1px 7px 0;
+    border-radius: 6px;
+    font-size: 11px;
+  }
+
+  .sep {
+    height: 1px;
+    background: var(--line);
   }
 
   .once {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding-top: 4px;
-    border-top: 1px solid var(--line);
+    gap: 8px;
+  }
+
+  .once span {
+    color: var(--muted);
+    font-size: 12px;
   }
 
   .result {
@@ -299,13 +340,15 @@ const locked = $derived(disabled !== null || run.busy);
     color: var(--bad-fg);
   }
 
-  .foot {
+  .head {
     position: relative;
-    margin-top: auto;
-    padding-top: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
   }
 
-  .foot .link {
+  .head .link {
     margin: 0;
   }
 </style>

@@ -2,6 +2,7 @@
 // Capture zone · this machine (spec §11.2): status line with a dot, the
 // amber boxes, *Set zone…* / *Change zone…*, *Show zone* / *Hide zone*.
 import Button from "../../components/Button.svelte";
+import Icon from "../../components/Icon.svelte";
 import StatusBox from "../../components/StatusBox.svelte";
 import Tip from "../../components/Tip.svelte";
 import type { ZoneState } from "../../lib/api";
@@ -46,8 +47,12 @@ const values = $derived(
     <p class="error">{error}</p>
   {/if}
   <div class="actions">
-    <Button onclick={onpick}>{values ? strings.setup.zone.changeZone : strings.setup.zone.setZone}</Button>
-    <Button variant="ghost" disabled={!values} onclick={() => onshow(!shown)}>
+    <Button onclick={onpick}>
+      <Icon name="crop" size={13} />
+      {values ? strings.setup.zone.changeZone : strings.setup.zone.setZone}
+    </Button>
+    <Button disabled={!values} onclick={() => onshow(!shown)}>
+      <Icon name="eye" size={13} />
       {shown ? strings.setup.zone.hideZone : strings.setup.zone.showZone}
     </Button>
   </div>

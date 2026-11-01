@@ -11,7 +11,9 @@ import { screenForRun } from "./lib/flow";
 import { games } from "./lib/games.svelte";
 import { nav } from "./lib/nav.svelte";
 import { run } from "./lib/run.svelte";
+import { viewFromLast } from "./lib/sessionView";
 import { settings } from "./lib/settings.svelte";
+import { applyAppearance } from "./lib/theme";
 import { update } from "./lib/update.svelte";
 import { windows } from "./lib/windows.svelte";
 import About from "./screens/About.svelte";
@@ -23,6 +25,7 @@ import Gallery from "./screens/Gallery.svelte";
 import GameDetail from "./screens/GameDetail.svelte";
 import Onboarding from "./screens/Onboarding.svelte";
 import SessionEnd from "./screens/SessionEnd.svelte";
+import SessionHistory from "./screens/SessionHistory.svelte";
 import SessionRunning from "./screens/SessionRunning.svelte";
 import Settings from "./screens/Settings.svelte";
 
@@ -58,6 +61,11 @@ $effect(() => {
   run.expectShortcut(nav.gameId);
 });
 
+// Light / dark / the OS appearance, from Settings (spec §12).
+$effect(() => {
+  applyAppearance(settings.value.appearance);
+});
+
 $effect(() => {
   const next = screenForRun(run.current, run.last, nav.screen);
   if (next) {
@@ -78,6 +86,15 @@ const runGame = $derived.by(() => {
   return "gameId" in screen ? games.find(screen.gameId) : null;
 });
 
+/** The run that just ended, for the end screen. */
+const endedView = $derived.by(() => {
+  const screen = nav.screen;
+  const last = run.last;
+  return screen.kind === "ended" && runGame && last
+    ? viewFromLast(last, runGame, screen.folder)
+    : null;
+});
+
 // Cmd+, / Ctrl+, opens Settings (§11).
 function onKeyDown(event: KeyboardEvent) {
   if (event.key === "," && (event.metaKey || event.ctrlKey) && !nav.busy) {
@@ -94,11 +111,17 @@ function onKeyDown(event: KeyboardEvent) {
 {:else}
   <div class="shell">
     <Sidebar
-      onsessions={() => windows.show("sessions")}
+      onsessions={() => nav.showAllSessions()}
       onsettings={() => windows.show("settings")}
       onabout={() => windows.show("about")}
     />
     <main class="detail">
+      {#if !["game", "ended", "session", "running", "countdown", "allSessions"].includes(nav.screen.kind)}
+        <!-- The hidden title bar: the strip under it moves the window. The
+             Game detail and the Session screens have a toolbar that is its
+             own drag region. -->
+        <div class="drag" data-tauri-drag-region></div>
+      {/if}
       {#if nav.screen.kind === "game" && games.selected}
         <GameDetail game={games.selected} tab={nav.screen.tab} />
       {:else if damagedEntry?.kind === "damaged"}
@@ -107,8 +130,12 @@ function onKeyDown(event: KeyboardEvent) {
         <Countdown game={runGame} />
       {:else if nav.screen.kind === "running" && runGame}
         <SessionRunning game={runGame} />
-      {:else if nav.screen.kind === "ended" && runGame}
-        <SessionEnd game={runGame} folder={nav.screen.folder} />
+      {:else if nav.screen.kind === "ended" && runGame && endedView}
+        <SessionEnd view={endedView} />
+      {:else if nav.screen.kind === "session"}
+        <SessionHistory gameId={nav.screen.gameId} folder={nav.screen.folder} />
+      {:else if nav.screen.kind === "allSessions"}
+        <AllSessions />
       {:else}
         <div class="pane">
           <EmptyDetail onnew={() => games.create()} onimport={() => games.import()} />
@@ -117,9 +144,7 @@ function onKeyDown(event: KeyboardEvent) {
     </main>
     <BottomBar />
     <ImportPrompt />
-    {#if windows.open === "sessions"}
-      <AllSessions />
-    {:else if windows.open === "settings"}
+    {#if windows.open === "settings"}
       <Settings />
     {:else if windows.open === "about"}
       <About />
@@ -133,7 +158,8 @@ function onKeyDown(event: KeyboardEvent) {
   .shell {
     display: grid;
     grid-template-columns: var(--sidebar-width) 1fr;
-    grid-template-rows: 1fr auto;
+    /* minmax(0, …): a long Games list must scroll, not stretch the row. */
+    grid-template-rows: minmax(0, 1fr) auto;
     grid-template-areas:
       "sidebar detail"
       "bottom bottom";
@@ -142,6 +168,7 @@ function onKeyDown(event: KeyboardEvent) {
 
   .detail {
     grid-area: detail;
+    position: relative;
     display: flex;
     flex-direction: column;
     min-width: 0;
@@ -153,5 +180,13 @@ function onKeyDown(event: KeyboardEvent) {
     min-height: 0;
     overflow: auto;
     padding: 24px;
+  }
+  .drag {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 48px;
+    z-index: 1;
   }
 </style>

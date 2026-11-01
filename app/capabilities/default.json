@@ -7,8 +7,10 @@
   ],
   "permissions": [
     "core:default",
+    "core:window:allow-start-dragging",
     "allow-ping",
     "allow-list-games",
+    "allow-reorder-games",
     "allow-create-game",
     "allow-save-game",
     "allow-duplicate-game",
@@ -41,6 +43,7 @@
     "allow-choose-sessions-folder",
     "allow-reveal-logs",
     "allow-apply-shortcuts",
+    "allow-set-shortcuts-enabled",
     "allow-permissions",
     "allow-request-permission",
     "allow-open-system-settings",

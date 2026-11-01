@@ -3,6 +3,7 @@
 const COMMANDS: &[&str] = &[
     "ping",
     "list_games",
+    "reorder_games",
     "create_game",
     "save_game",
     "duplicate_game",
@@ -23,7 +24,6 @@ const COMMANDS: &[&str] = &[
     "picker_setup",
     "picker_save",
     "picker_cancel",
-    "picker_frame",
     "list_displays",
     "start_run",
     "stop_run",
@@ -40,6 +40,7 @@ const COMMANDS: &[&str] = &[
     "choose_sessions_folder",
     "reveal_logs",
     "apply_shortcuts",
+    "set_shortcuts_enabled",
     "permissions",
     "request_permission",
     "open_system_settings",

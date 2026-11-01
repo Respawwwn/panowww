@@ -84,6 +84,21 @@ pub struct Settings {
     pub new_game_defaults: NewGameDefaults,
     pub check_for_updates: bool,
     pub display_preview: bool,
+    /// Light, dark, or the OS appearance. Added after the first version 1
+    /// files: missing means `Auto`.
+    #[serde(default)]
+    pub appearance: Appearance,
+}
+
+/// The window's appearance (spec §12: follows the OS by default).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, TS)]
+#[serde(rename_all = "lowercase")]
+#[ts(export)]
+pub enum Appearance {
+    #[default]
+    Auto,
+    Light,
+    Dark,
 }
 
 impl Default for Settings {
@@ -96,6 +111,7 @@ impl Default for Settings {
             new_game_defaults: NewGameDefaults::default(),
             check_for_updates: true,
             display_preview: true,
+            appearance: Appearance::Auto,
         }
     }
 }
@@ -167,6 +183,7 @@ fn read(path: &Path, text: &str) -> Result<Loaded<Settings>, StoreError> {
                 new_game_defaults: v0.new_game_defaults.unwrap_or(defaults.new_game_defaults),
                 check_for_updates: v0.check_for_updates.unwrap_or(defaults.check_for_updates),
                 display_preview: v0.display_preview.unwrap_or(defaults.display_preview),
+                appearance: defaults.appearance,
             },
             migrated: true,
         })

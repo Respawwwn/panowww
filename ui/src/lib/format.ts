@@ -45,6 +45,37 @@ export function formatDate(at: Date | string | number): string {
   });
 }
 
+/**
+ * `Today, 14:32` / `Yesterday, 22:05` / `Oct 27, 19:48` / `Oct 27, 2025, 19:48`
+ * (spec §11.9, board B-SessionsTab), relative to `now`.
+ */
+export function formatWhen(
+  at: Date | string | number,
+  labels: { today: string; yesterday: string },
+  now: Date = new Date(),
+  locale?: string,
+): string {
+  const date = at instanceof Date ? at : new Date(at);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+  const time = date.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
+  const dayOf = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const days = Math.round((dayOf(now) - dayOf(date)) / 86_400_000);
+  if (days === 0) {
+    return `${labels.today}, ${time}`;
+  }
+  if (days === 1) {
+    return `${labels.yesterday}, ${time}`;
+  }
+  const day = date.toLocaleDateString(locale, {
+    month: "short",
+    day: "numeric",
+    ...(date.getFullYear() === now.getFullYear() ? {} : { year: "numeric" }),
+  });
+  return `${day}, ${time}`;
+}
+
 /** `rNN_cNN` for a thumbnail label. */
 export function shotLabel(row: number, col: number): string {
   return `r${String(row).padStart(2, "0")}_c${String(col).padStart(2, "0")}`;

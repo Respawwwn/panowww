@@ -43,6 +43,10 @@ pub struct LocalGames {
     pub format: LocalGamesFormat,
     pub version: u32,
     pub games: BTreeMap<Uuid, LocalGame>,
+    /// The sidebar's order, as the user dragged it; Games not listed come
+    /// after, by name. Machine-local like the zone: never in a Game file.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub order: Vec<Uuid>,
 }
 
 impl Default for LocalGames {
@@ -51,6 +55,7 @@ impl Default for LocalGames {
             format: LocalGamesFormat::PanowwwLocalGames,
             version: CURRENT_VERSION,
             games: BTreeMap::new(),
+            order: Vec::new(),
         }
     }
 }
@@ -106,6 +111,17 @@ impl LocalGames {
     /// Forgets everything about `id`, for a deleted Game.
     pub fn remove(&mut self, id: Uuid) {
         self.games.remove(&id);
+        self.order.retain(|g| *g != id);
+    }
+
+    /// The sidebar's order, from the first row down.
+    pub fn set_order(&mut self, ids: Vec<Uuid>) {
+        self.order = ids;
+    }
+
+    /// Where `id` sits in the order; `None` puts it after the ordered ones.
+    pub fn position(&self, id: Uuid) -> Option<usize> {
+        self.order.iter().position(|g| *g == id)
     }
 }
 
@@ -144,6 +160,19 @@ fn read(path: &Path, text: &str) -> Result<Loaded<LocalGames>, StoreError> {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn the_order_follows_the_user_and_forgets_deleted_games() {
+        let a = Uuid::new_v4();
+        let b = Uuid::new_v4();
+        let mut local = LocalGames::default();
+        assert_eq!(local.position(a), None);
+        local.set_order(vec![b, a]);
+        assert_eq!(local.position(a), Some(1));
+        local.remove(b);
+        assert_eq!(local.position(a), Some(0));
+        assert_eq!(local.position(b), None);
+    }
+
     use panowww_core::ports::DisplayId;
 
     use super::*;

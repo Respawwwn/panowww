@@ -62,14 +62,15 @@ function onKeyDown(event: KeyboardEvent) {
   kbd {
     display: inline-flex;
     align-items: center;
-    height: 24px;
-    min-width: 32px;
-    padding: 1px 9px 0;
+    justify-content: center;
+    height: 28px;
+    min-width: 28px;
+    padding: 1px 12px 0;
     border-radius: 5px;
     background: var(--lav);
     color: var(--lav-fg);
     font: inherit;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
     line-height: 1;
   }

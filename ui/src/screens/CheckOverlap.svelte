@@ -5,7 +5,6 @@
 // the app; the Samples stay in memory.
 import Button from "../components/Button.svelte";
 import Chip from "../components/Chip.svelte";
-import PillTabs from "../components/PillTabs.svelte";
 import Tip from "../components/Tip.svelte";
 import type { Game } from "../lib/generated/Game";
 import { overlapPercent, verdict, verdictText } from "../lib/overlap";
@@ -15,12 +14,11 @@ import { interpolate, strings } from "../lib/strings";
 type Props = {
   game: Game;
   axis: "turn" | "pitch";
-  onaxis: (axis: "turn" | "pitch") => void;
   onretake: () => void;
   onclose: () => void;
 };
 
-let { game, axis, onaxis, onretake, onclose }: Props = $props();
+let { game, axis, onretake, onclose }: Props = $props();
 
 /** The Samples of the run in progress, or of the last one of this Game. */
 const samples = $derived.by(() => {
@@ -75,15 +73,7 @@ const ready = $derived(Boolean(samples.first && samples.second));
   <div class="win" role="dialog" aria-labelledby="overlap-title">
     <header class="win-t">
       <h2 id="overlap-title">{interpolate(strings.overlap.title, { game: game.name })}</h2>
-      <PillTabs
-        items={[
-          { id: "turn", label: strings.setup.calibrate.turn },
-          { id: "pitch", label: strings.setup.calibrate.pitch },
-        ]}
-        value={axis}
-        disabled={run.busy}
-        onchange={(id) => onaxis(id as "turn" | "pitch")}
-      />
+      <Chip>{axis === "turn" ? strings.setup.calibrate.turn : strings.setup.calibrate.pitch}</Chip>
     </header>
     <div class="win-b">
       <div class="sub">
@@ -108,6 +98,8 @@ const ready = $derived(Boolean(samples.first && samples.second));
           >
             <Chip tone="lav">{interpolate(strings.overlap.chip, { p })}</Chip>
           </span>
+          <span class="pill one">{strings.overlap.sample1}</span>
+          <span class="pill two">{strings.overlap.sample2}</span>
         {:else}
           <span class="waiting">{run.busy ? strings.overlap.waiting : strings.overlap.none}</span>
         {/if}
@@ -115,9 +107,13 @@ const ready = $derived(Boolean(samples.first && samples.second));
       <label class="slider">
         <span class="t-label">{strings.overlap.align}</span>
         <input type="range" min={-size} max={size} step="1" bind:value={offset} disabled={!ready} />
+        <span class="t-label px">{offset > 0 ? "−" : offset < 0 ? "+" : ""}{Math.abs(offset)} px</span>
       </label>
       {#if ready}
-        <Tip kind={v === "ok" ? "ok" : "warn"} text={verdictText(v, axis)} values={{ p }} />
+        <div class="verdict" class:ok={v === "ok"}>
+          <Chip tone={v === "ok" ? "ok" : "warn"}>{strings.overlap.label[v]}</Chip>
+          <span>{interpolate(verdictText(v, axis), { p })}</span>
+        </div>
       {/if}
       <Tip kind="lav" text={strings.overlap.tip} />
     </div>
@@ -235,6 +231,57 @@ const ready = $derived(Boolean(samples.first && samples.second));
     display: flex;
     align-items: center;
     gap: 12px;
+  }
+
+  .slider .px {
+    width: 60px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .pill {
+    position: absolute;
+    bottom: 10px;
+    display: inline-flex;
+    align-items: center;
+    height: 22px;
+    padding: 1px 9px 0;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .pill.one {
+    left: 10px;
+    background: rgb(255 255 255 / 90%);
+    color: #1b1740;
+  }
+
+  .pill.two {
+    right: 10px;
+    background: rgb(27 23 64 / 85%);
+    color: #fff;
+  }
+
+  .verdict {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: var(--rs);
+    background: var(--warn-soft);
+    color: var(--warn-fg);
+    font-size: 12.5px;
+  }
+
+  .verdict.ok {
+    background: var(--ok-soft);
+    color: var(--ok-fg);
+  }
+
+  .verdict :global(.chip) {
+    background: var(--card);
   }
 
   .slider input {

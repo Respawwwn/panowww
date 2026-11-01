@@ -14,27 +14,37 @@ pub fn get_settings(state: State<'_, SharedState>) -> Settings {
     state.settings()
 }
 
-/// Writes the settings and re-registers the shortcuts when they changed.
+/// Writes the settings. Changed shortcuts are registered first: a combo
+/// the OS refuses, or Start equal to Stop, is reported and nothing is
+/// saved.
 #[tauri::command]
 pub fn save_settings<R: tauri::Runtime>(
     app: AppHandle<R>,
     state: State<'_, SharedState>,
     settings: Settings,
 ) -> CmdResult<()> {
-    let shortcuts_changed = {
-        let mut current = state
-            .settings
-            .write()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
-        let changed = current.shortcuts != settings.shortcuts;
-        *current = settings;
-        current.save(&state.paths)?;
-        changed
-    };
-    if shortcuts_changed {
-        shortcuts::register(&app)?;
+    let previous = state.settings();
+    if previous.shortcuts != settings.shortcuts
+        && let Err(error) = shortcuts::register_shortcuts(&app, &settings.shortcuts)
+    {
+        // Back to the ones that worked.
+        let _ = shortcuts::register_shortcuts(&app, &previous.shortcuts);
+        return Err(error);
     }
+    let mut current = state
+        .settings
+        .write()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    *current = settings;
+    current.save(&state.paths)?;
     Ok(())
+}
+
+/// Settings window open or closed: the global shortcuts pause while a
+/// combo may be recorded, so recording Start does not start a Session.
+#[tauri::command]
+pub fn set_shortcuts_enabled<R: tauri::Runtime>(app: AppHandle<R>, enabled: bool) -> CmdResult<()> {
+    shortcuts::set_enabled(&app, enabled)
 }
 
 /// Folder picker for the Sessions folder; `None` when cancelled. The

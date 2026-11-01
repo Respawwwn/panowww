@@ -3,6 +3,7 @@
 // recorders, New Game defaults, the Display preview switch, General.
 // Every change is saved at once; a shortcut the OS refuses shows its
 // error next to the recorder.
+import { onMount } from "svelte";
 import Button from "../components/Button.svelte";
 import Field from "../components/Field.svelte";
 import Segmented from "../components/Segmented.svelte";
@@ -19,13 +20,26 @@ import { windows } from "../lib/windows.svelte";
 
 const platform = detectPlatform();
 let shortcutError = $state<string | null>(null);
+/** Under which recorder the error sits: the one that was changed. */
+let shortcutErrorFor = $state<"start" | "stop">("stop");
 let saveError = $state<string | null>(null);
+
+// No Session starts from the combo being recorded (spec §10).
+onMount(() => {
+  void api.settings.setShortcutsEnabled(false).catch(() => {});
+  return () => {
+    void api.settings.setShortcutsEnabled(true).catch(() => {});
+  };
+});
 
 const s = $derived(settings.value);
 
-async function save(patch: Partial<Settings>) {
+async function save(patch: Partial<Settings>, which: "start" | "stop" = "stop") {
   const next = { ...settings.value, ...patch };
   const shortcutsChanged = patch.shortcuts !== undefined;
+  if (shortcutsChanged) {
+    shortcutErrorFor = which;
+  }
   try {
     await settings.save(next);
     saveError = null;
@@ -56,39 +70,65 @@ function number(value: string): number {
 </script>
 
 <WindowFrame title={strings.settings.title} width={680} onclose={() => windows.close()}>
-  <section>
-    <h3 class="t-overline">{strings.settings.sessionsTitle}</h3>
-    <Field label={strings.settings.sessionsFolder} tip={strings.settings.folder}>
-      <span class="path" title={s.sessionsFolder}>{s.sessionsFolder}</span>
-      <Button size="sm" onclick={chooseFolder}>{strings.settings.change}</Button>
-      <Button size="sm" variant="ghost" onclick={() => api.settings.revealPath(s.sessionsFolder)}>{strings.settings.reveal}</Button>
+  <section class="card">
+    <h3>{strings.settings.general}</h3>
+    <Field label={strings.settings.appearance.label}>
+      <Segmented
+        items={[
+          { id: "auto", label: strings.settings.appearance.auto },
+          { id: "light", label: strings.settings.appearance.light },
+          { id: "dark", label: strings.settings.appearance.dark },
+        ]}
+        value={s.appearance}
+        onchange={(id) => save({ appearance: id as Settings["appearance"] })}
+      />
     </Field>
+    <Field label={strings.settings.folderLabel} id="s-folder" tip={strings.settings.folder}>
+      <input
+        id="s-folder"
+        class="wide"
+        type="text"
+        readonly
+        value={s.sessionsFolder}
+        title={s.sessionsFolder}
+        ondblclick={chooseFolder}
+      />
+      <Button size="sm" onclick={chooseFolder}>{strings.settings.change}</Button>
+      <Button size="sm" onclick={() => api.settings.revealPath(s.sessionsFolder)}>{strings.settings.reveal}</Button>
+    </Field>
+    <Switch
+      checked={s.displayPreview}
+      label={strings.settings.displayPreview.label}
+      onchange={(on) => save({ displayPreview: on })}
+    />
+    <Tip text={strings.settings.displayPreview.hint} />
   </section>
 
-  <section>
-    <h3 class="t-overline">{strings.settings.shortcutsTitle}</h3>
+  <section class="card">
+    <h3>{strings.settings.shortcutsTitle}</h3>
+    {#if platform === "macos"}
+      <Tip text={strings.settings.shortcutsMac} />
+    {/if}
     <Field label={strings.settings.start}>
       <ShortcutRecorder
         shortcut={s.shortcuts.start}
         defaultShortcut={defaultSettings.shortcuts.start}
-        onchange={(start) => save({ shortcuts: { ...s.shortcuts, start } })}
+        onchange={(start) => save({ shortcuts: { ...s.shortcuts, start } }, "start")}
+        error={shortcutErrorFor === "start" ? shortcutError : null}
       />
     </Field>
     <Field label={strings.settings.stop} tip={strings.settings.shortcuts}>
       <ShortcutRecorder
         shortcut={s.shortcuts.stop}
         defaultShortcut={defaultSettings.shortcuts.stop}
-        onchange={(stop) => save({ shortcuts: { ...s.shortcuts, stop } })}
-        error={shortcutError}
+        onchange={(stop) => save({ shortcuts: { ...s.shortcuts, stop } }, "stop")}
+        error={shortcutErrorFor === "stop" ? shortcutError : null}
       />
     </Field>
-    {#if platform === "macos"}
-      <Tip text={strings.settings.shortcutsMac} />
-    {/if}
   </section>
 
-  <section>
-    <h3 class="t-overline">{strings.settings.defaultsTitle}</h3>
+  <section class="card">
+    <h3>{strings.settings.defaultsTitle}</h3>
     <Field label={strings.setup.grid.startPoleLabel}>
       <Segmented
         items={[
@@ -125,28 +165,19 @@ function number(value: string): number {
     </Field>
   </section>
 
-  <section>
-    <h3 class="t-overline">{strings.settings.previewTitle}</h3>
-    <Switch
-      checked={s.displayPreview}
-      label={strings.settings.displayPreview.label}
-      onchange={(on) => save({ displayPreview: on })}
-    />
-    <Tip text={strings.settings.displayPreview.hint} />
-  </section>
-
-  <section>
-    <h3 class="t-overline">{strings.settings.general}</h3>
+  <section class="card">
+    <h3>{strings.settings.updatesTitle}</h3>
     <Switch
       checked={s.checkForUpdates}
       label={strings.settings.checkForUpdates}
       onchange={(on) => save({ checkForUpdates: on })}
     />
-    <div class="actions">
-      <Button size="sm" onclick={() => windows.show("onboarding")}>{strings.settings.reviewPermissions}</Button>
-      <Button size="sm" variant="ghost" onclick={() => api.settings.revealLogs()}>{strings.settings.revealLogs}</Button>
-    </div>
   </section>
+
+  <div class="actions">
+    <Button size="sm" onclick={() => windows.show("onboarding")}>{strings.settings.reviewPermissions}</Button>
+    <Button size="sm" variant="ghost" onclick={() => api.settings.revealLogs()}>{strings.settings.revealLogs}</Button>
+  </div>
 
   {#if saveError}
     <p class="error">{saveError}</p>
@@ -154,34 +185,23 @@ function number(value: string): number {
 </WindowFrame>
 
 <style>
-  section {
+  .card {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    padding-bottom: 14px;
-    border-bottom: 1px solid var(--line);
-  }
-
-  section:last-of-type {
-    border-bottom: 0;
+    gap: 12px;
+    padding: 14px 16px;
   }
 
   h3 {
     margin: 0;
-  }
-
-  .path {
-    flex: 1;
-    min-width: 0;
-    font-size: 12.5px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 14px;
+    font-weight: 600;
   }
 
   .actions {
     display: flex;
-    gap: 6px;
+    gap: 8px;
+    padding-top: 2px;
   }
 
   .error {

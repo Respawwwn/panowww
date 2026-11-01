@@ -4,13 +4,15 @@
 type Props = {
   on?: boolean;
   label: string;
+  /** Thinner and quieter than a button: a hint beside a title. */
+  subtle?: boolean;
   onclick?: () => void;
 };
 
-let { on = false, label, onclick }: Props = $props();
+let { on = false, label, subtle = false, onclick }: Props = $props();
 </script>
 
-<button type="button" class="help" class:on aria-label={label} aria-expanded={on} {onclick}>?</button>
+<button type="button" class="help" class:on class:subtle aria-label={label} aria-expanded={on} {onclick}>?</button>
 
 <style>
   .help {
@@ -28,6 +30,24 @@ let { on = false, label, onclick }: Props = $props();
     align-items: center;
     justify-content: center;
     flex: none;
+  }
+
+  .help.subtle {
+    width: 16px;
+    height: 16px;
+    border-color: var(--line2);
+    background: transparent;
+    padding: 0;
+    color: var(--faint);
+    font-size: 9px;
+    font-weight: 600;
+    line-height: 1;
+    box-shadow: none;
+  }
+
+  .help.subtle:hover {
+    color: var(--muted);
+    background: var(--hover);
   }
 
   .help.on {

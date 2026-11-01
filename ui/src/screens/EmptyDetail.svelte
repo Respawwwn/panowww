@@ -1,7 +1,11 @@
 <script lang="ts">
-// Centred empty state when no Game exists (spec §11.1, §13.5). The buttons
-// act once issue 15 brings the Game commands.
+// Centred empty state when no Game exists (spec §11.1, §13.5, board
+// B-Empty): the app icon, the title, the body, New Game / Import Game, the
+// import tip under them.
 import Button from "../components/Button.svelte";
+import Icon from "../components/Icon.svelte";
+import Mark from "../components/Mark.svelte";
+import { games } from "../lib/games.svelte";
 import { strings } from "../lib/strings";
 
 type Props = {
@@ -10,16 +14,28 @@ type Props = {
 };
 
 let { onnew, onimport }: Props = $props();
+
+/** No Game at all: the first-launch wording. Otherwise the home wording. */
+const first = $derived(games.loaded && games.entries.length === 0);
 </script>
 
 <section class="empty">
-  <h1 class="t-title">{strings.empty.title}</h1>
-  <p>{strings.empty.body}</p>
-  <p>{strings.empty.import}</p>
+  <Mark size={88} radius={20} />
+  <h1 class="t-title">{first ? strings.empty.title : strings.empty.homeTitle}</h1>
+  <p class="sub">{first ? strings.empty.body : strings.empty.homeBody}</p>
   <div class="actions">
-    <Button variant="primary" size="lg" disabled={!onnew} onclick={onnew}>{strings.empty.newButton}</Button>
-    <Button size="lg" disabled={!onimport} onclick={onimport}>{strings.empty.importButton}</Button>
+    <Button variant="primary" size="lg" disabled={!onnew} onclick={onnew}>
+      <Icon name="plus" size={15} />
+      {strings.empty.newButton}
+    </Button>
+    <Button size="lg" disabled={!onimport} onclick={onimport}>
+      <Icon name="import" />
+      {strings.empty.importButton}
+    </Button>
   </div>
+  {#if first}
+    <p class="t-tip">{strings.empty.import}</p>
+  {/if}
 </section>
 
 <style>
@@ -29,24 +45,29 @@ let { onnew, onimport }: Props = $props();
     align-items: center;
     justify-content: center;
     height: 100%;
-    max-width: 440px;
+    max-width: 420px;
     margin: 0 auto;
     text-align: center;
-    gap: 8px;
+    gap: 14px;
   }
 
   h1 {
-    margin: 0;
+    margin: 6px 0 0;
+    font-size: 22px;
   }
 
   p {
     margin: 0;
+  }
+
+  .sub {
     color: var(--muted);
+    font-size: 12.5px;
   }
 
   .actions {
     display: flex;
-    gap: 8px;
-    margin-top: 12px;
+    gap: 10px;
+    margin-top: 6px;
   }
 </style>
