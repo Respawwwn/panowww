@@ -223,21 +223,21 @@ README per the outline with real screenshots from issue 19, `CONTRIBUTING.md`, t
 
 ## 23. `input` Windows: SendInput and ViGEm
 
-**Spec**: §8, §3.3, §15 (W4, W5). After *Windows verification of the spike*.
+**Spec**: §8, §3.3, §15 (W4, W5). Needs `feat/windows-test-manifest` merged first (`just check` on Windows).
 
-`Camera` on `windows` 0.62: `SendInput` with `KEYEVENTF_SCANCODE`, `MOUSEEVENTF_MOVE`, buttons, `SetCursorPos` parking, `release_all`; ViGEm adapter behind our own trait (`vigem-client`), `BusNotFound` check; sub-move constants per the verification.
+`Camera` on `windows` 0.62: `SendInput` with `KEYEVENTF_SCANCODE`, `MOUSEEVENTF_MOVE`, buttons, `SetCursorPos` parking, `release_all`; the 20 px / 8 ms sub-move constants shared with macOS (W4). ViGEm adapter behind our own trait (`vigem-client`): unplug before plugging, one wait-ready retry on Win32 483, a plugged / not plugged status for the gamepad Game's setup, `BusNotFound` check (its missing-driver path goes into the manual test, W5).
 
 ## 24. `capture` Windows: Windows Graphics Capture
 
-**Spec**: §9, §15 (W6, W7). After the verification.
+**Spec**: §9, §15 (W6, W7).
 
-One WGC session per run, frames cropped to the zone, fresh-frame check by timestamp, preview = CPU downscale of one frame in N on the frame-arrived thread, `WDA_EXCLUDEFROMCAPTURE` on our windows, HDR detection per display, DXGI fallback if W6 fails.
+One WGC session per run, frames cropped to the zone, fresh-frame check by timestamp, preview = CPU downscale of one frame in N on the frame-arrived thread, `WDA_EXCLUDEFROMCAPTURE` on our windows, HDR detection per display. No DXGI fallback (W6 passed). Reference: `spike/src/capture/windows.rs`.
 
 ## 25. `app` Windows: overlay or fallback, manifest, NSIS, WebView2
 
 **Spec**: §10, §14, §15 (W2, W3, W8, W9), §11 (Windows strings and chrome).
 
-tao overlay flags or the in-app fallback per W2; `RIDEV_INPUTSINK` shortcut source per W3; `requireAdministrator` manifest; NSIS per-user config with the WebView2 bootstrapper; `MemoryUsageTargetLevel=LOW` while the game has focus; Explorer / UAC / ms-settings strings; Windows radii and caption bar; `nothingMoved.win.rawInput` ending per W10.
+tao overlay flags (W2 passed; the in-app countdown stays the degraded path); no raw-input shortcut source (W3 passed); `requireAdministrator` in the app binary's manifest only, the test binaries keep the plain one from `feat/windows-test-manifest`; closing the main window quits the process (the spike's overlay window kept it alive); NSIS per-user config with the WebView2 bootstrapper; no `MemoryUsageTargetLevel` tuning (W8); Explorer / UAC / ms-settings strings; Windows radii and caption bar; `nothingMoved.win.rawInput` ends with "Use a gamepad Game for them." (W10).
 
 ## 26. Windows end-to-end pass
 
