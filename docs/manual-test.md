@@ -83,7 +83,7 @@ Reference game in a full-screen Space on the zone's display. The overlay is a `t
 | O5 | Not in the Shots | Open the Session folder | No frame, digit, bar or pill in any PNG | Pass (2026-11-01) |
 | O6 | Cannot start | Revoke Screen Recording, start a Session | The error state shows in the window and no overlay appears (or a frame shown by *Show zone* goes away) | Pass on the release build: the *Cannot start* state shows, no overlay (2026-11-01) |
 | O7 | Second display | Draw a zone on a second display with a different scale, run a Session | The overlay covers that display, the frame matches the zone there | Second display not available on 2026-11-01; planned with one |
-| O8 | Release build transparency | `pnpm tauri build`, run the bundle, *Show zone* | The overlay window is transparent (no white sheet over the game); if it is white, enable `app.macOSPrivateApi` in `tauri.conf.json` and the `macos-private-api` feature of `tauri` | |
+| O8 | Release build transparency | `pnpm tauri build`, run the bundle, *Show zone* | The overlay window is transparent (no white sheet over the game); if it is white, enable `app.macOSPrivateApi` in `tauri.conf.json` and the `macos-private-api` feature of `tauri` | Pass: the frame is transparent over the game in the release bundle (2026-11-01) |
 
 ## macOS · full flow (issue 19)
 

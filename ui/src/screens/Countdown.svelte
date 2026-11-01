@@ -87,6 +87,12 @@ function failureText(f: StartFailure): {
   }
 }
 
+/** Back forgets the failed start first; the flow keeps this screen while it stands. */
+function back() {
+  run.clearLast();
+  nav.showGame(game.id);
+}
+
 async function act(f: StartFailure) {
   switch (f.reason) {
     case "accessibility":
@@ -100,7 +106,7 @@ async function act(f: StartFailure) {
       return;
     case "displayGone":
     case "noZone":
-      nav.showGame(game.id);
+      back();
       return;
     case "captureUnavailable":
       await run.start(game.id, kind);
@@ -115,7 +121,7 @@ async function act(f: StartFailure) {
     <span class="name">{game.name}</span>
   </div>
   {#if failure}
-    <Button size="lg" onclick={() => nav.showGame(game.id)}>{strings.countdown.error.back}</Button>
+    <Button size="lg" onclick={back}>{strings.countdown.error.back}</Button>
   {:else}
     <Button size="lg" onclick={() => run.stop()}>{strings.countdown.cancel}</Button>
   {/if}
