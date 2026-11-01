@@ -40,6 +40,7 @@ pub fn handler<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + 
     tauri::generate_handler![
         ping,
         games::list_games,
+        games::reorder_games,
         games::create_game,
         games::save_game,
         games::duplicate_game,

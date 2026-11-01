@@ -10,6 +10,8 @@ export type Screen =
   | { kind: "countdown"; gameId: string }
   | { kind: "running"; gameId: string }
   | { kind: "ended"; gameId: string; folder: string | null }
+  | { kind: "session"; gameId: string; folder: string }
+  | { kind: "allSessions" }
   | { kind: "gallery" };
 
 let screen = $state<Screen>(initialScreen());
@@ -54,6 +56,14 @@ export const nav = {
   },
   showEnded(gameId: string, folder: string | null) {
     screen = { kind: "ended", gameId, folder };
+  },
+  /** A Session opened from a table. */
+  showSession(gameId: string, folder: string) {
+    screen = { kind: "session", gameId, folder };
+  },
+  /** The global Sessions table, selected like a Game in the sidebar. */
+  showAllSessions() {
+    screen = { kind: "allSessions" };
   },
   showGallery() {
     screen = { kind: "gallery" };

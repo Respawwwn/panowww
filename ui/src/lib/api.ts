@@ -58,6 +58,8 @@ export const api = {
 
   games: {
     list: () => invoke<GameEntry[]>("list_games"),
+    /** The sidebar's order after a drag, every valid Game's id top down. */
+    reorder: (ids: string[]) => invoke<void>("reorder_games", { ids }),
     create: (name: string) => invoke<Game>("create_game", { name }),
     /** Autosave on every valid change; renames the file when the name changed. */
     save: (game: Game) => invoke<string>("save_game", { game }),

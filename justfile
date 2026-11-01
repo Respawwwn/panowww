@@ -1,3 +1,5 @@
+set positional-arguments
+
 # Panowww tasks. `just` lists them.
 
 default:
@@ -44,3 +46,10 @@ dev: generate
 # Render app/icons from assets/icon/panowww.svg (needs rsvg-convert).
 icons:
     assets/icon/build.sh
+
+# Write fake Games and Sessions into the app's folders for the UI pass
+# (`just fixtures --game "My Game"` adds Sessions to an existing Game,
+# `--clean` removes the fixture Games first).
+fixtures *ARGS:
+    cargo run -q -p panowww-store --example fixtures -- "$@"
+

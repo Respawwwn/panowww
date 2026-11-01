@@ -65,7 +65,7 @@ export class GameEditor {
     this.game = {
       ...this.game,
       input:
-        mode === "drag" ? { ...rest, mode, dragButton: dragButton ?? "right" } : { ...rest, mode },
+        mode === "drag" ? { ...rest, mode, dragButton: dragButton ?? "left" } : { ...rest, mode },
     } as Game;
     this.schedule();
   }
@@ -82,12 +82,15 @@ export class GameEditor {
     return this.errors[field] ?? null;
   }
 
-  /** Saves now instead of after the delay (on blur, before leaving). */
+  /** Saves now instead of after the delay (on blur, before leaving). A
+   * flush with no edit pending writes nothing: a deleted Game must not
+   * come back from its editor. */
   async flush(): Promise<void> {
-    if (this.timer) {
-      clearTimeout(this.timer);
-      this.timer = null;
+    if (!this.timer) {
+      return;
     }
+    clearTimeout(this.timer);
+    this.timer = null;
     await this.save();
   }
 

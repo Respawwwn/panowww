@@ -17,6 +17,7 @@ export const defaultSettings: Settings = {
   newGameDefaults: { startPole: "nadir", waitAfterMoveMs: 300, waitAfterShotMs: 300 },
   checkForUpdates: true,
   displayPreview: true,
+  appearance: "auto",
 };
 
 let current = $state<Settings>(structuredClone(defaultSettings));

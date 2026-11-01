@@ -55,7 +55,7 @@ test("switching device replaces the block with that device's defaults", async ()
   editor.setDevice("mouse");
   expect(editor.game.input).toEqual(defaultInput("mouse"));
   editor.setMouseMode("drag");
-  expect(editor.game.input).toMatchObject({ mode: "drag", dragButton: "right" });
+  expect(editor.game.input).toMatchObject({ mode: "drag", dragButton: "left" });
   editor.setMouseMode("move");
   expect(editor.game.input).not.toHaveProperty("dragButton");
   await flushPromises();

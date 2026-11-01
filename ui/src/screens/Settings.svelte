@@ -56,17 +56,45 @@ function number(value: string): number {
 </script>
 
 <WindowFrame title={strings.settings.title} width={680} onclose={() => windows.close()}>
-  <section>
-    <h3 class="t-overline">{strings.settings.sessionsTitle}</h3>
-    <Field label={strings.settings.sessionsFolder} tip={strings.settings.folder}>
-      <span class="path" title={s.sessionsFolder}>{s.sessionsFolder}</span>
-      <Button size="sm" onclick={chooseFolder}>{strings.settings.change}</Button>
-      <Button size="sm" variant="ghost" onclick={() => api.settings.revealPath(s.sessionsFolder)}>{strings.settings.reveal}</Button>
+  <section class="card">
+    <h3>{strings.settings.general}</h3>
+    <Field label={strings.settings.appearance.label}>
+      <Segmented
+        items={[
+          { id: "auto", label: strings.settings.appearance.auto },
+          { id: "light", label: strings.settings.appearance.light },
+          { id: "dark", label: strings.settings.appearance.dark },
+        ]}
+        value={s.appearance}
+        onchange={(id) => save({ appearance: id as Settings["appearance"] })}
+      />
     </Field>
+    <Field label={strings.settings.folderLabel} id="s-folder" tip={strings.settings.folder}>
+      <input
+        id="s-folder"
+        class="wide"
+        type="text"
+        readonly
+        value={s.sessionsFolder}
+        title={s.sessionsFolder}
+        ondblclick={chooseFolder}
+      />
+      <Button size="sm" onclick={chooseFolder}>{strings.settings.change}</Button>
+      <Button size="sm" onclick={() => api.settings.revealPath(s.sessionsFolder)}>{strings.settings.reveal}</Button>
+    </Field>
+    <Switch
+      checked={s.displayPreview}
+      label={strings.settings.displayPreview.label}
+      onchange={(on) => save({ displayPreview: on })}
+    />
+    <Tip text={strings.settings.displayPreview.hint} />
   </section>
 
-  <section>
-    <h3 class="t-overline">{strings.settings.shortcutsTitle}</h3>
+  <section class="card">
+    <h3>{strings.settings.shortcutsTitle}</h3>
+    {#if platform === "macos"}
+      <Tip text={strings.settings.shortcutsMac} />
+    {/if}
     <Field label={strings.settings.start}>
       <ShortcutRecorder
         shortcut={s.shortcuts.start}
@@ -82,13 +110,10 @@ function number(value: string): number {
         error={shortcutError}
       />
     </Field>
-    {#if platform === "macos"}
-      <Tip text={strings.settings.shortcutsMac} />
-    {/if}
   </section>
 
-  <section>
-    <h3 class="t-overline">{strings.settings.defaultsTitle}</h3>
+  <section class="card">
+    <h3>{strings.settings.defaultsTitle}</h3>
     <Field label={strings.setup.grid.startPoleLabel}>
       <Segmented
         items={[
@@ -125,28 +150,19 @@ function number(value: string): number {
     </Field>
   </section>
 
-  <section>
-    <h3 class="t-overline">{strings.settings.previewTitle}</h3>
-    <Switch
-      checked={s.displayPreview}
-      label={strings.settings.displayPreview.label}
-      onchange={(on) => save({ displayPreview: on })}
-    />
-    <Tip text={strings.settings.displayPreview.hint} />
-  </section>
-
-  <section>
-    <h3 class="t-overline">{strings.settings.general}</h3>
+  <section class="card">
+    <h3>{strings.settings.updatesTitle}</h3>
     <Switch
       checked={s.checkForUpdates}
       label={strings.settings.checkForUpdates}
       onchange={(on) => save({ checkForUpdates: on })}
     />
-    <div class="actions">
-      <Button size="sm" onclick={() => windows.show("onboarding")}>{strings.settings.reviewPermissions}</Button>
-      <Button size="sm" variant="ghost" onclick={() => api.settings.revealLogs()}>{strings.settings.revealLogs}</Button>
-    </div>
   </section>
+
+  <div class="actions">
+    <Button size="sm" onclick={() => windows.show("onboarding")}>{strings.settings.reviewPermissions}</Button>
+    <Button size="sm" variant="ghost" onclick={() => api.settings.revealLogs()}>{strings.settings.revealLogs}</Button>
+  </div>
 
   {#if saveError}
     <p class="error">{saveError}</p>
@@ -154,34 +170,23 @@ function number(value: string): number {
 </WindowFrame>
 
 <style>
-  section {
+  .card {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    padding-bottom: 14px;
-    border-bottom: 1px solid var(--line);
-  }
-
-  section:last-of-type {
-    border-bottom: 0;
+    gap: 12px;
+    padding: 14px 16px;
   }
 
   h3 {
     margin: 0;
-  }
-
-  .path {
-    flex: 1;
-    min-width: 0;
-    font-size: 12.5px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 14px;
+    font-weight: 600;
   }
 
   .actions {
     display: flex;
-    gap: 6px;
+    gap: 8px;
+    padding-top: 2px;
   }
 
   .error {

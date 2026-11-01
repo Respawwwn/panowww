@@ -5,15 +5,24 @@ import type { Snippet } from "svelte";
 
 type Props = {
   title: string;
+  /** Beside the title, on its baseline: the Sessions count and size. */
+  aside?: Snippet;
   actions?: Snippet;
 };
 
-let { title, actions }: Props = $props();
+let { title, aside, actions }: Props = $props();
 </script>
 
 <header class="header">
-  <h1 class="t-title">{title}</h1>
-  <div class="actions">{@render actions?.()}</div>
+  <div class="name">
+    <h1 class="t-title">{title}</h1>
+    {#if aside}
+      <span class="aside">{@render aside()}</span>
+    {/if}
+  </div>
+  {#if actions}
+    <div class="actions">{@render actions()}</div>
+  {/if}
 </header>
 
 <style>
@@ -22,7 +31,14 @@ let { title, actions }: Props = $props();
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    padding: 16px 24px 0;
+    padding: 16px 24px 4px;
+  }
+
+  .name {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    min-width: 0;
   }
 
   h1 {
@@ -33,9 +49,15 @@ let { title, actions }: Props = $props();
     white-space: nowrap;
   }
 
+  .aside {
+    flex: none;
+    color: var(--muted);
+    font-size: 12.5px;
+  }
+
   .actions {
     display: flex;
-    gap: 4px;
+    gap: 8px;
     flex: none;
   }
 </style>

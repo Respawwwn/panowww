@@ -99,6 +99,15 @@ export function installMock(): void {
         return { app: "Panowww", version: "0.0.1-mock" };
       case "list_games":
         return entries;
+      case "reorder_games": {
+        const ids = args.ids as string[];
+        entries.sort((a, b) => {
+          const pa = a.kind === "game" ? ids.indexOf(a.game.id) : ids.length;
+          const pb = b.kind === "game" ? ids.indexOf(b.game.id) : ids.length;
+          return pa - pb;
+        });
+        return null;
+      }
       case "save_game": {
         const g = args.game as Game;
         if (g.rows < 2 || g.rows > 36) {
@@ -186,6 +195,10 @@ export function installMock(): void {
         return 483_000_000;
       case "zip_session":
         return `${args.folder}.zip`;
+      case "session_thumbnail":
+        return sample(
+          Number(String(args.file).slice(1, 3)) * 7 + Number(String(args.file).slice(5, 7)) * 3,
+        );
       case "list_sessions":
         return sessions.filter((s) => !args.gameId || s.record.game.id === args.gameId);
       case "delete_session": {

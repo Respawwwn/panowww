@@ -7,6 +7,7 @@ import { games } from "../lib/games.svelte";
 import { nav } from "../lib/nav.svelte";
 import { strings } from "../lib/strings";
 import DeviceIcon from "./DeviceIcon.svelte";
+import Icon from "./Icon.svelte";
 import Mark from "./Mark.svelte";
 
 type Props = {
@@ -27,6 +28,43 @@ function fileName(path: string): string {
 }
 
 const selectedPath = $derived(nav.screen.kind === "damaged" ? nav.screen.path : null);
+
+// Reordering by drag (HTML5 drag and drop inside the window; Tauri's own
+// file drag and drop is off). The dragged Game lands before the row the
+// pointer is over, or at the end when dropped on the list's free space.
+let dragging = $state<string | null>(null);
+let over = $state<string | "end" | null>(null);
+
+function dragStart(event: DragEvent, id: string) {
+  dragging = id;
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", id);
+  }
+}
+
+function dragOver(event: DragEvent, target: string | "end") {
+  if (!dragging || dragging === target) {
+    return;
+  }
+  event.preventDefault();
+  over = target;
+}
+
+async function drop(target: string | "end") {
+  const id = dragging;
+  dragging = null;
+  over = null;
+  if (!id || id === target) {
+    return;
+  }
+  await games.move(id, target === "end" ? null : target);
+}
+
+function dragEnd() {
+  dragging = null;
+  over = null;
+}
 </script>
 
 <aside class="sidebar" class:dim={nav.busy}>
@@ -35,11 +73,23 @@ const selectedPath = $derived(nav.screen.kind === "damaged" ? nav.screen.path : 
     <span>{strings.app.name}</span>
   </header>
 
-  <nav class="games" aria-label="Games">
+  <div class="side-title">{strings.sidebar.games}</div>
+  <nav class="games" aria-label={strings.sidebar.games}>
+    {#if games.loaded && games.entries.length === 0}
+      <p class="none">{strings.sidebar.noGames}</p>
+    {/if}
     <ul>
       {#each games.entries as entry (entry.path)}
         {#if entry.kind === "game"}
-          <li>
+          <li
+            class:over={over === entry.game.id}
+            class:dragged={dragging === entry.game.id}
+            draggable="true"
+            ondragstart={(e) => dragStart(e, entry.game.id)}
+            ondragover={(e) => dragOver(e, entry.game.id)}
+            ondrop={() => drop(entry.game.id)}
+            ondragend={dragEnd}
+          >
             <button
               type="button"
               class="game"
@@ -66,22 +116,39 @@ const selectedPath = $derived(nav.screen.kind === "damaged" ? nav.screen.path : 
         {/if}
       {/each}
     </ul>
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div class="tail" class:over={over === "end"} ondragover={(e) => dragOver(e, "end")} ondrop={() => drop("end")}></div>
   </nav>
 
   <div class="actions">
-    <button type="button" class="tbtn" disabled={nav.busy} onclick={() => games.create()}>+ {strings.sidebar.new}</button>
-    <button type="button" class="tbtn" disabled={nav.busy} onclick={() => games.import()}>{strings.sidebar.import}</button>
+    <button type="button" class="tbtn" disabled={nav.busy} onclick={() => games.create()}>
+      <Icon name="plus" />
+      {strings.sidebar.new}
+    </button>
+    <button type="button" class="tbtn" disabled={nav.busy} onclick={() => games.import()}>
+      <Icon name="import" />
+      {strings.sidebar.import}
+    </button>
   </div>
 
   <footer class="foot">
-    <button type="button" class="footrow" disabled={!onsessions || nav.busy} onclick={onsessions}>
+    <button
+      type="button"
+      class="footrow"
+      class:on={nav.screen.kind === "allSessions"}
+      disabled={!onsessions || nav.busy}
+      onclick={onsessions}
+    >
+      <Icon name="list" />
       {strings.sidebar.allSessions}
     </button>
     <button type="button" class="footrow" disabled={!onsettings || nav.busy} onclick={onsettings}>
+      <Icon name="gear" />
       {strings.sidebar.settings}
       <kbd>⌘,</kbd>
     </button>
     <button type="button" class="footrow" disabled={!onabout || nav.busy} onclick={onabout}>
+      <Icon name="help" />
       {strings.sidebar.about}
     </button>
   </footer>
@@ -103,6 +170,11 @@ const selectedPath = $derived(nav.screen.kind === "damaged" ? nav.screen.path : 
     pointer-events: none;
   }
 
+  /* The drag region only counts when the press lands on the header itself. */
+  .brand > :global(*) {
+    pointer-events: none;
+  }
+
   .brand {
     display: flex;
     align-items: center;
@@ -113,11 +185,28 @@ const selectedPath = $derived(nav.screen.kind === "damaged" ? nav.screen.path : 
     letter-spacing: -0.01em;
   }
 
+  .side-title {
+    padding: 6px 16px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--faint);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* The list grows with its rows; the actions follow it, the footer sits
+     at the bottom. */
   .games {
-    flex: 1;
     min-height: 0;
     overflow: auto;
     padding: 0 10px;
+  }
+
+  .none {
+    margin: 0;
+    padding: 4px 6px;
+    color: var(--muted);
+    font-size: 12.5px;
   }
 
   ul {
@@ -146,6 +235,31 @@ const selectedPath = $derived(nav.screen.kind === "damaged" ? nav.screen.path : 
 
   .game:hover:not(.on) {
     background: var(--hover);
+  }
+
+  li {
+    position: relative;
+  }
+
+  li.dragged {
+    opacity: 0.4;
+  }
+
+  li.over::before,
+  .tail.over::before {
+    content: "";
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    top: -2px;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--accent);
+  }
+
+  .tail {
+    position: relative;
+    height: 10px;
   }
 
   .game.on {
@@ -229,6 +343,15 @@ const selectedPath = $derived(nav.screen.kind === "damaged" ? nav.screen.path : 
 
   .footrow:hover:not(:disabled) {
     background: var(--hover);
+  }
+
+  .footrow.on {
+    background: var(--accent);
+    color: var(--accent-fg);
+  }
+
+  .footrow.on :global(.ic) {
+    color: inherit;
   }
 
   .footrow kbd {

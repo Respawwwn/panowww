@@ -76,6 +76,23 @@ export const games = {
     await api.games.select(id);
   },
 
+  /** Moves the Game `id` so it sits where `before` was (at the end when null). */
+  async move(id: string, before: string | null): Promise<void> {
+    const ids = this.valid.map((g) => g.id).filter((g) => g !== id);
+    const at = before ? ids.indexOf(before) : -1;
+    if (at >= 0) {
+      ids.splice(at, 0, id);
+    } else {
+      ids.push(id);
+    }
+    // The list follows at once; the folder watcher will confirm it.
+    entries = [
+      ...ids.flatMap((g) => entries.filter((e) => e.kind === "game" && e.game.id === g)),
+      ...entries.filter((e) => e.kind !== "game"),
+    ];
+    await api.games.reorder(ids);
+  },
+
   async duplicate(id: string): Promise<void> {
     const copy = await api.games.duplicate(id);
     await this.load();

@@ -3,6 +3,7 @@
 const COMMANDS: &[&str] = &[
     "ping",
     "list_games",
+    "reorder_games",
     "create_game",
     "save_game",
     "duplicate_game",

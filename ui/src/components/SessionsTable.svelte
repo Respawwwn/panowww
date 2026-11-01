@@ -4,13 +4,14 @@
 // popover; Delete swaps the row's actions for the inline confirmation.
 import { api, isAppError } from "../lib/api";
 import { RowConfirm } from "../lib/confirm.svelte";
-import { formatBytes, formatDate } from "../lib/format";
+import { formatBytes, formatWhen } from "../lib/format";
 import type { SessionSummary } from "../lib/generated/SessionSummary";
 import { failedSessionText, stateTone } from "../lib/sessionText";
 import { strings } from "../lib/strings";
 import Button from "./Button.svelte";
 import Chip from "./Chip.svelte";
 import HelpButton from "./HelpButton.svelte";
+import Icon from "./Icon.svelte";
 import InlineConfirm from "./InlineConfirm.svelte";
 import Popover from "./Popover.svelte";
 
@@ -19,9 +20,11 @@ type Props = {
   showGame?: boolean;
   /** Called with the rows once loaded, for a header count. */
   onloaded?: (rows: SessionSummary[], totalBytes: number) => void;
+  /** A click on a row opens the Session (spec §11.7). */
+  onopen?: (gameId: string, folder: string) => void;
 };
 
-let { gameId, showGame = false, onloaded }: Props = $props();
+let { gameId, showGame = false, onloaded, onopen }: Props = $props();
 
 let rows = $state<SessionSummary[]>([]);
 let sizes = $state<Record<string, number>>({});
@@ -71,25 +74,28 @@ async function remove(folder: string) {
 {#if rows.length === 0 && !loadError}
   <p class="t-tip empty">{strings.sessions.empty}</p>
 {:else}
+  <div class="card">
   <table class="tbl">
     <thead>
       <tr>
-        <th>{strings.sessions.columns.when}</th>
-        {#if showGame}<th>{strings.sessions.columns.game}</th>{/if}
-        <th>{strings.sessions.columns.state}</th>
-        <th>{strings.sessions.columns.shots}</th>
-        <th>{strings.sessions.columns.size}</th>
+        <th class="when">{strings.sessions.columns.when}</th>
+        {#if showGame}<th class="game">{strings.sessions.columns.game}</th>{/if}
+        <th class="status">{strings.sessions.columns.state}</th>
+        <th class="shots">{strings.sessions.columns.shots}</th>
+        <th class="size">{strings.sessions.columns.size}</th>
         <th></th>
       </tr>
     </thead>
     <tbody>
       {#each rows as row (row.folder)}
         {@const r = row.record}
-        <tr>
-          <td>{formatDate(r.startedAt)}</td>
+        <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+        <tr class:clickable={Boolean(onopen)} onclick={() => onopen?.(r.game.id, row.folder)}>
+          <td>{formatWhen(r.startedAt, strings.sessions)}</td>
           {#if showGame}<td>{r.game.name}</td>{/if}
           <td>
-            <span class="state">
+            <!-- svelte-ignore a11y_no_static_element_interactions, a11y_click_events_have_key_events -->
+            <span class="state" onclick={(e) => e.stopPropagation()}>
               <Chip tone={stateTone(r.status)}>{strings.sessions.state[r.status]}</Chip>
               {#if r.status === "failed"}
                 <HelpButton
@@ -105,7 +111,8 @@ async function remove(folder: string) {
           </td>
           <td class="num">{r.shotsTaken} / {r.shotsExpected}</td>
           <td class="num">{sizes[row.folder] === undefined ? "…" : formatBytes(sizes[row.folder] ?? 0)}</td>
-          <td>
+          <!-- svelte-ignore a11y_no_static_element_interactions, a11y_click_events_have_key_events -->
+          <td class="acts-cell" onclick={(e) => e.stopPropagation()}>
             <InlineConfirm
               confirming={confirm.confirming === row.folder}
               question={strings.sessions.deleteConfirm}
@@ -115,16 +122,23 @@ async function remove(folder: string) {
               oncancel={() => confirm.cancel()}
             >
               <Button size="sm" onclick={() => zip(row.folder)}>
+                <Icon name="zip" size={13} />
                 {zipped[row.folder] ? strings.sessions.zipped : strings.sessions.zip}
               </Button>
-              <Button size="sm" onclick={() => api.sessions.reveal(row.folder)}>{strings.sessions.reveal}</Button>
-              <Button size="sm" variant="danger" onclick={() => confirm.ask(row.folder)}>{strings.sessions.delete}</Button>
+              <Button size="sm" onclick={() => api.sessions.reveal(row.folder)}>
+                <Icon name="folder" size={13} />
+                {strings.sessions.reveal}
+              </Button>
+              <span class="delete">
+                <Button size="sm" variant="ghost" onclick={() => confirm.ask(row.folder)}>{strings.sessions.delete}</Button>
+              </span>
             </InlineConfirm>
           </td>
         </tr>
       {/each}
     </tbody>
   </table>
+  </div>
 {/if}
 {#if loadError || confirm.error}
   <p class="error">{loadError ?? confirm.error}</p>
@@ -151,5 +165,51 @@ async function remove(folder: string) {
   .tbl :global(.chip),
   .tbl :global(.help) {
     height: 24px;
+  }
+
+  .tbl :global(.help) {
+    width: 24px;
+  }
+
+  .clickable {
+    cursor: pointer;
+  }
+
+  .clickable:hover td {
+    background: var(--hover);
+  }
+
+  .delete :global(.btn) {
+    color: var(--bad);
+    font-weight: 600;
+  }
+
+  /* The board's column widths; the actions take the rest. */
+  .card {
+    overflow: visible;
+  }
+
+  .when {
+    width: 190px;
+  }
+
+  .game {
+    width: 200px;
+  }
+
+  .status {
+    width: 170px;
+  }
+
+  .shots {
+    width: 110px;
+  }
+
+  .size {
+    width: 90px;
+  }
+
+  .tbl tbody tr:last-child td {
+    border-bottom: 0;
   }
 </style>

@@ -14,9 +14,40 @@ use crate::error::{AppError, CmdResult};
 use crate::runner::COUNTDOWN_BUTTON;
 use crate::state::SharedState;
 
+/// The Games as the sidebar shows them: the user's order first, the rest
+/// by name, damaged files last.
 #[tauri::command]
 pub fn list_games(state: State<'_, SharedState>) -> CmdResult<Vec<GameEntry>> {
-    Ok(state.games.list()?)
+    let mut entries = state.games.list()?;
+    let local = state
+        .local
+        .read()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    entries.sort_by_cached_key(|entry| match entry {
+        GameEntry::Game { game, .. } => (
+            local.position(game.id).unwrap_or(usize::MAX - 1),
+            game.name.to_lowercase(),
+        ),
+        GameEntry::Damaged { path, .. } => (
+            usize::MAX,
+            path.file_name()
+                .map(|n| n.to_string_lossy().to_lowercase())
+                .unwrap_or_default(),
+        ),
+    });
+    Ok(entries)
+}
+
+/// The sidebar's new order after a drag, every valid Game's id top down.
+#[tauri::command]
+pub fn reorder_games(state: State<'_, SharedState>, ids: Vec<Uuid>) -> CmdResult<()> {
+    let mut local = state
+        .local
+        .write()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    local.set_order(ids);
+    local.save(&state.paths)?;
+    Ok(())
 }
 
 #[tauri::command]

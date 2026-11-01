@@ -6,6 +6,8 @@
 // both green.
 import { onDestroy } from "svelte";
 import Button from "../components/Button.svelte";
+import Chip from "../components/Chip.svelte";
+import Mark from "../components/Mark.svelte";
 import Tip from "../components/Tip.svelte";
 import WindowFrame from "../components/WindowFrame.svelte";
 import { api, type PermissionKind, type Permissions } from "../lib/api";
@@ -44,9 +46,12 @@ const rows: { kind: PermissionKind; row: { name: string; ok: string; missing: st
 
 <WindowFrame title={o.title} width={560} onclose={() => windows.close()}>
   {#if platform === "macos"}
-    <div class="intro">
-      <h3 class="t-section">{o.mac.subtitle}</h3>
-      <p class="t-tip">{o.mac.intro}</p>
+    <div class="head">
+      <Mark size={56} radius={13} />
+      <div class="intro">
+        <h2>{o.mac.subtitle}</h2>
+        <p class="sub">{o.mac.intro}</p>
+      </div>
     </div>
     {#each rows as { kind, row } (kind)}
       {@const granted = permissions?.[kind] ?? false}
@@ -56,14 +61,26 @@ const rows: { kind: PermissionKind; row: { name: string; ok: string; missing: st
           <b>{row.name}</b>
           <span class="s">{granted ? row.ok : row.missing}</span>
         </div>
-        {#if !granted}
-          <Button size="sm" onclick={() => grant(kind)}>{strings.countdown.error.openSystemSettings}</Button>
-        {/if}
+        <Button size="sm" disabled={granted} onclick={() => grant(kind)}>
+          {strings.countdown.error.openSystemSettings}
+        </Button>
       </div>
     {/each}
     <Tip text={o.mac.stuck} />
-    <Tip kind="lav" text={o.mac.picker} />
-    <Tip kind="lav" text={o.mac.gamepad} />
+    <div class="card hint">
+      <Chip tone="lav">{o.mac.picker.chip}</Chip>
+      <div>
+        <b>{o.mac.picker.title}</b>
+        <p class="sub">{o.mac.picker.body}</p>
+      </div>
+    </div>
+    <div class="card hint">
+      <Chip tone="warn">{o.mac.gamepad.chip}</Chip>
+      <div>
+        <b>{o.mac.gamepad.title}</b>
+        <p class="sub">{o.mac.gamepad.body}</p>
+      </div>
+    </div>
   {:else}
     <div class="intro">
       <h3 class="t-section">{o.win.subtitle}</h3>
@@ -89,6 +106,41 @@ const rows: { kind: PermissionKind; row: { name: string; ok: string; missing: st
 </WindowFrame>
 
 <style>
+  .head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .head h2 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .sub {
+    margin: 0;
+    color: var(--muted);
+    font-size: 12.5px;
+  }
+
+  .hint {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    font-size: 12.5px;
+  }
+
+  .hint :global(.chip) {
+    flex: none;
+  }
+
+  .hint b {
+    font-weight: 600;
+  }
+
   .intro h3,
   .intro p {
     margin: 0;

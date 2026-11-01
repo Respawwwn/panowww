@@ -31,36 +31,48 @@ const links = [
 ];
 </script>
 
-<WindowFrame title={strings.sidebar.about} width={440} onclose={() => windows.close()}>
+<WindowFrame title={strings.about.title} width={420} height={560} onclose={() => windows.close()}>
   <div class="about">
     <Mark size={72} radius={18} />
-    <h2 class="t-window">{interpolate(strings.about.version, { version })}</h2>
+    <div class="name">
+      <h2 class="t-title">{strings.about.title}</h2>
+      <p class="sub">{interpolate(strings.about.version, { version })}</p>
+    </div>
     <p class="tagline">{strings.about.tagline}</p>
-    <p class="by"><img class="mark" src={respawwwnMark} alt="Respawwwn" /> {strings.about.by}</p>
+    <p class="by">
+      <img class="mark" src={respawwwnMark} alt="" />
+      <span>{strings.about.by}</span>
+      <button type="button" class="link brand" onclick={() => api.onboarding.openUrl("https://respawwwn.com")}>
+        {strings.about.brand}
+      </button>
+    </p>
     <nav class="links">
       {#each links as link (link.url)}
         <button type="button" class="link" onclick={() => api.onboarding.openUrl(link.url)}>{link.label}</button>
       {/each}
     </nav>
-    <p class="t-tip">{strings.about.licence}</p>
-    {#if update.banner}
-      <button type="button" class="link" onclick={() => update.banner && api.onboarding.openUrl(update.banner.url)}>
-        <Chip tone="lav">{interpolate(strings.update.banner, { version: update.banner.version })}</Chip>
-      </button>
-    {:else}
-      <Chip tone="ok">{strings.about.upToDate}</Chip>
-    {/if}
+    <p class="t-tip licence">{strings.about.licence}</p>
+    <div class="status">
+      {#if update.banner}
+        <button type="button" class="link" onclick={() => update.banner && api.onboarding.openUrl(update.banner.url)}>
+          <Chip tone="lav">{interpolate(strings.update.banner, { version: update.banner.version })}</Chip>
+        </button>
+      {:else}
+        <Chip tone="ok">{strings.about.upToDate}</Chip>
+      {/if}
+    </div>
   </div>
 </WindowFrame>
 
 <style>
   .about {
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
     gap: 10px;
-    padding: 8px 0;
+    padding-top: 6px;
   }
 
   h2,
@@ -68,16 +80,46 @@ const links = [
     margin: 0;
   }
 
-  .tagline {
+  .name {
+    margin-top: 6px;
+  }
+
+  .t-title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .sub {
     color: var(--muted);
+    font-size: 12.5px;
+  }
+
+  .tagline {
+    font-size: 13px;
+    max-width: 300px;
+  }
+
+  .licence {
     max-width: 320px;
+    margin-top: 8px;
+  }
+
+  .status {
+    margin-top: auto;
+    padding-top: 10px;
   }
 
   .by {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    margin-top: 10px;
     font-weight: 600;
+  }
+
+  .by .mark {
+    margin-right: 2px;
   }
 
   .mark {
@@ -90,6 +132,7 @@ const links = [
   .links {
     display: flex;
     gap: 14px;
+    margin-top: 6px;
   }
 
   .link {
@@ -100,5 +143,16 @@ const links = [
     font: inherit;
     font-size: 12.5px;
     font-weight: 500;
+  }
+
+  .link:hover {
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .link.brand {
+    color: inherit;
+    font-size: inherit;
+    font-weight: inherit;
   }
 </style>

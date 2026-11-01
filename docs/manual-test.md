@@ -4,6 +4,16 @@ What only a human with a game can verify. One table per OS; the reference
 game is the drag-camera macOS game of the human (name to fill in). Record
 the date and the build (commit) next to every result.
 
+## Fixtures
+
+`just fixtures` writes, through the store code the app uses, three Games (keyboard, mouse drag, gamepad), one damaged Game file and eight Sessions per Game covering every row state of the tables: completed today, interrupted today, failed yesterday (display gone), completed three days ago, failed ten days ago (capture unavailable), completed last month and last year, and one still `running` (marked interrupted at the next launch, as a crash would be). Shots are small gradient PNG files.
+
+- `just fixtures --game "NoClip - Generic"` also adds the eight Sessions to that existing Game.
+- `just fixtures --clean` removes the fixture Games and their Sessions first (never the named Games).
+- `--data DIR` and `--sessions DIR` point elsewhere than the app's folders.
+
+Running it twice adds another set of Sessions; the app picks the files up live.
+
 ## macOS · input (issue 9)
 
 Prerequisites: Accessibility granted to the binary that runs the check (for

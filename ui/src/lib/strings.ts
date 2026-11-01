@@ -9,8 +9,10 @@ export const strings = {
     name: "Panowww",
   },
   sidebar: {
+    games: "Games",
+    noGames: "No Game yet.",
     new: "New",
-    import: "Import…",
+    import: "Import",
     allSessions: "All Sessions",
     settings: "Settings",
     about: "About",
@@ -21,6 +23,7 @@ export const strings = {
     sessions: "Sessions",
     duplicate: "Duplicate",
     share: "Share",
+    reveal: "Reveal",
     delete: "Delete",
     deleteConfirm: "Delete this Game?",
     revealInFinder: "Reveal in Finder",
@@ -42,7 +45,7 @@ export const strings = {
         lookDown: "Look down",
         turnHold: "Turn hold",
         pitchHold: "Pitch hold",
-        change: "Change…",
+        change: "Change",
         cancel: "Cancel",
         pressKey: "Press a key",
         keys: "Three distinct keys, no modifiers. Panowww presses the key at that position on your keyboard, whatever the layout.",
@@ -73,7 +76,7 @@ export const strings = {
         hold: "How long the stick stays pushed for one Step. Calibrate with the Turn and Pitch tests.",
       },
       vertical: "Vertical",
-      invertVertical: "Invert vertical",
+      invertVertical: "Invert",
     },
     grid: {
       title: "Grid & timing",
@@ -94,25 +97,26 @@ export const strings = {
       waitAfterShot: "A swallowed Step → raise this.",
     },
     start: {
-      shortcutStart: "Start with the game in front  [start]",
-      shortcutStop: "Stop at any time  [stop]",
+      shortcutStart: "Start from the game  [start]",
+      shortcutStop: "Stop  [stop]",
       disabled: {
         noZone: "Set the Capture zone first.",
         gamepadMac: "Gamepad Games run on Windows only.",
         damaged: "Fix the file to start a Session.",
       },
-      /** `≈ 4 min 20 s · 78 Shots · 6 Rows × 13` */
-      estimate: "{duration} · {shots} Shots · {rows} Rows × {shotsPerRow}",
+      /** `≈ 4 min 20 s`, then `78 Shots · 6 Rows × 13 · from nadir · wait 400 / 250 ms` */
+      estimate: "{duration}",
+      estimateDetail:
+        "{shots} Shots · {rows} Rows × {shotsPerRow} · from {pole} · wait {move} / {shot} ms",
     },
     zone: {
-      title: "Capture zone · this machine",
+      title: "Capture zone",
       set: "Display {n} · {w} × {h} at ({x}, {y})",
-      notSet:
-        "Not set on this machine. Draw it over the game once, Panowww remembers it for this Game.",
+      notSet: "Not set",
       displayChanged: "Display {n} is gone or its resolution changed. Draw the zone again.",
       hdr: "HDR is on for Display {n}. Shots come out washed out: turn HDR off in Windows or in the game.",
-      setZone: "Set zone…",
-      changeZone: "Change zone…",
+      setZone: "Set zone",
+      changeZone: "Change zone",
       showZone: "Show zone",
       hideZone: "Hide zone",
     },
@@ -127,18 +131,20 @@ export const strings = {
       turn: "Turn",
       pitch: "Pitch",
       turnTestTitle: "Turn test",
-      overlapTurnTitle: "Check overlap (turn)",
+      overlapTurnTitle: "Check overlap",
       pitchTestTitle: "Pitch test",
-      overlapPitchTitle: "Check overlap (pitch)",
+      overlapPitchTitle: "Check overlap",
       stepOnceTitle: "Step once",
       running: "{tool} running…",
       turnTest:
-        "Pick a landmark. After the turn the camera must point at it again. Overshot or undershot? Adjust, then run again.",
+        "Turns the camera a full circle, Step by Step, and should end exactly where it started. Went past the start? Reduce (overshot). Stopped short? Increase (undershot). Then run it again.",
       overlapTurn:
         "Aim at the horizon first. Off-target Overlap → change Shots per Row, then back to step 1.",
       pitchTest: {
-        nadir: "Point the camera straight down first. Reposition it by hand afterwards.",
-        zenith: "Point the camera straight up first. Reposition it by hand afterwards.",
+        nadir:
+          "Point the camera straight down first. The test tilts it up, Step by Step, and should end exactly straight up. Went past the top? Reduce (overshot). Stopped short? Increase (undershot). Then run it again; reposition the camera by hand afterwards.",
+        zenith:
+          "Point the camera straight up first. The test tilts it down, Step by Step, and should end exactly straight down. Went past the bottom? Reduce (overshot). Stopped short? Increase (undershot). Then run it again; reposition the camera by hand afterwards.",
       },
       overlapPitch: "Off-target Overlap → change Rows, then back to step 3.",
       stepOnce: "One Step on its own, to feel its size.",
@@ -167,6 +173,11 @@ export const strings = {
     instruction: "Two Samples one Step apart, superimposed. Slide until they line up.",
     title: "Check overlap · {game}",
     target: "Target 25–35 %",
+    label: {
+      ok: "Good",
+      low: "Too little",
+      high: "Too much",
+    },
     sample1: "Sample 1",
     sample2: "Sample 2",
     chip: "Overlap {p} %",
@@ -189,6 +200,7 @@ export const strings = {
     done: "Done",
   },
   countdown: {
+    starting: "Starting",
     title: "Switch to the game",
     body: "The Session starts when the countdown ends. Then leave the mouse and the keyboard alone: {n} Shots, about {duration}.",
     bodyTool:
@@ -215,9 +227,12 @@ export const strings = {
   session: {
     running: {
       title: "Session running",
-      hint: "The game keeps the focus. Do not touch the mouse or the keyboard. Stop with [stop]: the Shots already taken are kept.",
+      hint: "The game keeps the focus. Do not touch the mouse or the keyboard. Stop with [stop]",
+      live: "live",
+      rowOf: "of {rows}",
       identical: "The first two Shots are identical. Nothing moved? Stop and run a Turn test.",
       row: "Row {row} of {rows}",
+      rowOnly: "Row {row}",
       shots: "{taken} / {expected} Shots",
       remaining: "{duration} remaining",
       stop: "Stop",
@@ -237,6 +252,16 @@ export const strings = {
       zip: "Zip Session",
       backToGame: "Back to Game",
       shots: "{n} Shots",
+      shotsLabel: "Shots",
+      onDisk: "on disk",
+      grid: "{rows} Rows × {shotsPerRow}",
+      png: "PNG, lossless",
+      chip: {
+        completed: "Session completed",
+        interrupted: "Session interrupted",
+        failed: "Session failed",
+        running: "Session running",
+      },
     },
   },
   test: {
@@ -246,8 +271,11 @@ export const strings = {
   },
   sessions: {
     empty: "No Session yet. Start one from the Setup tab.",
-    folder: "Sessions are saved in {path} · Change the folder in Settings",
+    folder: "Sessions are saved in",
+    changeFolder: "Change the folder in Settings",
     deleteConfirm: "Delete the whole folder?",
+    deleteAll: "Delete all",
+    deleteAllConfirm: "Delete all {n} Sessions of this Game?",
     failed: {
       why: "Why did it fail?",
       template: "Stopped at Shot {n}: {reason} The {taken} Shots taken are kept in the folder.",
@@ -258,6 +286,8 @@ export const strings = {
         shotFailed: "the Shot failed twice in a row.",
       },
     },
+    today: "Today",
+    yesterday: "Yesterday",
     columns: {
       when: "When",
       game: "Game",
@@ -266,11 +296,12 @@ export const strings = {
       size: "Size",
     },
     state: {
-      completed: "completed",
-      interrupted: "interrupted",
-      failed: "failed",
-      running: "running",
+      completed: "Completed",
+      interrupted: "Interrupted",
+      failed: "Failed",
+      running: "Running",
     },
+    gone: "This Session folder is gone.",
     zip: "Zip",
     reveal: "Reveal",
     delete: "Delete",
@@ -291,10 +322,12 @@ export const strings = {
     body: "A Game holds the camera moves, the grid and the delays for one title. Set it up once, then shoot as many panoramas as you like.",
     import: "Someone already set up this title? Import their shared .panowww.json file.",
     newButton: "New Game",
-    importButton: "Import Game…",
+    importButton: "Import Game",
   },
   damaged: {
     title: "This Game file cannot be read",
+    where: "{file} · in the Panowww data folder",
+    fix: "Fix the file to start a Session",
     body: "Edit the file by hand and save it, Panowww reloads it. Or delete the Game and set it up again.",
   },
   onboarding: {
@@ -317,10 +350,16 @@ export const strings = {
       },
       stuck:
         "Ticked in System Settings but nothing happens? Remove Panowww from the list and add it again, then relaunch.",
-      picker:
-        "At the first capture, macOS may ask whether Panowww can bypass the system window picker. Click Allow before you start a Session, or the alert lands in your first Shot.",
-      gamepad:
-        "Virtual gamepad is unavailable on macOS. Games that need a controller run on Windows only; keyboard and mouse work here.",
+      picker: {
+        chip: "macOS 26",
+        title: "A system window picker may appear at the first capture.",
+        body: "Click Allow to let Panowww bypass it. Without that, the picker interrupts the Session.",
+      },
+      gamepad: {
+        chip: "Gamepad",
+        title: "Virtual gamepad unavailable on macOS.",
+        body: "Games that need a controller can be shot on Windows only. Keyboard and mouse work here.",
+      },
     },
     win: {
       subtitle: "Before the first Session",
@@ -343,13 +382,14 @@ export const strings = {
       optionOnly: "Option alone, or with Shift, types characters: add Ctrl or Cmd.",
     },
     sessionsFolder: "Sessions folder",
-    change: "Change…",
+    folderLabel: "Folder",
+    change: "Change",
     reveal: "Reveal",
     folder: "One folder per Game, one timestamped folder per Session.",
     shortcutsTitle: "Shortcuts",
     start: "Start",
     stop: "Stop",
-    record: "Record…",
+    record: "Record",
     reset: "Reset",
     shortcuts: "Pick a combo the game does not use. The game keeps the focus when you press it.",
     shortcutsMac: "On a Mac laptop, avoid the F-keys: they act as media keys unless fn is held.",
@@ -360,6 +400,13 @@ export const strings = {
       hint: "Turn it off if the game stutters while Panowww runs.",
     },
     general: "General",
+    appearance: {
+      label: "Appearance",
+      auto: "Auto",
+      light: "Light",
+      dark: "Dark",
+    },
+    updatesTitle: "Updates",
     checkForUpdates: "Check for updates at launch",
     reviewPermissions: "Review permissions…",
     revealLogs: "Reveal logs",
@@ -372,11 +419,13 @@ export const strings = {
       github: "GitHub",
     },
     tagline: "Captures the Shots of a 360° panorama inside a video game, ready to stitch.",
-    by: "By Respawwwn",
+    by: "By",
+    brand: "Respawwwn",
     licence:
       "Panowww is a Respawwwn project by Kevin Wenger. MIT License. The Respawwwn name and logo are not covered by the license.",
     upToDate: "You're up to date.",
-    version: "Panowww {version}",
+    title: "Panowww",
+    version: "Version {version}",
   },
   update: {
     banner: "Panowww {version} is available · See what's new",
