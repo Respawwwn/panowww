@@ -130,6 +130,8 @@ export const api = {
     /** Folder picker; null when cancelled. */
     chooseSessionsFolder: () => invoke<string | null>("choose_sessions_folder"),
     revealLogs: () => invoke<void>("reveal_logs"),
+    /** Settings open: the global shortcuts pause. */
+    setShortcutsEnabled: (enabled: boolean) => invoke<void>("set_shortcuts_enabled", { enabled }),
     revealPath: (path: string) => invoke<void>("reveal_path", { path }),
     /** Re-registers the global shortcuts; rejects naming the failing combo. */
     applyShortcuts: () => invoke<void>("apply_shortcuts"),

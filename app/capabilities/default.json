@@ -43,6 +43,7 @@
     "allow-choose-sessions-folder",
     "allow-reveal-logs",
     "allow-apply-shortcuts",
+    "allow-set-shortcuts-enabled",
     "allow-permissions",
     "allow-request-permission",
     "allow-open-system-settings",

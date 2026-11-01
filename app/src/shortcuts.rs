@@ -5,7 +5,7 @@
 
 use std::str::FromStr;
 
-use panowww_store::settings::{Modifier, Shortcut as Stored};
+use panowww_store::settings::{Modifier, Shortcut as Stored, Shortcuts};
 use tauri::{AppHandle, Manager};
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 
@@ -36,33 +36,59 @@ pub fn to_plugin(stored: &Stored) -> Result<Shortcut, AppError> {
 
 /// Replaces every registered shortcut with the ones in Settings.
 pub fn register<R: tauri::Runtime>(app: &AppHandle<R>) -> Result<(), AppError> {
-    let state = app.state::<SharedState>();
-    let settings = state.settings();
-    let shortcuts = app.global_shortcut();
-    shortcuts
+    let settings = app.state::<SharedState>().settings();
+    register_shortcuts(app, &settings.shortcuts)
+}
+
+/// Replaces every registered shortcut with `shortcuts`, before they are
+/// saved: a combo the OS refuses leaves the settings as they were.
+pub fn register_shortcuts<R: tauri::Runtime>(
+    app: &AppHandle<R>,
+    shortcuts: &Shortcuts,
+) -> Result<(), AppError> {
+    if shortcuts.start == shortcuts.stop {
+        return Err(AppError::new(
+            AppErrorKind::Validation,
+            "Start and Stop need two different shortcuts.",
+        ));
+    }
+    let plugin = app.global_shortcut();
+    plugin
         .unregister_all()
         .map_err(|e| AppError::internal(format!("unregistering shortcuts: {e}")))?;
 
-    let start = to_plugin(&settings.shortcuts.start)?;
-    shortcuts
+    let start = to_plugin(&shortcuts.start)?;
+    plugin
         .on_shortcut(start, |app, _, event| {
             if event.state == ShortcutState::Pressed {
                 tracing::info!("start shortcut");
                 start_selected_session(app, COUNTDOWN_SHORTCUT);
             }
         })
-        .map_err(|e| registration_error(&settings.shortcuts.start, &e))?;
+        .map_err(|e| registration_error(&shortcuts.start, &e))?;
 
-    let stop = to_plugin(&settings.shortcuts.stop)?;
-    shortcuts
+    let stop = to_plugin(&shortcuts.stop)?;
+    plugin
         .on_shortcut(stop, |app, _, event| {
             if event.state == ShortcutState::Pressed {
                 tracing::info!("stop shortcut");
                 app.state::<SharedState>().runner.stop();
             }
         })
-        .map_err(|e| registration_error(&settings.shortcuts.stop, &e))?;
+        .map_err(|e| registration_error(&shortcuts.stop, &e))?;
     Ok(())
+}
+
+/// Settings open: nothing fires while a combo is recorded. Closed: the
+/// saved ones are back.
+pub fn set_enabled<R: tauri::Runtime>(app: &AppHandle<R>, enabled: bool) -> Result<(), AppError> {
+    if enabled {
+        register(app)
+    } else {
+        app.global_shortcut()
+            .unregister_all()
+            .map_err(|e| AppError::internal(format!("unregistering shortcuts: {e}")))
+    }
 }
 
 fn registration_error(shortcut: &Stored, error: &impl std::fmt::Display) -> AppError {

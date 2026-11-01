@@ -162,6 +162,7 @@ export function installMock(): void {
         };
       }
       case "select_game":
+      case "set_shortcuts_enabled":
       case "show_zone":
       case "overlay_state":
       case "reveal_path":

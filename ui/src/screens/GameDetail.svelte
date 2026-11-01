@@ -50,9 +50,9 @@ $effect(() => {
   void zones.load(game.id);
 });
 
-const startDisabled = $derived(
-  disabledReason(game, zones.ready(game.id), platform) !== null || run.busy,
-);
+/** Why a Session cannot start, for the line beside the toolbar's button. */
+const startReason = $derived(disabledReason(game, zones.ready(game.id), platform));
+const startDisabled = $derived(startReason !== null || run.busy);
 
 /** The Game's file, for Reveal. */
 const path = $derived(
@@ -66,6 +66,7 @@ const path = $derived(
   onchange={(next) => nav.showGame(game.id, next)}
   onstart={() => run.start(game.id, { kind: "session" })}
   {startDisabled}
+  note={startReason ? strings.setup.start.disabled[startReason] : null}
 />
 {#if tab === "setup"}
   <HeaderRow title={game.name}>

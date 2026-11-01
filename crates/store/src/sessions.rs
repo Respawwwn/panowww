@@ -9,7 +9,7 @@ use ts_rs::TS;
 use uuid::Uuid;
 
 use crate::StoreError;
-use crate::session::{SessionRecord, SessionStatus, TIMESTAMP};
+use crate::session::{SessionRecord, SessionStatus, ShotEntry, TIMESTAMP};
 use crate::sink::WallClock;
 
 /// One Session folder and its record.
@@ -64,16 +64,53 @@ pub fn mark_stale_running(
             continue;
         }
         let mut record = session.record;
+        let ended_at = clock.now().strftime(TIMESTAMP).to_string();
         record.status = SessionStatus::Interrupted;
-        record.ended_at = Some(clock.now().strftime(TIMESTAMP).to_string());
+        record.ended_at = Some(ended_at.clone());
         record
             .shots
             .retain(|s| session.folder.join(&s.file).exists());
+        // A crash leaves the PNG files the record never listed (it is
+        // written at the end): they are the Shots taken.
+        for (file, row, col) in shot_files(&session.folder)? {
+            if !record.shots.iter().any(|s| s.file == file) {
+                record.shots.push(ShotEntry {
+                    file,
+                    row,
+                    col,
+                    taken_at: ended_at.clone(),
+                    capture_ms: 0,
+                });
+            }
+        }
+        record.shots.sort_by_key(|s| (s.row, s.col));
         record.shots_taken = u32::try_from(record.shots.len()).unwrap_or(u32::MAX);
         record.write(&session.folder)?;
         marked += 1;
     }
     Ok(marked)
+}
+
+/// The `rNN_cNN.png` files of a Session folder, with their Row and column.
+fn shot_files(folder: &Path) -> Result<Vec<(String, u32, u32)>, StoreError> {
+    let mut shots = Vec::new();
+    for entry in std::fs::read_dir(folder).map_err(|e| StoreError::io("read", folder, e))? {
+        let entry = entry.map_err(|e| StoreError::io("read", folder, e))?;
+        let name = entry.file_name().to_string_lossy().into_owned();
+        if let Some((row, col)) = parse_shot_name(&name) {
+            shots.push((name, row, col));
+        }
+    }
+    Ok(shots)
+}
+
+/// `r03_c12.png` → `(3, 12)`.
+fn parse_shot_name(name: &str) -> Option<(u32, u32)> {
+    let stem = name.strip_suffix(".png")?;
+    let (row, col) = stem.split_once("_c")?;
+    let row = row.strip_prefix('r')?.parse().ok()?;
+    let col = col.parse().ok()?;
+    Some((row, col))
 }
 
 /// The sum of the files directly in `folder`, in bytes.

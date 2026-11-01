@@ -3,6 +3,7 @@
 // recorders, New Game defaults, the Display preview switch, General.
 // Every change is saved at once; a shortcut the OS refuses shows its
 // error next to the recorder.
+import { onMount } from "svelte";
 import Button from "../components/Button.svelte";
 import Field from "../components/Field.svelte";
 import Segmented from "../components/Segmented.svelte";
@@ -19,13 +20,26 @@ import { windows } from "../lib/windows.svelte";
 
 const platform = detectPlatform();
 let shortcutError = $state<string | null>(null);
+/** Under which recorder the error sits: the one that was changed. */
+let shortcutErrorFor = $state<"start" | "stop">("stop");
 let saveError = $state<string | null>(null);
+
+// No Session starts from the combo being recorded (spec §10).
+onMount(() => {
+  void api.settings.setShortcutsEnabled(false).catch(() => {});
+  return () => {
+    void api.settings.setShortcutsEnabled(true).catch(() => {});
+  };
+});
 
 const s = $derived(settings.value);
 
-async function save(patch: Partial<Settings>) {
+async function save(patch: Partial<Settings>, which: "start" | "stop" = "stop") {
   const next = { ...settings.value, ...patch };
   const shortcutsChanged = patch.shortcuts !== undefined;
+  if (shortcutsChanged) {
+    shortcutErrorFor = which;
+  }
   try {
     await settings.save(next);
     saveError = null;
@@ -99,15 +113,16 @@ function number(value: string): number {
       <ShortcutRecorder
         shortcut={s.shortcuts.start}
         defaultShortcut={defaultSettings.shortcuts.start}
-        onchange={(start) => save({ shortcuts: { ...s.shortcuts, start } })}
+        onchange={(start) => save({ shortcuts: { ...s.shortcuts, start } }, "start")}
+        error={shortcutErrorFor === "start" ? shortcutError : null}
       />
     </Field>
     <Field label={strings.settings.stop} tip={strings.settings.shortcuts}>
       <ShortcutRecorder
         shortcut={s.shortcuts.stop}
         defaultShortcut={defaultSettings.shortcuts.stop}
-        onchange={(stop) => save({ shortcuts: { ...s.shortcuts, stop } })}
-        error={shortcutError}
+        onchange={(stop) => save({ shortcuts: { ...s.shortcuts, stop } }, "stop")}
+        error={shortcutErrorFor === "stop" ? shortcutError : null}
       />
     </Field>
   </section>

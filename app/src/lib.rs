@@ -68,8 +68,10 @@ pub fn run() {
         .build(context())
         .expect("the Tauri runtime failed to start")
         .run(|app, event| match event {
-            tauri::RunEvent::ExitRequested { .. } => {
-                // A running Session ends as interrupted, with its Shots kept.
+            // A running Session ends as interrupted, with its Shots kept.
+            // Cmd+Q from the macOS menu comes as `Exit` straight away, a
+            // closed last window as `ExitRequested`; shutdown is idempotent.
+            tauri::RunEvent::ExitRequested { .. } | tauri::RunEvent::Exit => {
                 app.state::<SharedState>().runner.shutdown();
             }
             // The hidden overlay window would keep the app alive.
