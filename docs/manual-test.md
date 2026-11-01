@@ -142,3 +142,24 @@ Game matrix:
 |---|---|---|---|---|---|---|---|---|
 | NoClip (noclip.website) | Keyboard, Mouse | Arrow keys; drag, left button | Maximized browser, primary display | ✓ 2026-11-01 | – | ✓ 2026-11-01 | – | Plain mouse moves do nothing in NoClip, only drags |
 | Star Wars Battlefront 2 (2017) | Mouse, Gamepad | Move (raw input); right stick | Borderless, primary display | – | ✓ 2026-11-01 | – | ✓ 2026-11-01 | Offline Arcade only (anti-cheat online); physical pad unplugged for WI6 |
+
+## Windows · capture (issue 24)
+
+No permission to grant on Windows. The example makes itself per-monitor
+DPI aware, so sizes and zones are physical pixels. Our own windows are
+excluded from capture by the app, not by the example: the terminal that
+runs it does appear in `shot.png` when it covers the zone.
+
+```sh
+cargo run -p panowww-capture --example shot -- list
+cargo run -p panowww-capture --example shot -- 0 100 100 1600 900
+```
+
+| # | Check | How | Pass | Result |
+|---|---|---|---|---|
+| WC1 | Displays | `shot list` with the two displays | Each display once, primary first, physical size, scale 1 at 100 % (1.25 at 125 %), origin of the second display at ±1920, the id (a `\?\DISPLAY#…` device path) identical across a relaunch | |
+| WC2 | Zone Shot | `shot 0 100 100 1600 900` with a game or NoClip on the primary display | `shot.png` is 1600 × 900 px, shows the screen content, no cursor; no yellow border appears around the display while it runs | |
+| WC3 | Timings at 1080p | `shot 0 0 0 1920 1080` over a running game | Note the first and second Shot times (spike, release: 5–21 ms over NoClip, 40–85 ms over Battlefront 2) and the PNG time | |
+| WC4 | Preview | Same run, the preview lines | About 6 frames in 3 s, 30–60 KB each, none after stop | |
+| WC5 | Nothing composes | `shot 0 0 0 1920 1080` on a display showing a still picture, cursor parked elsewhere and not moved | The first Shot fails after 2 s with `no frame newer than the move`: WGC delivers frames only when the display composes a new one, a running game always does | |
+| WC6 | HDR flag | `shot list` with HDR on for one display (Settings → System → Display), then off | `· HDR` after that display's line, gone after turning it off | |
