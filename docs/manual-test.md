@@ -30,10 +30,10 @@ cargo run -p panowww-input --example turn_test -- check
 | # | Check | How | Pass | Result |
 |---|---|---|---|---|
 | I1 | Accessibility check | `turn_test check` before and after granting | `false` before, `true` after; the request shows the system prompt once; System Settings opens on the Accessibility list | Pass: `true` with the terminal in the list (the before/after prompt was checked at the first grant) (2026-11-01) |
-| I2 | Key hold | `turn_test keyboard KeyD 120 13` with the game's turn key, landmark picked | The camera turns 13 times and ends on the landmark | |
+| I2 | Key hold | `turn_test keyboard KeyD 120 13` with the game's turn key, landmark picked | The camera turns 13 times and ends on the landmark | Pass in the app: a keyboard Game on NoClip (arrow keys) turns and captures a full Session (2026-11-01, release build) |
 | I3 | Mouse move | `turn_test mouse move 840 13` on a mouse-look game | Same as I2; note the delta that closes the turn | |
 | I4 | Mouse drag | `turn_test mouse drag right 840 13` on the drag-camera reference game | The cursor is parked, the camera orbits 13 times and ends on the landmark | Pass via the app's Turn test on NoClip (mouse drag, left button): the camera orbits and the result line appears (2026-11-01, f46c8df) |
-| I5 | Stop releases everything | Start I4, press Ctrl+C after two Steps | No key or button stays held (the game is not dragging on its own) | |
+| I5 | Stop releases everything | Start I4, press Ctrl+C after two Steps | No key or button stays held (the game is not dragging on its own) | Covered by the keyboard Session of I2: nothing stayed held after Stop (2026-11-01) |
 
 Game matrix:
 
