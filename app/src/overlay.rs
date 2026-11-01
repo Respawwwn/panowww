@@ -206,6 +206,7 @@ pub fn init<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
         .get_webview_window(OVERLAY_WINDOW)
         .ok_or(tauri::Error::WindowNotFound)?;
     window.set_ignore_cursor_events(true)?;
+    crate::backend::hide_from_capture(&window);
     #[cfg(target_os = "macos")]
     macos::make_panel(&window)?;
     Ok(())

@@ -59,6 +59,9 @@ pub fn run() {
             if let Err(error) = overlay::init(app.handle()) {
                 tracing::warn!(%error, "overlay window not prepared");
             }
+            if let Some(window) = app.get_webview_window(MAIN_WINDOW) {
+                backend::hide_from_capture(&window);
+            }
             if let Err(error) = shortcuts::register(app.handle()) {
                 tracing::warn!(%error, "global shortcuts not registered");
             }

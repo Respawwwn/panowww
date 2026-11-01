@@ -1,12 +1,16 @@
 //! `Grabber` and `Stream` adapters that capture the screen.
 //!
 //! macOS uses ScreenCaptureKit ([`macos`]); Windows uses Windows Graphics
-//! Capture (issue 24). Adapters only return fresh frames cropped to the
+//! Capture ([`windows`]). Adapters only return fresh frames cropped to the
 //! Capture zone. Also owns display enumeration, the Screen Recording check
-//! and request, and the production of the Display preview.
+//! and request (macOS), the exclusion of our own windows from capture
+//! (Windows), and the production of the Display preview.
 
 #[cfg(target_os = "macos")]
 pub mod macos;
+
+#[cfg(target_os = "windows")]
+pub mod windows;
 
 #[cfg(not(any(target_os = "macos", target_os = "windows")))]
 pub mod unsupported;

@@ -249,6 +249,7 @@ fn build_windows<R: Runtime>(
                 ));
             }
         };
+        crate::backend::hide_from_capture(&window);
         #[cfg(target_os = "macos")]
         if let Err(error) = macos::raise(app, &window, i == focus) {
             tracing::warn!(%error, label, "picker window stays a plain window");
