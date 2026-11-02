@@ -27,10 +27,11 @@ pub const CLEAR_EVENT: &str = "picker-clear";
 /// A rectangle started in `label`: every other picker window drops its own,
 /// so one zone exists across the displays.
 pub fn clear_others<R: Runtime>(app: &AppHandle<R>, label: &str) {
-    for (other, window) in app.webview_windows() {
+    // `emit` would broadcast to every window, this one included.
+    for other in app.webview_windows().into_keys() {
         if other.starts_with(LABEL_PREFIX)
             && other != label
-            && let Err(error) = window.emit(CLEAR_EVENT, ())
+            && let Err(error) = app.emit_to(other.as_str(), CLEAR_EVENT, ())
         {
             tracing::warn!(%error, label = other, "picker window not told to clear");
         }
