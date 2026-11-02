@@ -31,13 +31,38 @@ pub fn save_settings<R: tauri::Runtime>(
         let _ = shortcuts::register_shortcuts(&app, &previous.shortcuts);
         return Err(error);
     }
+    let appearance = settings.appearance;
     let mut current = state
         .settings
         .write()
         .unwrap_or_else(std::sync::PoisonError::into_inner);
     *current = settings;
     current.save(&state.paths)?;
+    drop(current);
+    apply_window_theme(&app, appearance);
     Ok(())
+}
+
+/// The native window chrome follows the appearance (spec §12). On Windows
+/// the caption bar would otherwise keep the OS theme over a light page;
+/// macOS hides its title bar behind the page and is left as validated.
+pub fn apply_window_theme<R: tauri::Runtime>(
+    app: &AppHandle<R>,
+    appearance: panowww_store::settings::Appearance,
+) {
+    if !cfg!(target_os = "windows") {
+        return;
+    }
+    let theme = match appearance {
+        panowww_store::settings::Appearance::Auto => None,
+        panowww_store::settings::Appearance::Light => Some(tauri::Theme::Light),
+        panowww_store::settings::Appearance::Dark => Some(tauri::Theme::Dark),
+    };
+    if let Some(window) = app.get_webview_window(crate::MAIN_WINDOW)
+        && let Err(error) = window.set_theme(theme)
+    {
+        tracing::warn!(%error, "window theme not applied");
+    }
 }
 
 /// Settings window open or closed: the global shortcuts pause while a
