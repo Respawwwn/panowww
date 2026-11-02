@@ -7,18 +7,19 @@ and `docs/implementation-plan.md`. Delete it when issue 26 is closed.
 
 ## Where things stand (2026-11-01)
 
-- Issues 1 to 20 are merged in `main`, the macOS pass (19) too: every macOS
-  row of `docs/manual-test.md` passes except O7, P3, P6, which wait for a
-  second display, and I3, which needs a mouse-look game.
+- Issues 1 to 20 and the macOS pass (19) are merged in `main`: every macOS
+  row of `docs/manual-test.md` passes, two displays included, except I3,
+  which needs a mouse-look game, and P6, out of scope by decision.
 - The desk research the spec was written from is in `docs/research/`; the
   Windows sections of `app-shell.md`, `input-injection.md` and
   `screen-capture.md` are the starting point of issues 23 to 25.
 - No Windows code exists yet: `crates/input` and `crates/capture` have a
   `macos` module and an `unsupported` module, nothing else. The `app` crate
   builds on Windows but has no overlay flags, manifest or NSIS specifics.
-- The Windows facts W1 to W10 (`docs/spec.md` §15) are unverified. The spike
-  that verifies them is `spike/` on `prototype/overlay-shortcut-spike`
-  (`spike/README.md` says how to run it).
+- The Windows facts W1 to W10 (`docs/spec.md` §15) are verified except W9;
+  the spike that produced them is `spike/` on
+  `prototype/overlay-shortcut-spike`, kept until issue 25 ports its window
+  code.
 - GitHub Actions is switched off on `Respawwwn/panowww`; `just check` and
   `just test` run locally instead.
 
@@ -44,9 +45,7 @@ mouse drag, one mouse-look game, one gamepad game.
 
 ## Order of work
 
-1. **Spike verification.** Build `spike/` on Windows and fill W1 to W10 in
-   `docs/spec.md` §15 (replace each ⏳ with the fact and the date). The
-   outcome of W2, W3, W4, W6 decides the shape of issues 23 to 25.
+1. **Spike verification.** Done on 2026-11-01 (W9 left to issue 26).
 2. **Issue 23** `feat/23-input-windows`: `SendInput` Camera, ViGEm adapter,
    `BusNotFound` check, per-OS sub-move constants.
 3. **Issue 24** `feat/24-capture-windows`: WGC Stream, preview, display list,
