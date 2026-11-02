@@ -11,7 +11,7 @@ use std::sync::mpsc::{Receiver, Sender, channel};
 
 use panowww_core::ports::{DisplayInfo, Rect, Zone};
 use panowww_store::settings::Appearance;
-use tauri::{AppHandle, Manager, Runtime, WebviewUrl, WebviewWindowBuilder};
+use tauri::{AppHandle, Emitter, Manager, Runtime, WebviewUrl, WebviewWindowBuilder};
 use uuid::Uuid;
 
 use crate::backend::SharedBackend;
@@ -21,6 +21,21 @@ use crate::overlay::SharedOverlay;
 
 /// Labels of the picker windows: `picker-1`, `picker-2`, …
 pub const LABEL_PREFIX: &str = "picker-";
+/// Event to a picker window: drop your rectangle, another display has one.
+pub const CLEAR_EVENT: &str = "picker-clear";
+
+/// A rectangle started in `label`: every other picker window drops its own,
+/// so one zone exists across the displays.
+pub fn clear_others<R: Runtime>(app: &AppHandle<R>, label: &str) {
+    for (other, window) in app.webview_windows() {
+        if other.starts_with(LABEL_PREFIX)
+            && other != label
+            && let Err(error) = window.emit(CLEAR_EVENT, ())
+        {
+            tracing::warn!(%error, label = other, "picker window not told to clear");
+        }
+    }
+}
 
 /// One picker window and the display it covers.
 #[derive(Debug, Clone)]

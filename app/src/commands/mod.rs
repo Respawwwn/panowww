@@ -60,6 +60,7 @@ pub fn handler<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + 
         zone::overlay_state,
         zone::picker_setup,
         zone::picker_save,
+        zone::picker_drawing,
         zone::picker_cancel,
         zone::list_displays,
         run::start_run,

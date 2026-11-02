@@ -8,6 +8,8 @@
   "permissions": [
     "allow-picker-setup",
     "allow-picker-save",
-    "allow-picker-cancel"
+    "allow-picker-drawing",
+    "allow-picker-cancel",
+    "core:event:default"
   ]
 }

@@ -23,6 +23,7 @@ const COMMANDS: &[&str] = &[
     "overlay_state",
     "picker_setup",
     "picker_save",
+    "picker_drawing",
     "picker_cancel",
     "list_displays",
     "start_run",

@@ -4,7 +4,7 @@
 // handles, the size chip, the display chip and the instruction above, the
 // bottom card with X / Y / W / H, Show frame on screen, Cancel / Save zone.
 // Esc cancels. The zone is in display points: this window's CSS pixels.
-import { onMount } from "svelte";
+import { onDestroy, onMount } from "svelte";
 import Button from "../components/Button.svelte";
 import Checkbox from "../components/Checkbox.svelte";
 import { api } from "../lib/api";
@@ -53,9 +53,22 @@ const displayText = $derived(
 );
 const canSave = $derived(isUsable(rect) && drag === null);
 
+// One zone across the displays: a rectangle started in another picker
+// window clears this one.
+let unlisten: Promise<() => void> | null = null;
+onDestroy(() => {
+  void unlisten?.then((f) => f());
+});
+
 onMount(() => {
   // Esc and the fields need the page to hold the keyboard focus.
   window.focus();
+  if (!mock) {
+    unlisten = api.picker.onClear(() => {
+      rect = null;
+      drag = null;
+    });
+  }
   if (mock) {
     setup = {
       display: { id: "mock", width: 1440, height: 900, scale: 2, hdr: false },
@@ -91,6 +104,9 @@ function startDraw(e: PointerEvent) {
   const start = point(e);
   drag = { kind: "draw", start };
   rect = between(start, start);
+  if (!mock) {
+    void api.picker.drawing(label);
+  }
   (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
 }
 

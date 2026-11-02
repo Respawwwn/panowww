@@ -124,6 +124,12 @@ pub fn picker_save<R: Runtime>(
     Ok(())
 }
 
+/// A rectangle started in one picker window: the other windows drop theirs.
+#[tauri::command]
+pub fn picker_drawing<R: Runtime>(app: AppHandle<R>, label: String) {
+    crate::picker::clear_others(&app, &label);
+}
+
 /// *Cancel* or Esc in any picker window.
 #[tauri::command]
 pub fn picker_cancel<R: Runtime>(app: AppHandle<R>, state: State<'_, SharedState>) {
