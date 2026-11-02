@@ -101,7 +101,10 @@ const platform = detectPlatform();
 
 // Cmd+, / Ctrl+, opens Settings (§11).
 function onKeyDown(event: KeyboardEvent) {
-  if (event.key === "," && (event.metaKey || event.ctrlKey) && !nav.busy) {
+  // The physical comma key as well: with Ctrl held, some layouts report
+  // another `key` on Windows.
+  const comma = event.key === "," || event.code === "Comma";
+  if (comma && (event.metaKey || event.ctrlKey) && !nav.busy) {
     event.preventDefault();
     windows.show("settings");
   }
