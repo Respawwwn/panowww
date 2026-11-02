@@ -102,32 +102,57 @@ impl Picker {
                 (d, origin)
             })
             .collect();
-        // macOS: window creation and the panel conversion are AppKit work,
-        // on the main thread, with the result handed back.
-        #[cfg(target_os = "macos")]
-        let windows = {
-            let (done_tx, done_rx) = channel::<Result<Vec<PickerWindow>, AppError>>();
-            let handle = app.clone();
-            app.run_on_main_thread(move || {
-                let _ = done_tx.send(build_windows(&handle, origins, focus));
+        // Every window is registered before any is built: a page may ask
+        // for its setup as soon as its window exists, and `picker_setup`
+        // takes this lock on the main thread. Holding it while a build
+        // waits for that same thread deadlocked on Windows (2026-11-02).
+        let windows: Vec<PickerWindow> = origins
+            .iter()
+            .enumerate()
+            .map(|(i, (display, _))| {
+                let index = u32::try_from(i + 1).unwrap_or(u32::MAX);
+                PickerWindow {
+                    label: format!("{LABEL_PREFIX}{index}"),
+                    display: display.clone(),
+                    index,
+                }
             })
-            .map_err(|e| AppError::internal(format!("picker windows: {e}")))?;
-            done_rx
-                .recv()
-                .map_err(|_| AppError::internal("the picker windows were not built"))??
-        };
-        // Windows: the builder dispatches to the main thread itself, and
-        // WebView2 needs that thread's message loop free while it creates
-        // the webview; building inside a main-thread closure hangs on the
-        // second window.
-        #[cfg(not(target_os = "macos"))]
-        let windows = build_windows(app, origins, focus)?;
+            .collect();
         let (reply, rx) = channel();
         *pending = Some(Pending {
             game_id,
             windows,
             reply,
         });
+        drop(pending);
+        // macOS: window creation and the panel conversion are AppKit work,
+        // on the main thread, with the result handed back.
+        #[cfg(target_os = "macos")]
+        let built = {
+            let (done_tx, done_rx) = channel::<Result<(), AppError>>();
+            let handle = app.clone();
+            app.run_on_main_thread(move || {
+                let _ = done_tx.send(build_windows(&handle, origins, focus));
+            })
+            .map_err(|e| AppError::internal(format!("picker windows: {e}")))
+            .and_then(|()| {
+                done_rx
+                    .recv()
+                    .map_err(|_| AppError::internal("the picker windows were not built"))?
+            })
+        };
+        // Windows: the builder dispatches to the main thread itself, and
+        // WebView2 needs that thread's message loop free while it creates
+        // the webview; a main-thread closure would hang it.
+        #[cfg(not(target_os = "macos"))]
+        let built = build_windows(app, origins, focus);
+        if let Err(error) = built {
+            self.pending
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .take();
+            return Err(error);
+        }
         Ok(rx)
     }
 
@@ -246,8 +271,8 @@ fn build_windows<R: Runtime>(
     app: &AppHandle<R>,
     displays: Vec<(DisplayInfo, (f64, f64))>,
     focus: usize,
-) -> Result<Vec<PickerWindow>, AppError> {
-    let mut windows: Vec<PickerWindow> = Vec::with_capacity(displays.len());
+) -> Result<(), AppError> {
+    let mut built_labels: Vec<String> = Vec::with_capacity(displays.len());
     for (i, (display, (x, y))) in displays.into_iter().enumerate() {
         let index = u32::try_from(i + 1).unwrap_or(u32::MAX);
         let label = format!("{LABEL_PREFIX}{index}");
@@ -281,8 +306,8 @@ fn build_windows<R: Runtime>(
                 window
             }
             Err(error) => {
-                for w in &windows {
-                    close_now(app, &w.label);
+                for label in &built_labels {
+                    close_now(app, label);
                 }
                 return Err(AppError::new(
                     AppErrorKind::Internal,
@@ -301,13 +326,9 @@ fn build_windows<R: Runtime>(
         {
             tracing::warn!(%error, label, "picker window not focused");
         }
-        windows.push(PickerWindow {
-            label,
-            display,
-            index,
-        });
+        built_labels.push(label);
     }
-    Ok(windows)
+    Ok(())
 }
 
 /// A display for the log: its size and scale.
