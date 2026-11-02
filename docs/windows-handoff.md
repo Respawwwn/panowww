@@ -5,7 +5,7 @@ The macOS pass (issue 19) is done on a Mac; the Windows work (issues 23 to
 is what that session needs beyond `CLAUDE.md`, `GLOSSARY.md`, `docs/spec.md`
 and `docs/implementation-plan.md`. Delete it when issue 26 is closed.
 
-## Where things stand (2026-11-01)
+## Where things stand (2026-11-02)
 
 - Issues 1 to 20 and the macOS pass (19) are merged in `main`: every macOS
   row of `docs/manual-test.md` passes, two displays included, except I3,
@@ -13,9 +13,9 @@ and `docs/implementation-plan.md`. Delete it when issue 26 is closed.
 - The desk research the spec was written from is in `docs/research/`; the
   Windows sections of `app-shell.md`, `input-injection.md` and
   `screen-capture.md` are the starting point of issues 23 to 25.
-- No Windows code exists yet: `crates/input` and `crates/capture` have a
-  `macos` module and an `unsupported` module, nothing else. The `app` crate
-  builds on Windows but has no overlay flags, manifest or NSIS specifics.
+- Issues 23 (`input` Windows) and 24 (`capture` Windows) are merged. The
+  `app` crate has the Windows manifest in its test binaries and nothing
+  else Windows-specific yet: issue 25 is next, then 26.
 - The Windows facts W1 to W10 (`docs/spec.md` §15) are verified except W9;
   the spike that produced them is `spike/` on
   `prototype/overlay-shortcut-spike`, kept until issue 25 ports its window
