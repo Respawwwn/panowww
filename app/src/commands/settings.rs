@@ -11,7 +11,9 @@ use crate::state::SharedState;
 
 #[tauri::command]
 pub fn get_settings(state: State<'_, SharedState>) -> Settings {
-    state.settings()
+    let settings = state.settings();
+    tracing::debug!(appearance = ?settings.appearance, "settings read by the UI");
+    settings
 }
 
 /// Writes the settings. Changed shortcuts are registered first: a combo

@@ -56,6 +56,20 @@ pub fn run() {
             tracing::info!(version = env!("CARGO_PKG_VERSION"), "Panowww starting");
             let state = build_state(app)?;
             app.manage(state);
+            // Tauri creates the config windows before `setup`; the main
+            // window's page would then send its first commands to an app
+            // whose state is not managed yet, and they fail (seen on
+            // Windows, 2026-11-02: no Games and default settings until a
+            // reload). `create: false` in `tauri.conf.json`; built here.
+            let main = app
+                .config()
+                .app
+                .windows
+                .iter()
+                .find(|w| w.label == MAIN_WINDOW)
+                .cloned()
+                .ok_or(tauri::Error::WindowNotFound)?;
+            tauri::WebviewWindowBuilder::from_config(app.handle(), &main)?.build()?;
             if let Err(error) = overlay::init(app.handle()) {
                 tracing::warn!(%error, "overlay window not prepared");
             }
@@ -64,6 +78,14 @@ pub fn run() {
             }
             let appearance = app.state::<SharedState>().settings().appearance;
             commands::settings::apply_window_theme(app.handle(), appearance);
+            // Debug builds: `PANOWWW_DEVTOOLS=1` opens the webview's DevTools
+            // at launch, for machines whose context menu does not offer it.
+            #[cfg(debug_assertions)]
+            if std::env::var_os("PANOWWW_DEVTOOLS").is_some()
+                && let Some(window) = app.get_webview_window(MAIN_WINDOW)
+            {
+                window.open_devtools();
+            }
             if let Err(error) = shortcuts::register(app.handle()) {
                 tracing::warn!(%error, "global shortcuts not registered");
             }
