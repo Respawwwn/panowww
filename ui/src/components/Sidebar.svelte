@@ -5,6 +5,7 @@
 // Greyed to 45 % during a countdown or a run.
 import { games } from "../lib/games.svelte";
 import { nav } from "../lib/nav.svelte";
+import { detectPlatform } from "../lib/shortcut";
 import { strings } from "../lib/strings";
 import DeviceIcon from "./DeviceIcon.svelte";
 import Icon from "./Icon.svelte";
@@ -17,6 +18,9 @@ type Props = {
 };
 
 let { onsessions, onsettings, onabout }: Props = $props();
+
+/** The Settings shortcut cap: Cmd+, on macOS, Ctrl+, on Windows (§11). */
+const settingsCap = detectPlatform() === "macos" ? "⌘," : "Ctrl+,";
 
 function fileName(path: string): string {
   return (
@@ -147,7 +151,7 @@ function dragEnd() {
     <button type="button" class="footrow" disabled={!onsettings || nav.busy} onclick={onsettings}>
       <Icon name="gear" />
       {strings.sidebar.settings}
-      <kbd>⌘,</kbd>
+      <kbd>{settingsCap}</kbd>
     </button>
     <button type="button" class="footrow" disabled={!onabout || nav.busy} onclick={onabout}>
       <Icon name="help" />
