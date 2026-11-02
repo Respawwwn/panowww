@@ -95,10 +95,6 @@ impl Picker {
         let focus = current
             .and_then(|z| displays.iter().position(|d| d.id == z.display_id))
             .unwrap_or(0);
-        // Window creation and the panel conversion are AppKit work: on the
-        // main thread, with the result handed back.
-        let (done_tx, done_rx) = channel::<Result<Vec<PickerWindow>, AppError>>();
-        let handle = app.clone();
         let origins: Vec<(DisplayInfo, (f64, f64))> = displays
             .into_iter()
             .map(|d| {
@@ -106,13 +102,26 @@ impl Picker {
                 (d, origin)
             })
             .collect();
-        app.run_on_main_thread(move || {
-            let _ = done_tx.send(build_windows(&handle, origins, focus));
-        })
-        .map_err(|e| AppError::internal(format!("picker windows: {e}")))?;
-        let windows = done_rx
-            .recv()
-            .map_err(|_| AppError::internal("the picker windows were not built"))??;
+        // macOS: window creation and the panel conversion are AppKit work,
+        // on the main thread, with the result handed back.
+        #[cfg(target_os = "macos")]
+        let windows = {
+            let (done_tx, done_rx) = channel::<Result<Vec<PickerWindow>, AppError>>();
+            let handle = app.clone();
+            app.run_on_main_thread(move || {
+                let _ = done_tx.send(build_windows(&handle, origins, focus));
+            })
+            .map_err(|e| AppError::internal(format!("picker windows: {e}")))?;
+            done_rx
+                .recv()
+                .map_err(|_| AppError::internal("the picker windows were not built"))??
+        };
+        // Windows: the builder dispatches to the main thread itself, and
+        // WebView2 needs that thread's message loop free while it creates
+        // the webview; building inside a main-thread closure hangs on the
+        // second window.
+        #[cfg(not(target_os = "macos"))]
+        let windows = build_windows(app, origins, focus)?;
         let (reply, rx) = channel();
         *pending = Some(Pending {
             game_id,
@@ -266,7 +275,11 @@ fn build_windows<R: Runtime>(
             .initialization_script(format!("window.__PANOWWW_PICKER__ = {label:?};"))
             .build();
         let window = match built {
-            Ok(window) => window,
+            Ok(window) => {
+                let size = d_name(&display);
+                tracing::info!(label, size, "picker window built");
+                window
+            }
             Err(error) => {
                 for w in &windows {
                     close_now(app, &w.label);
@@ -295,6 +308,11 @@ fn build_windows<R: Runtime>(
         });
     }
     Ok(windows)
+}
+
+/// A display for the log: its size and scale.
+fn d_name(display: &DisplayInfo) -> String {
+    format!("{}×{} @{}", display.width, display.height, display.scale)
 }
 
 /// Closes a picker window from any thread: the panel is handed back to
