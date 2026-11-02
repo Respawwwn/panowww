@@ -64,9 +64,12 @@ onMount(() => {
   // Esc and the fields need the page to hold the keyboard focus.
   window.focus();
   if (!mock) {
-    unlisten = api.picker.onClear(() => {
-      rect = null;
-      drag = null;
+    unlisten = api.picker.onClear((from) => {
+      // The listener hears every target, this window's own start included.
+      if (from !== label) {
+        rect = null;
+        drag = null;
+      }
     });
   }
   if (mock) {

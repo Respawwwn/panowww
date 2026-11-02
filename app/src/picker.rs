@@ -22,6 +22,8 @@ use crate::overlay::SharedOverlay;
 /// Labels of the picker windows: `picker-1`, `picker-2`, …
 pub const LABEL_PREFIX: &str = "picker-";
 /// Event to a picker window: drop your rectangle, another display has one.
+/// The payload is the label of the window that started drawing; a page
+/// listening to every target ignores its own.
 pub const CLEAR_EVENT: &str = "picker-clear";
 
 /// A rectangle started in `label`: every other picker window drops its own,
@@ -31,7 +33,7 @@ pub fn clear_others<R: Runtime>(app: &AppHandle<R>, label: &str) {
     for other in app.webview_windows().into_keys() {
         if other.starts_with(LABEL_PREFIX)
             && other != label
-            && let Err(error) = app.emit_to(other.as_str(), CLEAR_EVENT, ())
+            && let Err(error) = app.emit_to(other.as_str(), CLEAR_EVENT, label)
         {
             tracing::warn!(%error, label = other, "picker window not told to clear");
         }

@@ -156,8 +156,9 @@ export const api = {
     save: (label: string, rect: Rect) => invoke<void>("picker_save", { label, rect }),
     /** This window started a rectangle: the other picker windows drop theirs. */
     drawing: (label: string) => invoke<void>("picker_drawing", { label }),
-    /** Another picker window started a rectangle: drop this one. */
-    onClear: (handler: () => void): Promise<UnlistenFn> => listen("picker-clear", () => handler()),
+    /** A picker window started a rectangle (its label): the others drop theirs. */
+    onClear: (handler: (from: string) => void): Promise<UnlistenFn> =>
+      listen<string>("picker-clear", (event) => handler(event.payload)),
     cancel: () => invoke<void>("picker_cancel"),
   },
 
