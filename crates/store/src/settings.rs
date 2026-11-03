@@ -10,7 +10,7 @@ use ts_rs::TS;
 
 use crate::StoreError;
 use crate::json::{self, Loaded};
-use crate::paths::{AppPaths, default_sessions_folder};
+use crate::paths::{AppPaths, default_sessions_folder, expand_home};
 
 /// Value of the `format` field.
 pub const FORMAT: &str = "panowww-settings";
@@ -135,13 +135,18 @@ impl Settings {
     /// [`Settings::load_or_default`].
     pub fn load(paths: &AppPaths) -> Result<Self, StoreError> {
         let path = paths.settings_file();
-        let loaded = match json::read_optional(&path)? {
+        let mut loaded = match json::read_optional(&path)? {
             Some(text) => read(&path, &text)?,
             None => Loaded {
                 value: Self::default(),
                 migrated: true,
             },
         };
+        // A file holding the UI's `~/…` placeholder is rewritten absolute.
+        if let Some(folder) = expand_home(&loaded.value.sessions_folder) {
+            loaded.value.sessions_folder = folder;
+            loaded.migrated = true;
+        }
         if loaded.migrated {
             loaded.value.save(paths)?;
         }

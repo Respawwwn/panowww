@@ -25,6 +25,10 @@ pub fn save_settings<R: tauri::Runtime>(
     state: State<'_, SharedState>,
     settings: Settings,
 ) -> CmdResult<()> {
+    let mut settings = settings;
+    if let Some(folder) = panowww_store::paths::expand_home(&settings.sessions_folder) {
+        settings.sessions_folder = folder;
+    }
     let previous = state.settings();
     if previous.shortcuts != settings.shortcuts
         && let Err(error) = shortcuts::register_shortcuts(&app, &settings.shortcuts)

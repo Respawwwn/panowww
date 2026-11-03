@@ -188,8 +188,10 @@ pub fn reveal(path: &Path) -> Result<(), StoreError> {
         c.arg("-R").arg(path);
         c
     } else if cfg!(target_os = "windows") {
+        // Explorer wants backslashes: a stored path may carry slashes.
+        let native: PathBuf = path.components().collect();
         let mut c = std::process::Command::new("explorer");
-        c.arg(format!("/select,{}", path.display()));
+        c.arg(format!("/select,{}", native.display()));
         c
     } else {
         return Err(StoreError::io(

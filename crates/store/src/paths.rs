@@ -64,6 +64,20 @@ pub fn default_sessions_folder() -> PathBuf {
         .join("Panowww")
 }
 
+/// `~` or `~/…` with the home folder in place of the tilde; `None` for
+/// any other path. The UI's placeholder default is written that way, and
+/// a literal `~` is a folder named `~` under the working directory (seen
+/// on Windows, 2026-11-03).
+pub fn expand_home(path: &Path) -> Option<PathBuf> {
+    let mut components = path.components();
+    match components.next() {
+        Some(std::path::Component::Normal(first)) if first == "~" => {
+            Some(std::env::home_dir()?.join(components.as_path()))
+        }
+        _ => None,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -84,6 +98,18 @@ mod tests {
             paths.thumbnails_dir(),
             Path::new("/tmp/panowww-data/cache/thumbnails")
         );
+    }
+
+    #[test]
+    fn a_tilde_expands_to_the_home_folder_and_nothing_else_does() {
+        let home = std::env::home_dir().unwrap();
+        assert_eq!(
+            expand_home(Path::new("~/Pictures/Panowww")),
+            Some(home.join("Pictures").join("Panowww"))
+        );
+        assert_eq!(expand_home(Path::new("~")), Some(home.clone()));
+        assert_eq!(expand_home(&home.join("Pictures")), None);
+        assert_eq!(expand_home(Path::new("Pictures/~/x")), None);
     }
 
     #[test]
