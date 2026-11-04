@@ -366,8 +366,8 @@ export const strings = {
     win: {
       subtitle: "Before the first Session",
       admin:
-        "Running as administrator. Windows asks at each launch: many games run elevated, and only an elevated app can drive them.",
-      vigem: "Virtual controller driver, only for gamepad Games. No longer maintained, but works.",
+        "Panowww must run as administrator. Windows asks at every launch; this is normal. Elevated, Panowww can inject input into games that run elevated themselves, which Windows would otherwise block.",
+      vigem: "Virtual controller driver, only needed for gamepad Games.",
       vigemTip: "Keyboard and mouse Games work without ViGEmBus.",
       installVigem: "Install ViGEmBus ↗",
     },
