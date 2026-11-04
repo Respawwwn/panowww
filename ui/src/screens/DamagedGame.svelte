@@ -18,7 +18,7 @@ type Props = { entry: Extract<GameEntry, { kind: "damaged" }> };
 let { entry }: Props = $props();
 
 let confirming = $state(false);
-const fileName = $derived(entry.path.split("/").pop() ?? entry.path);
+const fileName = $derived(entry.path.split(/[\\/]/).pop() ?? entry.path);
 const title = $derived(fileName.replace(/\.panowww\.json$/, ""));
 </script>
 

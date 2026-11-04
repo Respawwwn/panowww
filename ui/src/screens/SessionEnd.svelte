@@ -165,7 +165,9 @@ const cells = $derived.by(() => {
   return list;
 });
 
-const folderText = $derived(folder ? `${folder.replace(/\/$/, "")}/` : "");
+// Shown with a trailing separator of this OS: a folder, not a file.
+const sep = detectPlatform() === "windows" ? "\\" : "/";
+const folderText = $derived(folder ? `${folder.replace(/[\\/]$/, "")}${sep}` : "");
 
 /** Back lands on the Game's Sessions tab, where this Session is listed. */
 async function back() {

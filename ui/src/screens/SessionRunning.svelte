@@ -17,6 +17,7 @@ import type { Game } from "../lib/generated/Game";
 import type { RunKindDto } from "../lib/generated/RunKindDto";
 import { run } from "../lib/run.svelte";
 import { settings } from "../lib/settings.svelte";
+import { detectPlatform } from "../lib/shortcut";
 import { interpolate, strings } from "../lib/strings";
 
 type Props = { game: Game };
@@ -83,7 +84,10 @@ async function togglePreview(on: boolean) {
 }
 
 /** The Game's Sessions folder; the Session's own folder is known at the end. */
-const folder = $derived(`${settings.value.sessionsFolder.replace(/\/$/, "")}/${game.name}/`);
+const sep = detectPlatform() === "windows" ? "\\" : "/";
+const folder = $derived(
+  `${settings.value.sessionsFolder.replace(/[\\/]$/, "")}${sep}${game.name}${sep}`,
+);
 </script>
 
 <div class="toolbar" data-tauri-drag-region>

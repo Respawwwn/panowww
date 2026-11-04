@@ -25,7 +25,7 @@ const settingsCap = detectPlatform() === "macos" ? "⌘," : "Ctrl+,";
 function fileName(path: string): string {
   return (
     path
-      .split("/")
+      .split(/[\\/]/)
       .pop()
       ?.replace(/\.panowww\.json$/, "") ?? path
   );
