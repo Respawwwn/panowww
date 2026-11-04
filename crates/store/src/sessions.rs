@@ -188,9 +188,17 @@ pub fn reveal(path: &Path) -> Result<(), StoreError> {
         c.arg("-R").arg(path);
         c
     } else if cfg!(target_os = "windows") {
-        // Explorer wants backslashes: a stored path may carry slashes.
+        // Explorer wants backslashes, and `/select,"<path>"` as one raw
+        // argument: with a space in the path, std would quote the whole
+        // thing and Explorer falls back to Documents.
         let native: PathBuf = path.components().collect();
         let mut c = std::process::Command::new("explorer");
+        #[cfg(windows)]
+        {
+            use std::os::windows::process::CommandExt;
+            c.raw_arg(format!("/select,\"{}\"", native.display()));
+        }
+        #[cfg(not(windows))]
         c.arg(format!("/select,{}", native.display()));
         c
     } else {

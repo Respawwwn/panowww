@@ -72,7 +72,9 @@ pub fn expand_home(path: &Path) -> Option<PathBuf> {
     let mut components = path.components();
     match components.next() {
         Some(std::path::Component::Normal(first)) if first == "~" => {
-            Some(std::env::home_dir()?.join(components.as_path()))
+            // Rebuilt from components so `~/Pictures` gets native separators.
+            let rest: PathBuf = components.collect();
+            Some(std::env::home_dir()?.join(rest))
         }
         _ => None,
     }
