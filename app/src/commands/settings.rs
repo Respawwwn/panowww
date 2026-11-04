@@ -59,15 +59,19 @@ pub fn apply_window_theme<R: tauri::Runtime>(
     if !cfg!(target_os = "windows") {
         return;
     }
-    let theme = match appearance {
+    if let Some(window) = app.get_webview_window(crate::MAIN_WINDOW)
+        && let Err(error) = window.set_theme(window_theme(appearance))
+    {
+        tracing::warn!(%error, "window theme not applied");
+    }
+}
+
+/// The native theme of an appearance: none for Auto (the OS decides).
+pub fn window_theme(appearance: panowww_store::settings::Appearance) -> Option<tauri::Theme> {
+    match appearance {
         panowww_store::settings::Appearance::Auto => None,
         panowww_store::settings::Appearance::Light => Some(tauri::Theme::Light),
         panowww_store::settings::Appearance::Dark => Some(tauri::Theme::Dark),
-    };
-    if let Some(window) = app.get_webview_window(crate::MAIN_WINDOW)
-        && let Err(error) = window.set_theme(theme)
-    {
-        tracing::warn!(%error, "window theme not applied");
     }
 }
 

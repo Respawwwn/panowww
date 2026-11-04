@@ -61,7 +61,7 @@ pub fn run() {
             // whose state is not managed yet, and they fail (seen on
             // Windows, 2026-11-02: no Games and default settings until a
             // reload). `create: false` in `tauri.conf.json`; built here.
-            let main = app
+            let mut main = app
                 .config()
                 .app
                 .windows
@@ -69,6 +69,12 @@ pub fn run() {
                 .find(|w| w.label == MAIN_WINDOW)
                 .cloned()
                 .ok_or(tauri::Error::WindowNotFound)?;
+            // The caption bar is born with the saved appearance on Windows:
+            // setting it after creation flashed the OS theme first.
+            let appearance = app.state::<SharedState>().settings().appearance;
+            if cfg!(target_os = "windows") {
+                main.theme = commands::settings::window_theme(appearance);
+            }
             tauri::WebviewWindowBuilder::from_config(app.handle(), &main)?.build()?;
             if let Err(error) = overlay::init(app.handle()) {
                 tracing::warn!(%error, "overlay window not prepared");
@@ -76,8 +82,6 @@ pub fn run() {
             if let Some(window) = app.get_webview_window(MAIN_WINDOW) {
                 backend::hide_from_capture(&window);
             }
-            let appearance = app.state::<SharedState>().settings().appearance;
-            commands::settings::apply_window_theme(app.handle(), appearance);
             // Debug builds: `PANOWWW_DEVTOOLS=1` opens the webview's DevTools
             // at launch, for machines whose context menu does not offer it.
             #[cfg(debug_assertions)]
