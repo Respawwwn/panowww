@@ -182,3 +182,37 @@ display. The app runs elevated (UAC prompt at launch).
 | WA8 | Reveal in Explorer | Sessions tab → *Reveal* on a row; Settings → *Reveal logs* | Explorer opens with the folder selected | Found: both opened Documents, and Sessions went to `target\release\~\Pictures\Panowww`: the UI's `~/Pictures/Panowww` placeholder had been saved as the Sessions folder (a consequence of the WA1 race) and a literal `~` is relative; `~` now expands on load and save, Explorer gets a native path. A space in the path (`Kevin Wenger`) still sent Explorer to Documents: `/select,"<path>"` is now one raw argument. Pass (2026-11-04, 96fed26): Explorer opens the parent with the Session (or `logs`) selected, as Finder's reveal does |
 | WA9 | Nothing moved? popover | Open it from a Windows mouse Game and a gamepad Game | Item 4 ends with "Use a gamepad Game for them."; the gamepad line mentions player 1 and the restart | Pass (2026-11-03, a177336) |
 | WA10 | Second display at 125 % | Set the secondary display to 125 %, draw a zone there, *Show zone*, run a Session | The picker covers that display exactly, the frame lands where the Shot is taken | Skipped by decision, as the matching macOS row (2026-11-03) |
+
+## Windows · full flow (issue 26)
+
+The issue-19 protocol on Windows, from the installer. Build it with
+`pnpm tauri build`; the installer is
+`target\release\bundle\nsis\Panowww_0.0.1_x64-setup.exe` (per-user, no
+administrator rights to install; the app itself asks for UAC at every
+launch). A fresh install for WF2 = move `%APPDATA%\com.respawwwn.panowww`
+aside before launching. Reference games as above: NoClip for the keyboard
+and mouse-drag Games, Star Wars Battlefront 2 (offline Arcade, borderless)
+for the mouse-look and gamepad Games. Gamepad rows: physical controllers
+unplugged.
+
+| # | Check | How | Pass | Result |
+|---|---|---|---|---|
+| WF1 | Installer | Run the setup.exe, then launch Panowww from the Start menu; later Settings → Apps → Uninstall | Installs under `%LOCALAPPDATA%\Programs\Panowww` without a UAC prompt, a Start menu entry, the app launches with its UAC prompt; the uninstaller removes the program, not the data or the Sessions | |
+| WF2 | Onboarding on a fresh install | Data folder moved aside, launch | The *Running as administrator* card, a green ViGEmBus row (driver installed), *Continue* enabled; the main window follows with no Games and the default Settings (`~` expanded to the home folder) | |
+| WF3 | Keyboard Game, full flow | New Game on NoClip, keyboard (arrow keys), *Draw zone*, Turn test, adjust the hold, Turn test again, Pitch test, Check overlap (Turn, then Pitch), Step once, then a complete Session | Every tool runs from the app and its result line appears; the Session completes with every Shot, `Done · n Shots`, the end screen shows the grid and the folder | |
+| WF4 | Mouse-look Game | New Game on Battlefront 2, mouse (move), Turn test, Pitch test, a short Session | The camera turns in equal Steps with raw-input mouse look; the Session completes | |
+| WF5 | Gamepad Game | New Game on Battlefront 2, gamepad; Turn test (restart the game once after the first countdown if it ignores the pad), a short Session; then close Panowww | The setup shows the pad as plugged; the game turns with the virtual right stick; the Session completes; after the close, the virtual controller is gone from Device Manager (the WA6 remainder) | |
+| WF6 | Interrupted Session | Ctrl+Shift+9 during a Session; then close the window with ✕ during another | Both rows read `interrupted` with the Shots taken so far; nothing stays held in the game | |
+| WF7 | Session row actions | Sessions tab: Zip, Reveal, Delete on one row | The zip appears next to the folder; Explorer opens with the folder selected; Delete removes the folder and its zip | |
+| WF8 | Share → Import, same machine | Game → Share to a file; sidebar → Import that file | The `.panowww.json` is written where chosen; Import shows Replace / Keep both; Keep both adds the Game under a renamed copy | |
+| WF9 | Settings folder | Settings → Change the Sessions folder, run a Session, change it back | The folder dialog returns a native path; the Session lands in the new folder; the tables follow | |
+| WF10 | Rebinding | Settings → change Start to another combo, Save; try Start = Stop | The old combo does nothing, the new one starts; Start = Stop is refused inline | |
+| WF11 | Update bar | Against a newer Release once the repository has one (issue 21) | The bottom bar links the release page; the Settings switch hides it | Waits for issue 21 |
+| WF12 | WebView2 bootstrapper | Install on a machine without the WebView2 runtime | The installer downloads and installs the runtime before the app | Not available: Windows 11 ships the runtime |
+
+Game matrix:
+
+| Game | Input device | Mode | Display mode | WF3 | WF4 | WF5 | Notes |
+|---|---|---|---|---|---|---|---|
+| NoClip (noclip.website) | Keyboard | Arrow keys | Maximized browser, primary display | | – | – | |
+| Star Wars Battlefront 2 (2017) | Mouse, Gamepad | Move (raw input); right stick | Borderless, primary display | – | | | Offline Arcade only |
