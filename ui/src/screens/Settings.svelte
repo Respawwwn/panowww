@@ -79,7 +79,7 @@ function number(value: string): number {
 </script>
 
 <WindowFrame title={strings.settings.title} width={680} onclose={() => windows.close()}>
-  <section class="card general">
+  <section class="card short">
     <h3>{strings.settings.general}</h3>
     <Field label={strings.settings.appearance.label}>
       <Segmented
@@ -117,7 +117,7 @@ function number(value: string): number {
     <Tip text={strings.settings.displayPreview.hint} />
   </section>
 
-  <section class="card">
+  <section class="card short">
     <h3>{strings.settings.shortcutsTitle}</h3>
     {#if platform === "macos"}
       <Tip text={strings.settings.shortcutsMac} />
@@ -205,9 +205,10 @@ function number(value: string): number {
     padding: 14px 16px;
   }
 
-  /* Short labels (Appearance, Folder): a narrower column leaves the
-     folder line room for Change, Reveal and Reset. */
-  .general :global(.row > label) {
+  /* Short labels (Appearance, Folder; Start, Stop): a narrower column
+     leaves the folder line room for Change, Reveal and Reset. New Game
+     defaults keep 124 px for their long labels. */
+  .short :global(.row > label) {
     width: 84px;
   }
 
