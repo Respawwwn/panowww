@@ -108,6 +108,20 @@ Reference game in a full-screen Space on the zone's display. The overlay is a `t
 | P5 | Cancel and Esc | *Cancel* in one window; open again and press Esc in the other | Every picker window closes, the zone is unchanged, Setup is usable again | Found: Esc did nothing (the panel was not the key responder). Fixed: the focused picker window takes the keyboard. Retest: pass, Esc and Cancel both close (2026-11-01) |
 | P6 | Display changed | Save a zone, change that display's resolution, reopen Setup | The amber *Display n is gone or its resolution changed* box; *Change zone…* opens the picker on the display as it is now | Not run by decision (2026-11-02): a resolution change after the zone is saved is out of scope for v1; the amber box and *Change zone…* stay as the safety net |
 
+## macOS · after the Windows app work (issue 25)
+
+The Windows commits touched shared code: window creation order, the theme
+the main window is born with, `~` expansion and OS separators for the
+Sessions folder, the overlay and the picker. Rerun on the macOS release
+bundle (`pnpm tauri build`).
+
+| # | Check | How | Pass | Result |
+|---|---|---|---|---|
+| MR1 | Window creation | Launch the bundle | Games and saved settings show at once, no reload needed | Pass (2026-11-05, ce60d17) |
+| MR2 | Theme at launch | Pick Light, then Dark, relaunch each time | The window opens in the saved theme, no flash | Pass (2026-11-05, ce60d17) |
+| MR3 | Sessions folder | Settings and Sessions tab: folder lines, *Reveal* on a row | Paths use `/`, `~` shows the home folder, Finder opens with the Session selected | Pass (2026-11-05, ce60d17) |
+| MR4 | Overlay and zone picker | *Set zone…* with two displays, *Show zone*, run a Session | Picker and overlay as in P1–P4 and O1–O8 | Pass (2026-11-05, ce60d17) |
+
 ## Windows · input (issue 23)
 
 Reference games on Windows: **NoClip** (drag camera, left button, in a
