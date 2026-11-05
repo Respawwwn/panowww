@@ -99,6 +99,9 @@ Reference game in a full-screen Space on the zone's display. The overlay is a `t
 | F8 | Reset the Sessions folder | Settings → *Change* the folder, then *Reset* | *Reset* appears next to *Reveal* only while the folder is not `~/Pictures/Panowww`; it brings that folder back (full path) and disappears; *Appearance* and *Folder* sit in a narrower label column | Pass (2026-11-05, b1cfda6) |
 | F9 | Start card folder | Game → Setup, look at the bottom line of the purple Start card | `<Sessions folder>/<Game>/` in a translucent white code chip, ellipsis when too long, the full path on hover | Pass (2026-11-05, 780ec03) |
 | F10 | Settings shortcut caps | Look at the sidebar footer, light then dark; press Cmd+, | *Settings* ends with `Cmd` + `,` key caps like Start and Stop, white caps on the lavender sidebar (card colour in dark); Cmd+, opens Settings | Pass (2026-11-05, 91b1238) |
+| F11 | Settings label columns | Open Settings | General and Shortcuts share a narrow label column; New Game defaults keeps the wide one for its long labels | Pass (2026-11-05, e9322a0) |
+| F12 | Modal scroll shadow | Settings, scroll the body down then back to the top | A line and soft shadow appear under the title bar once scrolled, gone at the top; light and dark | Pass (2026-11-05, 9a655e9) |
+| F13 | Detail scroll shadow | A Game's Setup then Sessions tab, scroll; switch tab while scrolled; All Sessions, scroll | The shadow appears under the Game's title row (12 px under its buttons) once scrolled, gone at the top and after a tab or Game switch; under the All Sessions toolbar, the shade only (it keeps its border) | Pass on a Game's Setup (2026-11-05, 6c2947b); All Sessions not looked at |
 
 ## macOS · Capture zone picker (issue 13)
 
@@ -202,3 +205,5 @@ display. The app runs elevated (UAC prompt at launch).
 | WA11 | Reset the Sessions folder | Settings → *Change* the folder, then *Reset* | As F8, the folder back to `C:\Users\<you>\Pictures\Panowww` with backslashes | |
 | WA12 | Start card folder | As F9 | As F9, with `\` separators and a trailing `\` | |
 | WA13 | Settings shortcut caps | As F10 with Ctrl+, | `Ctrl` + `,` caps, Ctrl+, opens Settings | |
+| WA14 | Sessions tab folder | A Game → Sessions tab, the footer line | `Sessions are saved in <folder>\<Game>\` with backslashes only | |
+| WA15 | Settings and scroll shadows | As F11, F12 and F13 | Same as on macOS | |
