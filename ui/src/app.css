@@ -25,6 +25,8 @@
   --line: #e6e3f1;
   --line2: #cfcae4;
   --hover: rgb(100 84 181 / 8%);
+  /* A separator on the sidebar: --line vanishes on its lavender. */
+  --sidebar-line: #d8d4ea;
 
   /* Text */
   --fg: #1b1740;
@@ -83,6 +85,7 @@
     --line: rgb(255 255 255 / 9%);
     --line2: rgb(255 255 255 / 16%);
     --hover: rgb(255 255 255 / 6%);
+    --sidebar-line: var(--line);
     --fg: #f2f2f3;
     --muted: #9a9aa0;
     --faint: #7c7c82;
@@ -122,6 +125,7 @@
   --line: rgb(255 255 255 / 9%);
   --line2: rgb(255 255 255 / 16%);
   --hover: rgb(255 255 255 / 6%);
+  --sidebar-line: var(--line);
   --fg: #f2f2f3;
   --muted: #9a9aa0;
   --faint: #7c7c82;

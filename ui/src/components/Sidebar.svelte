@@ -357,6 +357,7 @@ function dragEnd() {
   .foot {
     flex: none;
     padding: 10px;
+    border-top: 1px solid var(--sidebar-line);
     display: flex;
     flex-direction: column;
     gap: 2px;
