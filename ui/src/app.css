@@ -2,7 +2,8 @@
   Design tokens and base styles of spec §12, direction B "Respawwwn family",
   ported from prototype/visual-design/project/b.css. Light by default, dark
   with the OS or when an ancestor carries data-theme="dark"; Windows radii
-  behind data-platform="windows".
+  behind data-platform="windows". The dark colours are direction A's
+  neutral greys (Main.dc.html), with the B-only tokens derived from them.
 */
 
 :root,
@@ -61,6 +62,9 @@
   --startcard: #6454b5;
   --startcard-fg: #fff;
   --startcard-sub: rgb(255 255 255 / 75%);
+  /* White on the purple card in light; the toolbar's purple in dark. */
+  --startcard-btn: #fff;
+  --startcard-btn-fg: #4a3c96;
   --dim: rgb(27 23 64 / 55%);
 
   /* Layout */
@@ -72,74 +76,78 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --sidebar: #201b44;
-    --content: #15122b;
-    --card: #1e1a38;
-    --field: #241f45;
-    --line: #2d2852;
-    --line2: #3d3769;
-    --hover: rgb(165 150 234 / 12%);
-    --fg: #ecebf5;
-    --muted: #a8a4c6;
-    --faint: #7c789c;
-    --accent: #a596ea;
-    --accent-fg: #15122b;
+    --sidebar: #2a2a2d;
+    --content: #1e1e20;
+    --card: #2a2a2d;
+    --field: #313134;
+    --line: rgb(255 255 255 / 9%);
+    --line2: rgb(255 255 255 / 16%);
+    --hover: rgb(255 255 255 / 6%);
+    --fg: #f2f2f3;
+    --muted: #9a9aa0;
+    --faint: #7c7c82;
+    --accent: #9b8ce0;
+    --accent-fg: #14122b;
     --accent-deep: #c4b9f6;
-    --lav: #2a2550;
+    --lav: rgb(155 140 224 / 18%);
     --lav-fg: #c4b9f6;
-    --ok: #4cd17a;
-    --ok-soft: #1d3a2a;
-    --ok-fg: #8fe5ad;
-    --warn: #f0b544;
-    --warn-soft: #3d2f12;
-    --warn-fg: #f7cf7f;
-    --bad: #ff6b8d;
-    --bad-soft: #44192a;
-    --bad-fg: #ffb0c2;
-    --btn: #2a2550;
-    --btn-line: #3d3769;
+    --ok: #30d158;
+    --ok-soft: rgb(48 209 88 / 16%);
+    --ok-fg: #7ee29a;
+    --warn: #e5a100;
+    --warn-soft: rgb(229 161 0 / 16%);
+    --warn-fg: #f5c451;
+    --bad: #ff453a;
+    --bad-soft: rgb(255 69 58 / 16%);
+    --bad-fg: #ff8a80;
+    --btn: #3a3a3e;
+    --btn-line: rgb(255 255 255 / 12%);
     --shadow: none;
     --pop: 0 8px 24px rgb(0 0 0 / 50%);
-    --startcard: #2a2550;
+    --startcard: #353243;
     --startcard-fg: #fff;
-    --startcard-sub: #a8a4c6;
+    --startcard-sub: #9a9aa0;
+    --startcard-btn: var(--accent);
+    --startcard-btn-fg: var(--accent-fg);
     --dim: rgb(0 0 0 / 60%);
   }
 }
 
 [data-theme="dark"] {
   color-scheme: dark;
-  --sidebar: #201b44;
-  --content: #15122b;
-  --card: #1e1a38;
-  --field: #241f45;
-  --line: #2d2852;
-  --line2: #3d3769;
-  --hover: rgb(165 150 234 / 12%);
-  --fg: #ecebf5;
-  --muted: #a8a4c6;
-  --faint: #7c789c;
-  --accent: #a596ea;
-  --accent-fg: #15122b;
+  --sidebar: #2a2a2d;
+  --content: #1e1e20;
+  --card: #2a2a2d;
+  --field: #313134;
+  --line: rgb(255 255 255 / 9%);
+  --line2: rgb(255 255 255 / 16%);
+  --hover: rgb(255 255 255 / 6%);
+  --fg: #f2f2f3;
+  --muted: #9a9aa0;
+  --faint: #7c7c82;
+  --accent: #9b8ce0;
+  --accent-fg: #14122b;
   --accent-deep: #c4b9f6;
-  --lav: #2a2550;
+  --lav: rgb(155 140 224 / 18%);
   --lav-fg: #c4b9f6;
-  --ok: #4cd17a;
-  --ok-soft: #1d3a2a;
-  --ok-fg: #8fe5ad;
-  --warn: #f0b544;
-  --warn-soft: #3d2f12;
-  --warn-fg: #f7cf7f;
-  --bad: #ff6b8d;
-  --bad-soft: #44192a;
-  --bad-fg: #ffb0c2;
-  --btn: #2a2550;
-  --btn-line: #3d3769;
+  --ok: #30d158;
+  --ok-soft: rgb(48 209 88 / 16%);
+  --ok-fg: #7ee29a;
+  --warn: #e5a100;
+  --warn-soft: rgb(229 161 0 / 16%);
+  --warn-fg: #f5c451;
+  --bad: #ff453a;
+  --bad-soft: rgb(255 69 58 / 16%);
+  --bad-fg: #ff8a80;
+  --btn: #3a3a3e;
+  --btn-line: rgb(255 255 255 / 12%);
   --shadow: none;
   --pop: 0 8px 24px rgb(0 0 0 / 50%);
-  --startcard: #2a2550;
+  --startcard: #353243;
   --startcard-fg: #fff;
-  --startcard-sub: #a8a4c6;
+  --startcard-sub: #9a9aa0;
+  --startcard-btn: var(--accent);
+  --startcard-btn-fg: var(--accent-fg);
   --dim: rgb(0 0 0 / 60%);
 }
 
