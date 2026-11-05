@@ -97,6 +97,7 @@ Reference game in a full-screen Space on the zone's display. The overlay is a `t
 | F6 | Onboarding on a fresh install | Release bundle, `tccutil reset All com.respawwwn.panowww`, launch | Both rows red; *Open System Settings* on each shows the system prompt and opens the right pane; a row turns green as soon as its switch is ticked and the window comes back to the front; Screen Recording asks for a relaunch, then *Continue* is enabled | Pass on the release build after a TCC reset: both rows turn green live, Continue enabled after the Screen Recording relaunch (2026-11-01, 51bda69) |
 | F7 | No Input Monitoring | Same run, watch the prompts | macOS never asks for Input Monitoring: Panowww only posts events, which the Accessibility grant covers | Pass after a TCC reset: no Input Monitoring prompt (2026-11-01). The first run had one, accepted at 14:29:52, trigger not found; watch for it on fresh installs |
 | F8 | Reset the Sessions folder | Settings → *Change* the folder, then *Reset* | *Reset* appears next to *Reveal* only while the folder is not `~/Pictures/Panowww`; it brings that folder back (full path) and disappears; *Appearance* and *Folder* sit in a narrower label column | Pass (2026-11-05, b1cfda6) |
+| F9 | Start card folder | Game → Setup, look at the bottom line of the purple Start card | `<Sessions folder>/<Game>/` in a translucent white code chip, ellipsis when too long, the full path on hover | Pass (2026-11-05, 780ec03) |
 
 ## macOS · Capture zone picker (issue 13)
 
@@ -198,3 +199,4 @@ display. The app runs elevated (UAC prompt at launch).
 | WA9 | Nothing moved? popover | Open it from a Windows mouse Game and a gamepad Game | Item 4 ends with "Use a gamepad Game for them."; the gamepad line mentions player 1 and the restart | Pass (2026-11-03, a177336) |
 | WA10 | Second display at 125 % | Set the secondary display to 125 %, draw a zone there, *Show zone*, run a Session | The picker covers that display exactly, the frame lands where the Shot is taken | Skipped by decision, as the matching macOS row (2026-11-03) |
 | WA11 | Reset the Sessions folder | Settings → *Change* the folder, then *Reset* | As F8, the folder back to `C:\Users\<you>\Pictures\Panowww` with backslashes | |
+| WA12 | Start card folder | As F9 | As F9, with `\` separators and a trailing `\` | |
