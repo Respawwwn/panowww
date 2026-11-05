@@ -28,6 +28,22 @@ let confirming = $state(false);
 let sessions = $state<{ n: number; bytes: number } | null>(null);
 let confirmingAll = $state(false);
 let deletingAll = $state(false);
+/** The tab's own scroller is scrolled: the header row casts its shadow. */
+let scrolled = $state(false);
+$effect(() => {
+  // A new tab or Game starts at the top.
+  void tab;
+  void game.id;
+  scrolled = false;
+});
+
+/** Scroll does not bubble: caught on the way down, from the tab's root only. */
+function onBodyScroll(event: Event) {
+  const target = event.target as HTMLElement;
+  if (target.parentElement === event.currentTarget) {
+    scrolled = target.scrollTop > 0;
+  }
+}
 /** Bumped to remount the table after Delete all. */
 let sessionsKey = $state(0);
 
@@ -69,7 +85,7 @@ const path = $derived(
   note={startReason ? strings.setup.start.disabled[startReason] : null}
 />
 {#if tab === "setup"}
-  <HeaderRow title={game.name}>
+  <HeaderRow title={game.name} {scrolled}>
     {#snippet actions()}
       <InlineConfirm
         {confirming}
@@ -98,7 +114,7 @@ const path = $derived(
     {/snippet}
   </HeaderRow>
 {:else}
-  <HeaderRow title={game.name}>
+  <HeaderRow title={game.name} {scrolled}>
     {#snippet aside()}
       {#if sessions}
         {interpolate(strings.sessions.summary, { n: sessions.n, size: formatBytes(sessions.bytes) })}
@@ -122,15 +138,24 @@ const path = $derived(
     {/snippet}
   </HeaderRow>
 {/if}
-{#if tab === "setup"}
-  <GameSetup {game} />
-{:else}
-  {#key sessionsKey}
-    <SessionsTab gameId={game.id} onloaded={(n, bytes) => (sessions = { n, bytes })} />
-  {/key}
-{/if}
+<div class="body" onscrollcapture={onBodyScroll}>
+  {#if tab === "setup"}
+    <GameSetup {game} />
+  {:else}
+    {#key sessionsKey}
+      <SessionsTab gameId={game.id} onloaded={(n, bytes) => (sessions = { n, bytes })} />
+    {/key}
+  {/if}
+</div>
 
 <style>
+  .body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
   .delete :global(.btn) {
     color: var(--bad);
     font-weight: 600;
