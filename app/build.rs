@@ -39,6 +39,7 @@ const COMMANDS: &[&str] = &[
     "get_settings",
     "save_settings",
     "choose_sessions_folder",
+    "default_sessions_folder",
     "reveal_logs",
     "apply_shortcuts",
     "set_shortcuts_enabled",

@@ -5,6 +5,7 @@ import SessionsTable from "../components/SessionsTable.svelte";
 import { games } from "../lib/games.svelte";
 import { nav } from "../lib/nav.svelte";
 import { settings } from "../lib/settings.svelte";
+import { detectPlatform } from "../lib/shortcut";
 import { strings } from "../lib/strings";
 import { windows } from "../lib/windows.svelte";
 
@@ -16,9 +17,11 @@ type Props = {
 
 let { gameId, onloaded }: Props = $props();
 
-/** `<Sessions folder>/<Game>/`, as the Session folders are laid out. */
+/** `<Sessions folder>/<Game>/`, as the Session folders are laid out, with
+ *  this OS's separator. */
+const sep = detectPlatform() === "windows" ? "\\" : "/";
 const folder = $derived(
-  `${settings.value.sessionsFolder.replace(/\/$/, "")}/${games.find(gameId)?.name ?? ""}/`,
+  `${settings.value.sessionsFolder.replace(/[\\/]$/, "")}${sep}${games.find(gameId)?.name ?? ""}${sep}`,
 );
 </script>
 

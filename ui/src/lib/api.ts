@@ -129,6 +129,8 @@ export const api = {
     save: (settings: Settings) => invoke<void>("save_settings", { settings }),
     /** Folder picker; null when cancelled. */
     chooseSessionsFolder: () => invoke<string | null>("choose_sessions_folder"),
+    /** The default Sessions folder, resolved for this machine. */
+    defaultSessionsFolder: () => invoke<string>("default_sessions_folder"),
     revealLogs: () => invoke<void>("reveal_logs"),
     /** Settings open: the global shortcuts pause. */
     setShortcutsEnabled: (enabled: boolean) => invoke<void>("set_shortcuts_enabled", { enabled }),

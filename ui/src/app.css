@@ -53,6 +53,11 @@
   --btn-line: #d8d4ea;
   --shadow: 0 1px 2px rgb(27 23 64 / 6%);
   --pop: 0 8px 24px rgb(27 23 64 / 18%);
+  /* Under a fixed header once the content below it is scrolled. Black, so
+     it reads in both themes; the shade alone under a header that already
+     has a bottom border. */
+  --scroll-shade: 0 6px 12px -6px rgb(0 0 0 / 25%);
+  --scroll-shadow: 0 1px 0 var(--line), var(--scroll-shade);
   --startcard: #6454b5;
   --startcard-fg: #fff;
   --startcard-sub: rgb(255 255 255 / 75%);

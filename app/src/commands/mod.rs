@@ -76,6 +76,7 @@ pub fn handler<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + 
         settings::get_settings,
         settings::save_settings,
         settings::choose_sessions_folder,
+        settings::default_sessions_folder,
         settings::reveal_logs,
         settings::apply_shortcuts,
         settings::set_shortcuts_enabled,

@@ -41,6 +41,7 @@
     "allow-get-settings",
     "allow-save-settings",
     "allow-choose-sessions-folder",
+    "allow-default-sessions-folder",
     "allow-reveal-logs",
     "allow-apply-shortcuts",
     "allow-set-shortcuts-enabled",

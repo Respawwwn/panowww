@@ -4,11 +4,13 @@
 // + New / Import… toolbar, the All Sessions / Settings / About footer.
 // Greyed to 45 % during a countdown or a run.
 import { games } from "../lib/games.svelte";
+import type { Shortcut } from "../lib/generated/Shortcut";
 import { nav } from "../lib/nav.svelte";
 import { detectPlatform } from "../lib/shortcut";
 import { strings } from "../lib/strings";
 import DeviceIcon from "./DeviceIcon.svelte";
 import Icon from "./Icon.svelte";
+import KeyCaps from "./KeyCaps.svelte";
 import Mark from "./Mark.svelte";
 
 type Props = {
@@ -19,8 +21,12 @@ type Props = {
 
 let { onsessions, onsettings, onabout }: Props = $props();
 
-/** The Settings shortcut cap: Cmd+, on macOS, Ctrl+, on Windows (§11). */
-const settingsCap = detectPlatform() === "macos" ? "⌘," : "Ctrl+,";
+/** The Settings shortcut: Cmd+, on macOS, Ctrl+, on Windows (§11), drawn
+ *  as the same key caps as Start and Stop. */
+const settingsShortcut: Shortcut = {
+  modifiers: [detectPlatform() === "macos" ? "meta" : "ctrl"],
+  code: "Comma",
+};
 
 function fileName(path: string): string {
   return (
@@ -151,7 +157,7 @@ function dragEnd() {
     <button type="button" class="footrow" disabled={!onsettings || nav.busy} onclick={onsettings}>
       <Icon name="gear" />
       {strings.sidebar.settings}
-      <kbd>{settingsCap}</kbd>
+      <span class="cap"><KeyCaps shortcut={settingsShortcut} /></span>
     </button>
     <button type="button" class="footrow" disabled={!onabout || nav.busy} onclick={onabout}>
       <Icon name="help" />
@@ -382,10 +388,12 @@ function dragEnd() {
     color: inherit;
   }
 
-  .footrow kbd {
+  .footrow .cap {
     margin-left: auto;
-    font: inherit;
-    font-size: 11px;
-    color: var(--faint);
+  }
+
+  /* Lavender caps vanish on the lavender sidebar: card-white caps here. */
+  .footrow .cap :global(kbd) {
+    background: var(--card);
   }
 </style>
