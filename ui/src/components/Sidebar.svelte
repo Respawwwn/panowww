@@ -392,8 +392,9 @@ function dragEnd() {
     margin-left: auto;
   }
 
-  /* Lavender caps vanish on the lavender sidebar: card-white caps here. */
+  /* Lavender caps vanish on the lavender sidebar: button-coloured caps
+     here (white in light, a lighter grey than the sidebar in dark). */
   .footrow .cap :global(kbd) {
-    background: var(--card);
+    background: var(--btn);
   }
 </style>

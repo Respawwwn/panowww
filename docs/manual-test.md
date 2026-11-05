@@ -102,6 +102,7 @@ Reference game in a full-screen Space on the zone's display. The overlay is a `t
 | F11 | Settings label columns | Open Settings | General and Shortcuts share a narrow label column; New Game defaults keeps the wide one for its long labels | Pass (2026-11-05, e9322a0) |
 | F12 | Modal scroll shadow | Settings, scroll the body down then back to the top | A line and soft shadow appear under the title bar once scrolled, gone at the top; light and dark | Pass (2026-11-05, 9a655e9) |
 | F13 | Detail scroll shadow | A Game's Setup then Sessions tab, scroll; switch tab while scrolled; All Sessions, scroll | The shadow appears under the Game's title row (12 px under its buttons) once scrolled, gone at the top and after a tab or Game switch; under the All Sessions toolbar, the shade only (it keeps its border) | Pass on a Game's Setup (2026-11-05, 6c2947b); All Sessions not looked at |
+| F14 | Dark colours | Settings → Appearance → Dark, walk the main screens | Neutral greys of direction A (no purple tint) on sidebar, content, cards and fields; purple accent; the Start card's *Start Session* is the toolbar purple; the `Cmd` + `,` caps stand out from the sidebar | Pass (2026-11-05, a45f4e4) |
 
 ## macOS · Capture zone picker (issue 13)
 
@@ -207,3 +208,4 @@ display. The app runs elevated (UAC prompt at launch).
 | WA13 | Settings shortcut caps | As F10 with Ctrl+, | `Ctrl` + `,` caps, Ctrl+, opens Settings | |
 | WA14 | Sessions tab folder | A Game → Sessions tab, the footer line | `Sessions are saved in <folder>\<Game>\` with backslashes only | |
 | WA15 | Settings and scroll shadows | As F11, F12 and F13 | Same as on macOS | |
+| WA16 | Dark colours | As F14, with `Ctrl` + `,`; the caption bar follows Dark | Same as on macOS | |

@@ -69,8 +69,8 @@ const folder = $derived(`${sessionsFolder.replace(/[\\/]$/, "")}${sep}${editor.g
   }
 
   .start :global(.btn.primary) {
-    background: #fff;
-    color: #4a3c96;
+    background: var(--startcard-btn);
+    color: var(--startcard-btn-fg);
   }
 
   .top {
