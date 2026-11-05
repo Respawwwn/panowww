@@ -23,9 +23,17 @@ let shortcutError = $state<string | null>(null);
 /** Under which recorder the error sits: the one that was changed. */
 let shortcutErrorFor = $state<"start" | "stop">("stop");
 let saveError = $state<string | null>(null);
+/** Resolved default Sessions folder; *Reset* shows when the setting differs. */
+let defaultFolder = $state<string | null>(null);
 
 // No Session starts from the combo being recorded (spec §10).
 onMount(() => {
+  void api.settings
+    .defaultSessionsFolder()
+    .then((folder) => {
+      defaultFolder = folder;
+    })
+    .catch(() => {});
   void api.settings.setShortcutsEnabled(false).catch(() => {});
   return () => {
     void api.settings.setShortcutsEnabled(true).catch(() => {});
@@ -33,6 +41,7 @@ onMount(() => {
 });
 
 const s = $derived(settings.value);
+const folderOverridden = $derived(defaultFolder !== null && s.sessionsFolder !== defaultFolder);
 
 async function save(patch: Partial<Settings>, which: "start" | "stop" = "stop") {
   const next = { ...settings.value, ...patch };
@@ -70,7 +79,7 @@ function number(value: string): number {
 </script>
 
 <WindowFrame title={strings.settings.title} width={680} onclose={() => windows.close()}>
-  <section class="card">
+  <section class="card general">
     <h3>{strings.settings.general}</h3>
     <Field label={strings.settings.appearance.label}>
       <Segmented
@@ -95,6 +104,10 @@ function number(value: string): number {
       />
       <Button size="sm" onclick={chooseFolder}>{strings.settings.change}</Button>
       <Button size="sm" onclick={() => api.settings.revealPath(s.sessionsFolder)}>{strings.settings.reveal}</Button>
+      {#if folderOverridden && defaultFolder}
+        {@const folder = defaultFolder}
+        <Button size="sm" variant="ghost" onclick={() => save({ sessionsFolder: folder })}>{strings.settings.reset}</Button>
+      {/if}
     </Field>
     <Switch
       checked={s.displayPreview}
@@ -190,6 +203,12 @@ function number(value: string): number {
     flex-direction: column;
     gap: 12px;
     padding: 14px 16px;
+  }
+
+  /* Short labels (Appearance, Folder): a narrower column leaves the
+     folder line room for Change, Reveal and Reset. */
+  .general :global(.row > label) {
+    width: 84px;
   }
 
   h3 {
