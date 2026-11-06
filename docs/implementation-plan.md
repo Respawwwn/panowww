@@ -38,6 +38,7 @@ Conventions for every issue:
 | 24 | `capture` Windows: Windows Graphics Capture | HITL, after Windows verification | 10 |
 | 25 | `app` Windows: overlay or fallback, manifest, NSIS, WebView2 | HITL, after Windows verification | 12, 13, 21 |
 | 26 | Windows end-to-end pass | HITL | 23, 24, 25 |
+| 27 | README hero animation | HITL | 19, 22 |
 
 Parallel lanes once issue 1 is in: `core` (3 → 4 → 5 → 6), `store` (7 → 8), UI foundation (2 → 14), icon (20). Issues 9 and 10 can start as soon as 5 defines the traits.
 
@@ -219,7 +220,15 @@ Acceptance: a tag on a test branch produces a draft Release with both files; the
 
 **Spec**: §14 (README outline, contributing, licence), §13.6 (Troubleshooting entry), §13.7.
 
-README per the outline with real screenshots from issue 19, `CONTRIBUTING.md`, the three issue templates, `LICENSE`, `NOTICE`, the going-public checklist kept in `docs/release.md`. Tone: English, "we", short, no slang in instructions.
+README in the §14 order with real screenshots from issue 19 (taken with `just fixtures`); the hero is a static screenshot until issue 27 lands. `CONTRIBUTING.md`, the three issue templates, `LICENSE`; `NOTICE` exists (issue 20). The going-public checklist stays in `docs/release.md`. Tone: English, "we", short, no slang in instructions.
+
+Acceptance: every §14 section present in order; badges and Download buttons resolve once the repo is public (`releases/latest`); screenshots committed under `docs/readme/`, each ≤ 500 KB.
+
+## 27. README hero animation
+
+**Spec**: §14 (README, *Hero*).
+
+HITL. The AltTab-style hero: two displays as a mockup over a background, the game on one, Panowww at 60–80 % on the other, zooming on each step (Game, Capture zone, Test, Session with the overlay, Sessions list). Built with Remotion in its own folder or repository (decided when the issue starts): screen recordings by the human embedded in mockups, and the real UI (`ui/`, the gallery screen with the mocked API) rendered for the app parts. Animated SVG preferred, built like AltTab's `scripts/build_readme_svg.py` (98 lines of standard-library Python): a handful of stills (Remotion `renderStill`, or plain captures) embedded as base64 JPEG / WebP, animated with SMIL `<animate>` / `<animateTransform>` (cross-fades, zooms, pans; the game camera turn as a pan across a real panorama strip), no script, no external file, no `<video>`; a GIF only if the motion needs real video frames. Output: a looping animated SVG or GIF sized from `docs/research/readme-references.md` (target ≤ 5 MB, ≈ 900 px wide, ≤ 15 s), committed under `docs/readme/` and swapped into the README hero.
 
 ## 23. `input` Windows: SendInput and ViGEm
 
