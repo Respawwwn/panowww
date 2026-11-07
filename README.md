@@ -19,8 +19,8 @@
   <a href="https://github.com/Respawwwn/panowww/releases/latest"><img src="docs/readme/download-windows.svg" alt="Download for Windows" height="48"></a>
 </p>
 
-<!-- Hero: a static screenshot until the animated hero lands (issue 27). See docs/readme/README.md. -->
-<!-- <img src="docs/readme/hero.png" alt="Panowww driving a game's camera on one display while the app shows the Session on the other" width="900"> -->
+<!-- Hero: a static screenshot until the animated hero lands (issue 27). -->
+<img src="docs/readme/session.webp" alt="Panowww during a Session: progress, the Display preview with the Capture zone frame, and the Shots coming in" width="900">
 
 </div>
 
@@ -34,15 +34,18 @@ New to game panoramas? Watch [How to Create a 360° Panorama in a Video Game](ht
 
 ## Screenshots
 
-<!-- Screenshots land with the visual pass, see docs/readme/README.md for the list.
 | | |
 |---|---|
-| <img src="docs/readme/setup.png" alt="Game Setup" width="440"> | <img src="docs/readme/capture-zone.png" alt="Capture zone picker" width="440"> |
+| <img src="docs/readme/setup.webp" alt="Game Setup" width="440"> | <img src="docs/readme/capture-zone.webp" alt="Capture zone picker over a game" width="440"> |
 | **Set up a Game** once: input, grid and delays. | **Draw the Capture zone** over the game. |
-| <img src="docs/readme/check-overlap.png" alt="Check overlap" width="440"> | <img src="docs/readme/overlay.png" alt="Overlay over the game during a Session" width="440"> |
+| <img src="docs/readme/session.webp" alt="Session running" width="440"> | <img src="docs/readme/session-end.webp" alt="Session completed" width="440"> |
+| **Follow the Session** with live thumbnails. | **Every Shot is in**: zip the Session or reveal it, then stitch. |
+
+<!-- Still to take, see docs/readme/README.md:
+| <img src="docs/readme/check-overlap.webp" alt="Check overlap" width="440"> | <img src="docs/readme/overlay.webp" alt="Overlay over the game during a Session" width="440"> |
 | **Check overlap** between two Shots before you start. | **The game keeps the focus**: the countdown and progress are drawn over it. |
-| <img src="docs/readme/session.png" alt="Session view" width="440"> | <img src="docs/readme/sessions.png" alt="Sessions list" width="440"> |
-| **Follow the Session** with live thumbnails. | **Every Session in one list**: zip it, reveal it, delete it. |
+| <img src="docs/readme/sessions.webp" alt="Sessions list" width="440"> | |
+| **Every Session in one list**: zip it, reveal it, delete it. | |
 -->
 
 ## Quick start

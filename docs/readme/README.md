@@ -1,16 +1,20 @@
 # README images
 
-Images the root `README.md` shows. Each PNG stays under 500 KB (export at 2× and run it through `oxipng` or ImageOptim if needed).
+Images the root `README.md` shows. WebP, at most 1760 px wide and 500 KB each:
 
-| File | What | Status |
+```sh
+magick shot.png -resize 1760x\> -strip tmp.png && cwebp -q 84 -alpha_q 100 -m 6 tmp.png -o name.webp
+```
+
+| File | What | Source |
 |---|---|---|
-| `download-macos.svg`, `download-windows.svg` | Download buttons under the header | done |
-| `hero.png` | Static hero until the animated one (issue 27): the game on one display, Panowww on the other | to take |
-| `setup.png` | Game Setup, both panes, a keyboard or mouse Game | to take |
-| `capture-zone.png` | Capture zone picker over a game, zone drawn, size chip visible | to take |
-| `check-overlap.png` | Check overlap window, green verdict | to take |
-| `overlay.png` | The overlay over a game during a Session: frame, progress bar, pill | to take |
-| `session.png` | Session view running, live thumbnails and Display preview | to take |
-| `sessions.png` | Sessions tab with a few rows (`just fixtures`) | to take |
+| `download-macos.svg`, `download-windows.svg` | Download buttons under the header | drawn by hand |
+| `setup.webp` | Game Setup, a mouse Game | app, CleanShot window capture |
+| `capture-zone.webp` | Capture zone picker over World of Warcraft | app, full-screen capture |
+| `session.webp` | Session running (also the hero until issue 27) | design board `B-SessionRunning` |
+| `session-end.webp` | Session completed | design board `B-SessionEnd` |
+| `check-overlap.webp` | Check overlap window, green verdict | to take |
+| `overlay.webp` | The overlay over a game during a Session: frame, progress bar, pill | to take |
+| `sessions.webp` | Sessions tab with a few rows (`just fixtures`) | to take |
 
-Take them on macOS in light mode, window at its default size, with `just fixtures` data where a list shows. Once a file is here, uncomment its line in the root `README.md` (the *Hero* comment and the *Screenshots* table).
+The two Session images are the direction-B boards of `prototype/visual-design`, rendered in headless Chrome with the canvas runtime stubbed, the sample Games and Shots swapped for the human's Games and real World of Warcraft Shots. Retake them from the app once a full clean Session exists. Once a missing file is here, move its line out of the comment in the root `README.md`.
