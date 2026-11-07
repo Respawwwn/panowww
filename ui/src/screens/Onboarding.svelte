@@ -11,6 +11,7 @@ import Mark from "../components/Mark.svelte";
 import Tip from "../components/Tip.svelte";
 import WindowFrame from "../components/WindowFrame.svelte";
 import { api, type PermissionKind, type Permissions } from "../lib/api";
+import { settings } from "../lib/settings.svelte";
 import { detectPlatform } from "../lib/shortcut";
 import { strings } from "../lib/strings";
 import { windows } from "../lib/windows.svelte";
@@ -41,6 +42,14 @@ async function grant(kind: PermissionKind) {
     await api.onboarding.openSystemSettings(kind).catch(() => {});
   }
   await refresh();
+}
+
+/** Later and Continue both count as seen: the window comes back on its own while a permission is missing. */
+async function close() {
+  windows.close();
+  if (!settings.value.onboarded) {
+    await settings.save({ ...settings.value, onboarded: true }).catch(() => {});
+  }
 }
 
 const ready = $derived(
@@ -108,9 +117,9 @@ const rows: { kind: PermissionKind; row: { name: string; ok: string; missing: st
     <Tip text={o.win.vigemTip} />
   {/if}
   {#snippet footer()}
-    <Button variant="ghost" onclick={() => windows.close()}>{o.later}</Button>
+    <Button variant="ghost" onclick={close}>{o.later}</Button>
     <span class="spacer"></span>
-    <Button variant="primary" disabled={!ready} onclick={() => windows.close()}>{o.continue}</Button>
+    <Button variant="primary" disabled={!ready} onclick={close}>{o.continue}</Button>
   {/snippet}
 </WindowFrame>
 

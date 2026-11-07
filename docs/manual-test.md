@@ -104,6 +104,7 @@ Reference game in a full-screen Space on the zone's display. The overlay is a `t
 | F13 | Detail scroll shadow | A Game's Setup then Sessions tab, scroll; switch tab while scrolled; All Sessions, scroll | The shadow appears under the Game's title row (12 px under its buttons) once scrolled, gone at the top and after a tab or Game switch; under the All Sessions toolbar, the shade only (it keeps its border) | Pass on a Game's Setup (2026-11-05, 6c2947b); All Sessions not looked at |
 | F14 | Dark colours | Settings → Appearance → Dark, walk the main screens | Neutral greys of direction A (no purple tint) on sidebar, content, cards and fields; purple accent; the Start card's *Start Session* is the toolbar purple; the `Cmd` + `,` caps stand out from the sidebar | Pass (2026-11-05, a45f4e4) |
 | F15 | Sidebar footer | Look at the sidebar footer, light then dark | The cog icon of the design beside *Settings*; a separator line above All Sessions, Settings and About, visible in both themes | Pass (2026-11-05, 413bc92) |
+| F16 | Onboarding once | Both permissions granted; delete `settings.json` (or set `onboarded` to `false`), launch, *Continue*; relaunch | Onboarding shows at the first launch although both rows are green; after *Continue*, `onboarded` is `true` in `settings.json` and the next launch goes straight to the window | Not tested yet: the `onboarded` flag was added on 2026-11-04 (issue 26, found on Windows where nothing is ever missing). Run at the next macOS pass |
 
 ## macOS · Capture zone picker (issue 13)
 
@@ -199,15 +200,50 @@ display. The app runs elevated (UAC prompt at launch).
 | WA3 | Countdown digit | Start a Session with Ctrl+Shift+8 from the game | 3, 2, 1 centred in the frame over the game, the game never loses the focus, the Panowww window does not come forward | Pass (2026-11-03, a177336) |
 | WA4 | Progress and end pill | Let the Session run, then run another and stop it with Ctrl+Shift+9 | Bar and `k / n` pill inside the frame; `Done · n Shots` then gone after about 2 s; `Stopped · k / n` after a stop | Pass (2026-11-03, a177336) |
 | WA5 | Not in the Shots | Open the Session folder | No frame, digit, bar or pill in any PNG, no Panowww window, no yellow border was visible during the run | Pass: Shots clean, only the lavender frame on screen, no yellow border (2026-11-03, a177336) |
-| WA6 | Close quits | Close the main window with ✕ while idle, then while a Session runs | The process is gone within a second (Task Manager); the Session reads `interrupted` with its Shots; a plugged virtual pad disappears from Device Manager | Pass: the process quits, a Session closed mid-run or stopped reads `interrupted` (2026-11-03, a177336); the pad check not done (no gamepad Session run) |
+| WA6 | Close quits | Close the main window with ✕ while idle, then while a Session runs | The process is gone within a second (Task Manager); the Session reads `interrupted` with its Shots; a plugged virtual pad disappears from Device Manager | Pass: the process quits, a Session closed mid-run or stopped reads `interrupted` (2026-11-03, a177336); the pad check passed in WF5 (2026-11-07) |
 | WA7 | Windows chrome | Look at the main window | Native caption bar (─ ☐ ✕), 8 px cards and 4 px small radii, no space reserved for macOS traffic lights | Pass (2026-11-02, c762758). Found: the sidebar showed `⌘,` and Light came back dark after a relaunch (the caption bar kept the OS theme); fixed in dbf79ca and 3fdeec6, pass after. 2026-11-04: the caption bar flashed dark before turning light and folder lines mixed `/` and `\`; fixed in 247b32d (window born with the saved theme) and 96fed26 (OS separator in the UI), pass after |
 | WA8 | Reveal in Explorer | Sessions tab → *Reveal* on a row; Settings → *Reveal logs* | Explorer opens with the folder selected | Found: both opened Documents, and Sessions went to `target\release\~\Pictures\Panowww`: the UI's `~/Pictures/Panowww` placeholder had been saved as the Sessions folder (a consequence of the WA1 race) and a literal `~` is relative; `~` now expands on load and save, Explorer gets a native path. A space in the path (`Kevin Wenger`) still sent Explorer to Documents: `/select,"<path>"` is now one raw argument. Pass (2026-11-04, 96fed26): Explorer opens the parent with the Session (or `logs`) selected, as Finder's reveal does |
 | WA9 | Nothing moved? popover | Open it from a Windows mouse Game and a gamepad Game | Item 4 ends with "Use a gamepad Game for them."; the gamepad line mentions player 1 and the restart | Pass (2026-11-03, a177336) |
 | WA10 | Second display at 125 % | Set the secondary display to 125 %, draw a zone there, *Show zone*, run a Session | The picker covers that display exactly, the frame lands where the Shot is taken | Skipped by decision, as the matching macOS row (2026-11-03) |
-| WA11 | Reset the Sessions folder | Settings → *Change* the folder, then *Reset* | As F8, the folder back to `C:\Users\<you>\Pictures\Panowww` with backslashes | |
-| WA12 | Start card folder | As F9 | As F9, with `\` separators and a trailing `\` | |
-| WA13 | Settings shortcut caps | As F10 with Ctrl+, | `Ctrl` + `,` caps, Ctrl+, opens Settings | |
-| WA14 | Sessions tab folder | A Game → Sessions tab, the footer line | `Sessions are saved in <folder>\<Game>\` with backslashes only | |
-| WA15 | Settings and scroll shadows | As F11, F12 and F13 | Same as on macOS | |
-| WA16 | Dark colours | As F14, with `Ctrl` + `,`; the caption bar follows Dark | Same as on macOS | |
-| WA17 | Sidebar footer | As F15 | Same as on macOS | |
+| WA11 | Reset the Sessions folder | Settings → *Change* the folder, then *Reset* | As F8, the folder back to `C:\Users\<you>\Pictures\Panowww` with backslashes | Pass: `settings.json` holds `C:\Users\Kevin Wenger\Pictures\Panowww` after the Reset (2026-11-07, 389d6f1, installed build) |
+| WA12 | Start card folder | As F9 | As F9, with `\` separators and a trailing `\` | Pass (2026-11-07, 389d6f1) |
+| WA13 | Settings shortcut caps | As F10 with Ctrl+, | `Ctrl` + `,` caps, Ctrl+, opens Settings | Pass (2026-11-07, 389d6f1) |
+| WA14 | Sessions tab folder | A Game → Sessions tab, the footer line | `Sessions are saved in <folder>\<Game>\` with backslashes only | Pass (2026-11-07, 389d6f1) |
+| WA15 | Settings and scroll shadows | As F11, F12 and F13 | Same as on macOS | Pass (2026-11-07, 389d6f1) |
+| WA16 | Dark colours | As F14, with `Ctrl` + `,`; the caption bar follows Dark | Same as on macOS | Pass, Dark left saved (2026-11-07, 389d6f1) |
+| WA17 | Sidebar footer | As F15 | Same as on macOS | Pass (2026-11-07, 389d6f1) |
+
+## Windows · full flow (issue 26)
+
+The issue-19 protocol on Windows, from the installer. Build it with
+`pnpm tauri build`; the installer is
+`target\release\bundle\nsis\Panowww_0.0.1_x64-setup.exe` (per-user, no
+administrator rights to install; the app itself asks for UAC at every
+launch). A fresh install for WF2 = move `%APPDATA%\com.respawwwn.panowww`
+aside before launching. Reference games as above: NoClip for the keyboard
+and mouse-drag Games, Star Wars Battlefront 2 (offline Arcade, borderless)
+for the mouse-look and gamepad Games. Gamepad rows: physical controllers
+unplugged.
+
+| # | Check | How | Pass | Result |
+|---|---|---|---|---|
+| WF1 | Installer | Run the setup.exe, then launch Panowww from the Start menu; later Settings → Apps → Uninstall | Installs under `%LOCALAPPDATA%\Programs\Panowww` without a UAC prompt, a Start menu entry, the app launches with its UAC prompt; the uninstaller removes the program, not the data or the Sessions | Pass: installs and launches as intended, UAC at launch (2026-11-04, 6802bde); the uninstall half not run yet |
+| WF2 | Onboarding on a fresh install | Data folder moved aside, launch, *Continue*, relaunch | The *Running as administrator* card, a green ViGEmBus row (driver installed), *Continue* enabled; the main window follows with no Games and the default Settings (`~` expanded to the home folder); the relaunch skips onboarding (`onboarded` true in `settings.json`), and so does a launch with ViGEmBus stopped (the driver is optional) | Found: no onboarding at all. It only showed when a permission was missing, which on Windows with ViGEmBus never happens; macOS got its first launch by accident. Fixed: an `onboarded` flag in `settings.json`, set by *Later* / *Continue*; a missing ViGEmBus no longer counts as missing. Retest: pass, onboarding once with the two new texts, none at the relaunch (2026-11-04, 6615ded) |
+| WF3 | Keyboard Game, full flow | New Game on NoClip, keyboard (arrow keys), *Draw zone*, Turn test, adjust the hold, Turn test again, Pitch test, Check overlap (Turn, then Pitch), Step once, then a complete Session | Every tool runs from the app and its result line appears; the Session completes with every Shot, `Done · n Shots`, the end screen shows the grid and the folder | Pass: every tool ran with its result line, the Session completed with 91 Shots (7 × 13) in 95 s, Shots 8–41 ms each (2026-11-04, 6615ded, installed build). Side note from the log: every autosave of the editor is an atomic write the folder watcher reports as Removed + Changed, so the window re-lists the Games folder about 7 times a second while a field is being edited; harmless, a candidate for ignoring the app's own writes |
+| WF4 | Mouse-look Game | New Game on Battlefront 2, mouse (move), Turn test, Pitch test, a short Session | The camera turns in equal Steps with raw-input mouse look; the Session completes | Pass: Turn and Pitch tests with their result lines, then three complete Sessions of 78 Shots (6 × 13) in 90–100 s each, turn delta 806, pitch 790 (2026-11-04, installed build 6802bde) |
+| WF5 | Gamepad Game | New Game on Battlefront 2, gamepad; Turn test (restart the game once after the first countdown if it ignores the pad), a short Session; then close Panowww | The setup shows the pad as plugged; the game turns with the virtual right stick; the Session completes; after the close, the virtual controller is gone from Device Manager (the WA6 remainder) | Run on Overwatch (practice range) instead of Battlefront 2, physical pad unplugged: pad plugged at the first countdown (`virtual pad ready`, 2026-11-04 19:33) and kept across runs; tests with the stick, then a complete Session of 35 Shots (5 × 7, stick 0.8, turn hold 1054 ms, pitch 1429 ms) on 2026-11-07, installed build 6615ded. Close: the process gone, the virtual Xbox 360 controller gone from the device list, the ViGEmBus alone left (2026-11-07). Pass |
+| WF6 | Interrupted Session | Ctrl+Shift+9 during a Session; then close the window with ✕ during another | Both rows read `interrupted` with the Shots taken so far; nothing stays held in the game | Pass: the shortcut stop closed the Session at once (`Interrupted shots=1`), the ✕ close wrote `Interrupted` before the process left, the relaunch 12 s later found nothing stale; nothing held (2026-11-04, 6615ded) |
+| WF7 | Session row actions | Sessions tab: Zip, Reveal, Delete on one row | The zip appears next to the folder; Explorer opens with the folder selected; Delete removes the folder and its zip | Pass (2026-11-04, 6615ded) |
+| WF8 | Share → Import, same machine | Game → Share to a file; sidebar → Import that file | The `.panowww.json` is written where chosen; Import shows Replace / Keep both; Keep both adds the Game under a renamed copy | Pass (2026-11-04, 6615ded) |
+| WF9 | Settings folder | Settings → Change the Sessions folder, run a Session, change it back | The folder dialog returns a native path; the Session lands in the new folder; the tables follow | Pass: a Session landed in `Documents\ShareX\Screenshots\<Game>\…` after the change, the folder changed back after (2026-11-04, 6615ded) |
+| WF10 | Rebinding | Settings → change Start to another combo, Save; try Start = Stop | The old combo does nothing, the new one starts; Start = Stop is refused inline | Pass (2026-11-04, 6615ded) |
+| WF11 | Update bar | Against a newer Release once the repository has one (issue 21) | The bottom bar links the release page; the Settings switch hides it | Waits for issue 21 |
+| WF12 | WebView2 bootstrapper | Install on a machine without the WebView2 runtime | The installer downloads and installs the runtime before the app | Not available: Windows 11 ships the runtime |
+
+Game matrix:
+
+| Game | Input device | Mode | Display mode | WF3 | WF4 | WF5 | Notes |
+|---|---|---|---|---|---|---|---|
+| NoClip (noclip.website) | Keyboard | Arrow keys | Maximized browser, primary display | ✓ 2026-11-04 | – | – | 7 × 13 Session, 91 Shots |
+| Star Wars Battlefront 2 (2017) | Mouse | Move (raw input) | Borderless, primary display | – | ✓ 2026-11-04 | – | Offline Arcade only; 6 × 13 Sessions, 78 Shots |
+| Overwatch | Gamepad | Right stick | Primary display | – | – | ✓ 2026-11-07 | Practice range; 5 × 7 Session, 35 Shots |

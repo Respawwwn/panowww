@@ -13,6 +13,10 @@ extend-exclude = [
     ".idea/",
 ]
 
+[default]
+# Short commit hashes cited in the manual tests (6615ded, …).
+extend-ignore-re = ["\\b[0-9a-f]{7}\\b"]
+
 [default.extend-words]
 # Brand names: Respawwwn and Panowww.
 # A crate name cited in the research notes.

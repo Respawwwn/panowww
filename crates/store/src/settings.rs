@@ -88,6 +88,10 @@ pub struct Settings {
     /// files: missing means `Auto`.
     #[serde(default)]
     pub appearance: Appearance,
+    /// Onboarding was closed once with *Later* or *Continue* (spec §11.11:
+    /// shown at first launch). Missing in older files means not yet.
+    #[serde(default)]
+    pub onboarded: bool,
 }
 
 /// The window's appearance (spec §12: follows the OS by default).
@@ -112,6 +116,7 @@ impl Default for Settings {
             check_for_updates: true,
             display_preview: true,
             appearance: Appearance::Auto,
+            onboarded: false,
         }
     }
 }
@@ -189,6 +194,7 @@ fn read(path: &Path, text: &str) -> Result<Loaded<Settings>, StoreError> {
                 check_for_updates: v0.check_for_updates.unwrap_or(defaults.check_for_updates),
                 display_preview: v0.display_preview.unwrap_or(defaults.display_preview),
                 appearance: defaults.appearance,
+                onboarded: defaults.onboarded,
             },
             migrated: true,
         })
@@ -241,6 +247,20 @@ mod tests {
         settings.sessions_folder = PathBuf::from("/Volumes/Shots");
         settings.save(&paths).unwrap();
         assert_eq!(Settings::load(&paths).unwrap(), settings);
+    }
+
+    #[test]
+    fn a_version_one_file_without_the_newer_keys_loads_with_their_defaults() {
+        let (_dir, paths) = paths();
+        let mut text = serde_json::to_string(&Settings::default()).unwrap();
+        for key in [r#","appearance":"auto""#, r#","onboarded":false"#] {
+            assert!(text.contains(key), "{text}");
+            text = text.replace(key, "");
+        }
+        std::fs::write(paths.settings_file(), text).unwrap();
+        let settings = Settings::load(&paths).unwrap();
+        assert_eq!(settings.appearance, Appearance::Auto);
+        assert!(!settings.onboarded);
     }
 
     #[test]

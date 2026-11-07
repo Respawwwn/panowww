@@ -18,6 +18,7 @@ export const defaultSettings: Settings = {
   checkForUpdates: true,
   displayPreview: true,
   appearance: "auto",
+  onboarded: false,
 };
 
 let current = $state<Settings>(structuredClone(defaultSettings));
