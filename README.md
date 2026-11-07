@@ -19,8 +19,7 @@
   <a href="https://github.com/Respawwwn/panowww/releases/latest"><img src="docs/readme/download-windows.svg" alt="Download for Windows" height="48"></a>
 </p>
 
-<!-- Hero: a static screenshot until the animated hero lands (issue 27). -->
-<img src="docs/readme/session.webp" alt="Panowww during a Session: progress, the Display preview with the Capture zone frame, and the Shots coming in" width="900">
+<img src="docs/readme/hero.svg" alt="Panowww on the left display and World of Warcraft on the right: the Capture zone is drawn over the game, a Session turns the camera Shot by Shot while the Shots fill Panowww, and the 98 Shots end up stitched into a 360° panorama" width="900">
 
 </div>
 
