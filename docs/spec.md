@@ -20,7 +20,7 @@ Companion files: [GLOSSARY.md](../GLOSSARY.md) (vocabulary, binding), [docs/adr/
 
 Panowww captures the source Shots of a 360° panorama inside a video game: it drives the in-game camera (keyboard, mouse or virtual gamepad), takes a lossless screenshot of a Capture zone after every Step, and leaves a folder (or a zip) ready to stitch in **PTGui or Autopano Giga**. Open source (MIT), Rust, macOS and Windows, made by Respawwwn. It replaces the Python script [game-pano-capture](https://github.com/Respawwwn/game-pano-capture) (branch `dev` is the prior art; no license, same author).
 
-Tagline (`about.tagline`): *Captures the Shots of a 360° panorama inside a video game, ready to stitch.*
+Tagline (`about.tagline`): *Automated 360° panorama capture for video games.*
 
 ### 1.2 Scope of v1
 
@@ -680,7 +680,7 @@ All user-visible strings live in `ui/src/lib/strings.ts`, keyed as below; per-OS
 | `settings.defaults` | under New Game defaults | line | Applied to every new Game. Existing Games keep their values. |
 | `settings.displayPreview.label` | Settings | label | Show the Display preview during a countdown and a Session |
 | `settings.displayPreview.hint` | under the switch | line | Turn it off if the game stutters while Panowww runs. |
-| `about.tagline` | About, README, empty state | line | Captures the Shots of a 360° panorama inside a video game, ready to stitch. |
+| `about.tagline` | About, README, empty state | line | Automated 360° panorama capture for video games. |
 | `about.licence` | About | line | Panowww is a Respawwwn project by Kevin Wenger. MIT License. The Respawwwn name and logo are not covered by the license. |
 | `about.upToDate` | About | chip | You're up to date. |
 | `update.banner` | bottom bar, every screen | bar | Panowww {version} is available · See what's new |
@@ -721,7 +721,7 @@ Full process in [docs/release.md](release.md). Summary:
   1. *Header*, centred: app icon, title, tagline, badges (latest release, platforms macOS · Windows, licence MIT, Discord), then two buttons *Download for macOS* / *Download for Windows* linking `releases/latest`.
   2. *Hero*: an animated two-display mockup (the game on one, Panowww at 60–80 % on the other, over a background, zooming on each step), produced by issue 27; a static screenshot until it exists.
   3. *Why Panowww*: what it does, the hand-off to PTGui or Autopano Giga, link to [How to Create a 360° Panorama in a Video Game](https://www.youtube.com/watch?v=ZR5Tn9tmDEM).
-  4. *Screenshots*: Capture zone picker, Game Setup, Check overlap, overlay during a Session, Session view, Sessions list (stitching joins when it exists).
+  4. *Screenshots*: Game Setup, Capture zone picker, Session running, Session completed (decided 2026-11-07: four are enough; stitching joins when it exists).
   5. *Quick start*: five lines, Game → Capture zone → Test → Session → zip → stitch.
   6. *Requirements*: macOS 14+ on Apple Silicon, Windows 10/11 x64, game in borderless windowed mode, ViGEmBus for a gamepad Game, a stitching program.
   7. *Download*: the two files of the latest release.

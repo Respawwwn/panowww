@@ -1,0 +1,54 @@
+name: Bug report
+description: Panowww itself misbehaves (a crash, a wrong screen, a broken button).
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A game ignores the camera moves? Use **Game doesn't work** instead, and check the README's FAQ first.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you did, what you expected, what you got instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open …
+        2. Click …
+        3. See …
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Windows
+    validations:
+      required: true
+  - type: input
+    id: os-version
+    attributes:
+      label: OS version
+      placeholder: macOS 15.5, Windows 11 24H2…
+    validations:
+      required: true
+  - type: input
+    id: panowww-version
+    attributes:
+      label: Panowww version
+      description: Shown in Panowww → About.
+      placeholder: 1.0.0
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs and screenshots
+      description: Settings → Reveal logs opens the log folder. Drop the latest log file or a screenshot here.

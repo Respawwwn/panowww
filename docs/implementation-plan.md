@@ -220,9 +220,9 @@ Acceptance: a tag on a test branch produces a draft Release with both files; the
 
 **Spec**: §14 (README outline, contributing, licence), §13.6 (Troubleshooting entry), §13.7.
 
-README in the §14 order with real screenshots from issue 19 (taken with `just fixtures`); the hero is a static screenshot until issue 27 lands. `CONTRIBUTING.md`, the three issue templates, `LICENSE`; `NOTICE` exists (issue 20). The going-public checklist stays in `docs/release.md`. Tone: English, "we", short, no slang in instructions.
+README in the §14 order with the four §14 images (two app captures, two Session boards rendered with real Shots); the hero is a static screenshot until issue 27 lands. `CONTRIBUTING.md`, the three issue templates, `LICENSE`; `NOTICE` exists (issue 20). The going-public checklist stays in `docs/release.md`. Tone: English, "we", short, no slang in instructions.
 
-Acceptance: every §14 section present in order; badges and Download buttons resolve once the repo is public (`releases/latest`); screenshots committed under `docs/readme/`, each ≤ 500 KB.
+Acceptance: every §14 section present in order; badges and Download buttons resolve once the repo is public (`releases/latest`); images committed under `docs/readme/`, each ≤ 500 KB.
 
 ## 27. README hero animation
 

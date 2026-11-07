@@ -70,6 +70,7 @@ Before flipping `Respawwwn/panowww` to public (planned with `v1.0.0-beta.1`):
 - [ ] `.wayfinder/` is git-ignored and absent from history
 - [ ] `LICENSE` (MIT, Kevin Wenger (Respawwwn)), `NOTICE` (Respawwwn marks), `README.md`, `CONTRIBUTING.md` are in place with real screenshots
 - [ ] Issue templates exist: Bug report, Game doesn't work, Feature request
+- [ ] Labels `bug`, `game` and `enhancement` exist (the issue templates apply them; GitHub ignores a missing one)
 - [ ] Repository settings: Issues and Discussions enabled, default branch `main` protected
 - [ ] Flip to public, then tag and publish `v1.0.0-beta.1` as a pre-release
 - [ ] The in-app update check starts working only now (it reads the public Releases API)

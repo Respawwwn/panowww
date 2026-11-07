@@ -1,0 +1,70 @@
+name: Game doesn't work
+description: Panowww runs, but a game ignores the camera moves or the Shots come out wrong.
+labels: [game]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before you open this, go through **Nothing moves during a Test or a Session** in the README's FAQ: most cases are solved there.
+  - type: input
+    id: game
+    attributes:
+      label: Game
+      description: Title, and where it runs from (Steam, Epic, browser…).
+      placeholder: Elden Ring (Steam)
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Windows
+    validations:
+      required: true
+  - type: dropdown
+    id: input-device
+    attributes:
+      label: Input device
+      options:
+        - Keyboard
+        - Mouse (Move)
+        - Mouse (Drag)
+        - Gamepad
+    validations:
+      required: true
+  - type: dropdown
+    id: display-mode
+    attributes:
+      label: Game display mode
+      options:
+        - Borderless windowed
+        - Windowed
+        - Exclusive fullscreen
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: what-happens
+    attributes:
+      label: What happens
+      description: Does the camera not move at all, move the wrong way, move too far? Do the Shots look wrong? Did the *Nothing moved?* warning show?
+    validations:
+      required: true
+  - type: textarea
+    id: game-file
+    attributes:
+      label: Game file
+      description: In Panowww, open the Game and click Share, then drop the `.panowww.json` file here or paste its content.
+      render: json
+    validations:
+      required: true
+  - type: input
+    id: panowww-version
+    attributes:
+      label: Panowww version
+      description: Shown in Panowww → About.
+      placeholder: 1.0.0
+    validations:
+      required: true
