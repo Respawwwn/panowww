@@ -14,3 +14,6 @@ prototype/
 
 # The capture crate's shot example writes its Shot in the working directory.
 /shot.png
+
+# The README hero's build kit (boards, Shots, build script): kept local, only hero.svg is committed.
+/docs/readme/hero/

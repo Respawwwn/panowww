@@ -228,7 +228,9 @@ Acceptance: every §14 section present in order; badges and Download buttons res
 
 **Spec**: §14 (README, *Hero*).
 
-HITL. The AltTab-style hero: two displays as a mockup over a background, the game on one, Panowww at 60–80 % on the other, zooming on each step (Game, Capture zone, Test, Session with the overlay, Sessions list). Built with Remotion in its own folder or repository (decided when the issue starts): screen recordings by the human embedded in mockups, and the real UI (`ui/`, the gallery screen with the mocked API) rendered for the app parts. Animated SVG preferred, built like AltTab's `scripts/build_readme_svg.py` (98 lines of standard-library Python): a handful of stills (Remotion `renderStill`, or plain captures) embedded as base64 JPEG / WebP, animated with SMIL `<animate>` / `<animateTransform>` (cross-fades, zooms, pans; the game camera turn as a pan across a real panorama strip), no script, no external file, no `<video>`; a GIF only if the motion needs real video frames. Output: a looping animated SVG or GIF sized from `docs/research/readme-references.md` (target ≤ 5 MB, ≈ 900 px wide, ≤ 15 s), committed under `docs/readme/` and swapped into the README hero.
+HITL. The AltTab-style hero as one animated SVG (`docs/readme/hero.svg`): two displays over the brand background, Panowww on the left, the game on the right. The Capture zone card pops out and *Set zone* is clicked, the zone is drawn over the game, *Start Session* is clicked, 3-2-1, every Shot turns the camera with a flash while its tile lands in Panowww, the game fades and Panowww comes to the centre on the completed Session, then the stitched panorama closes the loop. Stills (the human's app captures, the Session board, the real Shots and the stitched panorama of one World of Warcraft Session) embedded as WebP data URIs and animated with SMIL, no script and no external file. The build kit stays local; only the SVG is committed.
+
+Acceptance: the README hero plays on GitHub in light and dark mode; the SVG stays under 5 MB.
 
 ## 23. `input` Windows: SendInput and ViGEm
 
