@@ -96,7 +96,15 @@ Reference game in a full-screen Space on the zone's display. The overlay is a `t
 | F5 | Update bar | Against a newer Release once the repository has one (issue 21) | The bottom bar links the release page; the Settings switch hides it | Waits for issue 21 |
 | F6 | Onboarding on a fresh install | Release bundle, `tccutil reset All com.respawwwn.panowww`, launch | Both rows red; *Open System Settings* on each shows the system prompt and opens the right pane; a row turns green as soon as its switch is ticked and the window comes back to the front; Screen Recording asks for a relaunch, then *Continue* is enabled | Pass on the release build after a TCC reset: both rows turn green live, Continue enabled after the Screen Recording relaunch (2026-11-01, 51bda69) |
 | F7 | No Input Monitoring | Same run, watch the prompts | macOS never asks for Input Monitoring: Panowww only posts events, which the Accessibility grant covers | Pass after a TCC reset: no Input Monitoring prompt (2026-11-01). The first run had one, accepted at 14:29:52, trigger not found; watch for it on fresh installs |
-| F8 | Onboarding once | Both permissions granted; delete `settings.json` (or set `onboarded` to `false`), launch, *Continue*; relaunch | Onboarding shows at the first launch although both rows are green; after *Continue*, `onboarded` is `true` in `settings.json` and the next launch goes straight to the window | Not tested yet: the `onboarded` flag was added on 2026-11-04 (issue 26, found on Windows where nothing is ever missing). Run at the next macOS pass |
+| F8 | Reset the Sessions folder | Settings → *Change* the folder, then *Reset* | *Reset* appears next to *Reveal* only while the folder is not `~/Pictures/Panowww`; it brings that folder back (full path) and disappears; *Appearance* and *Folder* sit in a narrower label column | Pass (2026-11-05, b1cfda6) |
+| F9 | Start card folder | Game → Setup, look at the bottom line of the purple Start card | `<Sessions folder>/<Game>/` in a translucent white code chip, ellipsis when too long, the full path on hover | Pass (2026-11-05, 780ec03) |
+| F10 | Settings shortcut caps | Look at the sidebar footer, light then dark; press Cmd+, | *Settings* ends with `Cmd` + `,` key caps like Start and Stop, white caps on the lavender sidebar (card colour in dark); Cmd+, opens Settings | Pass (2026-11-05, 91b1238) |
+| F11 | Settings label columns | Open Settings | General and Shortcuts share a narrow label column; New Game defaults keeps the wide one for its long labels | Pass (2026-11-05, e9322a0) |
+| F12 | Modal scroll shadow | Settings, scroll the body down then back to the top | A line and soft shadow appear under the title bar once scrolled, gone at the top; light and dark | Pass (2026-11-05, 9a655e9) |
+| F13 | Detail scroll shadow | A Game's Setup then Sessions tab, scroll; switch tab while scrolled; All Sessions, scroll | The shadow appears under the Game's title row (12 px under its buttons) once scrolled, gone at the top and after a tab or Game switch; under the All Sessions toolbar, the shade only (it keeps its border) | Pass on a Game's Setup (2026-11-05, 6c2947b); All Sessions not looked at |
+| F14 | Dark colours | Settings → Appearance → Dark, walk the main screens | Neutral greys of direction A (no purple tint) on sidebar, content, cards and fields; purple accent; the Start card's *Start Session* is the toolbar purple; the `Cmd` + `,` caps stand out from the sidebar | Pass (2026-11-05, a45f4e4) |
+| F15 | Sidebar footer | Look at the sidebar footer, light then dark | The cog icon of the design beside *Settings*; a separator line above All Sessions, Settings and About, visible in both themes | Pass (2026-11-05, 413bc92) |
+| F16 | Onboarding once | Both permissions granted; delete `settings.json` (or set `onboarded` to `false`), launch, *Continue*; relaunch | Onboarding shows at the first launch although both rows are green; after *Continue*, `onboarded` is `true` in `settings.json` and the next launch goes straight to the window | Not tested yet: the `onboarded` flag was added on 2026-11-04 (issue 26, found on Windows where nothing is ever missing). Run at the next macOS pass |
 
 ## macOS · Capture zone picker (issue 13)
 
@@ -108,6 +116,20 @@ Reference game in a full-screen Space on the zone's display. The overlay is a `t
 | P4 | Show frame on screen | Tick the checkbox while drawing, then Save | The overlay frame appears exactly on the rectangle (through the picker's dim); it goes away with the windows | Pass (2026-11-01, f46c8df) |
 | P5 | Cancel and Esc | *Cancel* in one window; open again and press Esc in the other | Every picker window closes, the zone is unchanged, Setup is usable again | Found: Esc did nothing (the panel was not the key responder). Fixed: the focused picker window takes the keyboard. Retest: pass, Esc and Cancel both close (2026-11-01) |
 | P6 | Display changed | Save a zone, change that display's resolution, reopen Setup | The amber *Display n is gone or its resolution changed* box; *Change zone…* opens the picker on the display as it is now | Not run by decision (2026-11-02): a resolution change after the zone is saved is out of scope for v1; the amber box and *Change zone…* stay as the safety net |
+
+## macOS · after the Windows app work (issue 25)
+
+The Windows commits touched shared code: window creation order, the theme
+the main window is born with, `~` expansion and OS separators for the
+Sessions folder, the overlay and the picker. Rerun on the macOS release
+bundle (`pnpm tauri build`).
+
+| # | Check | How | Pass | Result |
+|---|---|---|---|---|
+| MR1 | Window creation | Launch the bundle | Games and saved settings show at once, no reload needed | Pass (2026-11-05, ce60d17) |
+| MR2 | Theme at launch | Pick Light, then Dark, relaunch each time | The window opens in the saved theme, no flash | Pass (2026-11-05, ce60d17) |
+| MR3 | Sessions folder | Settings and Sessions tab: folder lines, *Reveal* on a row | Paths use `/`, `~` shows the home folder, Finder opens with the Session selected | Pass (2026-11-05, ce60d17) |
+| MR4 | Overlay and zone picker | *Set zone…* with two displays, *Show zone*, run a Session | Picker and overlay as in P1–P4 and O1–O8 | Pass (2026-11-05, ce60d17) |
 
 ## Windows · input (issue 23)
 
@@ -183,6 +205,13 @@ display. The app runs elevated (UAC prompt at launch).
 | WA8 | Reveal in Explorer | Sessions tab → *Reveal* on a row; Settings → *Reveal logs* | Explorer opens with the folder selected | Found: both opened Documents, and Sessions went to `target\release\~\Pictures\Panowww`: the UI's `~/Pictures/Panowww` placeholder had been saved as the Sessions folder (a consequence of the WA1 race) and a literal `~` is relative; `~` now expands on load and save, Explorer gets a native path. A space in the path (`Kevin Wenger`) still sent Explorer to Documents: `/select,"<path>"` is now one raw argument. Pass (2026-11-04, 96fed26): Explorer opens the parent with the Session (or `logs`) selected, as Finder's reveal does |
 | WA9 | Nothing moved? popover | Open it from a Windows mouse Game and a gamepad Game | Item 4 ends with "Use a gamepad Game for them."; the gamepad line mentions player 1 and the restart | Pass (2026-11-03, a177336) |
 | WA10 | Second display at 125 % | Set the secondary display to 125 %, draw a zone there, *Show zone*, run a Session | The picker covers that display exactly, the frame lands where the Shot is taken | Skipped by decision, as the matching macOS row (2026-11-03) |
+| WA11 | Reset the Sessions folder | Settings → *Change* the folder, then *Reset* | As F8, the folder back to `C:\Users\<you>\Pictures\Panowww` with backslashes | |
+| WA12 | Start card folder | As F9 | As F9, with `\` separators and a trailing `\` | |
+| WA13 | Settings shortcut caps | As F10 with Ctrl+, | `Ctrl` + `,` caps, Ctrl+, opens Settings | |
+| WA14 | Sessions tab folder | A Game → Sessions tab, the footer line | `Sessions are saved in <folder>\<Game>\` with backslashes only | |
+| WA15 | Settings and scroll shadows | As F11, F12 and F13 | Same as on macOS | |
+| WA16 | Dark colours | As F14, with `Ctrl` + `,`; the caption bar follows Dark | Same as on macOS | |
+| WA17 | Sidebar footer | As F15 | Same as on macOS | |
 
 ## Windows · full flow (issue 26)
 

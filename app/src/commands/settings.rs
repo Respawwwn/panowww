@@ -97,6 +97,15 @@ pub async fn choose_sessions_folder<R: tauri::Runtime>(
         .map(|p| p.display().to_string()))
 }
 
+/// The default Sessions folder, resolved (`~/Pictures/Panowww` with the
+/// home folder and native separators), for Settings' *Reset*.
+#[tauri::command]
+pub fn default_sessions_folder() -> String {
+    panowww_store::paths::default_sessions_folder()
+        .display()
+        .to_string()
+}
+
 /// Settings → *Reveal logs*: the app's logs folder in Finder / Explorer.
 #[tauri::command]
 pub fn reveal_logs<R: tauri::Runtime>(app: AppHandle<R>) -> CmdResult<()> {

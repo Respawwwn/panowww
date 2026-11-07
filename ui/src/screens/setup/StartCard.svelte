@@ -6,6 +6,7 @@ import Button from "../../components/Button.svelte";
 import Icon from "../../components/Icon.svelte";
 import type { GameEditor } from "../../lib/editor.svelte";
 import type { DisabledReason } from "../../lib/game";
+import { detectPlatform } from "../../lib/shortcut";
 import { interpolate, strings } from "../../lib/strings";
 
 type Props = {
@@ -37,7 +38,9 @@ const detail = $derived(
       })
     : "",
 );
-const folder = $derived(`${sessionsFolder.replace(/\/$/, "")}/${editor.game.name}/`);
+// `<Sessions folder>/<Game>/` with this OS's separator, as SessionEnd shows it.
+const sep = detectPlatform() === "windows" ? "\\" : "/";
+const folder = $derived(`${sessionsFolder.replace(/[\\/]$/, "")}${sep}${editor.game.name}${sep}`);
 </script>
 
 <section class="start">
@@ -51,7 +54,7 @@ const folder = $derived(`${sessionsFolder.replace(/\/$/, "")}/${editor.game.name
       {strings.detail.startSession}
     </Button>
   </div>
-  <p class="path" title={folder}>{folder}</p>
+  <p class="path"><code title={folder}>{folder}</code></p>
 </section>
 
 <style>
@@ -66,8 +69,8 @@ const folder = $derived(`${sessionsFolder.replace(/\/$/, "")}/${editor.game.name
   }
 
   .start :global(.btn.primary) {
-    background: #fff;
-    color: #4a3c96;
+    background: var(--startcard-btn);
+    color: var(--startcard-btn-fg);
   }
 
   .top {
@@ -98,9 +101,19 @@ const folder = $derived(`${sessionsFolder.replace(/\/$/, "")}/${editor.game.name
   }
 
   .path {
+    display: flex;
+    min-width: 0;
+  }
+
+  /* The folder chip of the Sessions screens, in white on the purple card. */
+  code {
+    max-width: 100%;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: rgb(255 255 255 / 14%);
+    color: var(--startcard-fg);
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 11.5px;
-    color: var(--startcard-sub);
+    font-size: 11px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

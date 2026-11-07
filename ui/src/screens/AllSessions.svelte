@@ -13,14 +13,15 @@ import { windows } from "../lib/windows.svelte";
 
 let count = $state(0);
 let total = $state(0);
+let scrolled = $state(false);
 </script>
 
-<div class="toolbar" data-tauri-drag-region>
+<div class="toolbar" class:scrolled data-tauri-drag-region>
   <h1>{strings.sessions.title}</h1>
   <span class="sub">{interpolate(strings.sessions.summary, { n: count, size: formatBytes(total) })}</span>
 </div>
 
-<div class="all">
+<div class="all" onscroll={(e) => (scrolled = e.currentTarget.scrollTop > 0)}>
   <SessionsTable
     showGame
     onloaded={(rows, bytes) => {
@@ -47,6 +48,13 @@ let total = $state(0);
     padding: 0 24px;
     border-bottom: 1px solid var(--line);
     flex: none;
+    position: relative;
+    z-index: 1;
+    transition: box-shadow 0.15s ease;
+  }
+
+  .toolbar.scrolled {
+    box-shadow: var(--scroll-shade);
   }
 
   h1 {

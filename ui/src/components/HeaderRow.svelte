@@ -8,12 +8,14 @@ type Props = {
   /** Beside the title, on its baseline: the Sessions count and size. */
   aside?: Snippet;
   actions?: Snippet;
+  /** The content below is scrolled: a soft shadow as it slides under. */
+  scrolled?: boolean;
 };
 
-let { title, aside, actions }: Props = $props();
+let { title, aside, actions, scrolled = false }: Props = $props();
 </script>
 
-<header class="header">
+<header class="header" class:scrolled>
   <div class="name">
     <h1 class="t-title">{title}</h1>
     {#if aside}
@@ -31,7 +33,15 @@ let { title, aside, actions }: Props = $props();
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    padding: 16px 24px 4px;
+    padding: 16px 24px 12px;
+    flex: none;
+    position: relative;
+    z-index: 1;
+    transition: box-shadow 0.15s ease;
+  }
+
+  .header.scrolled {
+    box-shadow: var(--scroll-shadow);
   }
 
   .name {

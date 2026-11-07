@@ -1,6 +1,7 @@
 <script lang="ts">
 // A secondary window over the app (b.css `.win`): title bar, body,
-// optional footer. Esc or the scrim closes it.
+// optional footer. Esc or the scrim closes it. The title bar casts a soft
+// shadow once the body is scrolled, as content slides under it.
 import type { Snippet } from "svelte";
 
 type Props = {
@@ -16,6 +17,8 @@ type Props = {
 };
 
 let { title, width = 640, height, onclose, children, footer, aside }: Props = $props();
+
+let scrolled = $state(false);
 
 function onKeyDown(event: KeyboardEvent) {
   if (event.key === "Escape") {
@@ -34,12 +37,14 @@ function onKeyDown(event: KeyboardEvent) {
     style:width="min({width}px, 94vw)"
     style:height={height ? `min(${height}px, 92vh)` : undefined}
   >
-    <header class="win-t">
+    <header class="win-t" class:scrolled>
       <h2>{title}</h2>
       {@render aside?.()}
       <button type="button" class="close" aria-label="Close" onclick={onclose}>✕</button>
     </header>
-    <div class="win-b">{@render children?.()}</div>
+    <div class="win-b" onscroll={(e) => (scrolled = e.currentTarget.scrollTop > 0)}>
+      {@render children?.()}
+    </div>
     {#if footer}
       <footer class="win-f">{@render footer()}</footer>
     {/if}
@@ -75,6 +80,13 @@ function onKeyDown(event: KeyboardEvent) {
     padding: 0 14px;
     background: var(--sidebar);
     flex: none;
+    position: relative;
+    z-index: 1;
+    transition: box-shadow 0.15s ease;
+  }
+
+  .win-t.scrolled {
+    box-shadow: var(--scroll-shadow);
   }
 
   h2 {

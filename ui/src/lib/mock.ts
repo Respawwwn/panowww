@@ -215,6 +215,8 @@ export function installMock(): void {
       case "reveal_logs":
       case "apply_shortcuts":
         return null;
+      case "default_sessions_folder":
+        return defaultSettings.sessionsFolder;
       case "choose_sessions_folder":
         return "/Volumes/Shots/Panowww";
       case "permissions":
