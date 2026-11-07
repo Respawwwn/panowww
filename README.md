@@ -4,7 +4,7 @@
 
 <h1>Panowww</h1>
 
-<p>Captures the Shots of a 360° panorama inside a video game, ready to stitch.</p>
+<p>Automated 360° panorama capture for video games.</p>
 
 <p>
   <a href="https://github.com/Respawwwn/panowww/releases/latest"><img src="https://img.shields.io/github/v/release/Respawwwn/panowww?include_prereleases&label=release&color=6454b5" alt="Latest release"></a>

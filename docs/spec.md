@@ -20,7 +20,7 @@ Companion files: [GLOSSARY.md](../GLOSSARY.md) (vocabulary, binding), [docs/adr/
 
 Panowww captures the source Shots of a 360° panorama inside a video game: it drives the in-game camera (keyboard, mouse or virtual gamepad), takes a lossless screenshot of a Capture zone after every Step, and leaves a folder (or a zip) ready to stitch in **PTGui or Autopano Giga**. Open source (MIT), Rust, macOS and Windows, made by Respawwwn. It replaces the Python script [game-pano-capture](https://github.com/Respawwwn/game-pano-capture) (branch `dev` is the prior art; no license, same author).
 
-Tagline (`about.tagline`): *Captures the Shots of a 360° panorama inside a video game, ready to stitch.*
+Tagline (`about.tagline`): *Automated 360° panorama capture for video games.*
 
 ### 1.2 Scope of v1
 
@@ -680,7 +680,7 @@ All user-visible strings live in `ui/src/lib/strings.ts`, keyed as below; per-OS
 | `settings.defaults` | under New Game defaults | line | Applied to every new Game. Existing Games keep their values. |
 | `settings.displayPreview.label` | Settings | label | Show the Display preview during a countdown and a Session |
 | `settings.displayPreview.hint` | under the switch | line | Turn it off if the game stutters while Panowww runs. |
-| `about.tagline` | About, README, empty state | line | Captures the Shots of a 360° panorama inside a video game, ready to stitch. |
+| `about.tagline` | About, README, empty state | line | Automated 360° panorama capture for video games. |
 | `about.licence` | About | line | Panowww is a Respawwwn project by Kevin Wenger. MIT License. The Respawwwn name and logo are not covered by the license. |
 | `about.upToDate` | About | chip | You're up to date. |
 | `update.banner` | bottom bar, every screen | bar | Panowww {version} is available · See what's new |

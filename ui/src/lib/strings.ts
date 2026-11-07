@@ -420,7 +420,7 @@ export const strings = {
       kofi: "Ko-fi",
       github: "GitHub",
     },
-    tagline: "Captures the Shots of a 360° panorama inside a video game, ready to stitch.",
+    tagline: "Automated 360° panorama capture for video games.",
     by: "By",
     brand: "Respawwwn",
     licence:
