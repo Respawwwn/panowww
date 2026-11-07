@@ -28,7 +28,7 @@
 
 A 360° panorama of a game world is made of dozens of Shots taken from the same spot, turning the camera a little between each one. Doing it by hand means hundreds of key presses, a steady hand and a lot of patience.
 
-Panowww does it for you. You describe once how the camera moves in a game (keys, mouse or gamepad, how far one Step turns, how many Rows), draw the zone of the screen to capture, and start a Session. Panowww turns the camera, takes a lossless Shot after every Step, and leaves a folder ready to stitch in [PTGui](https://ptgui.com) or Autopano Giga.
+Panowww does it for you. You describe once how the camera moves in a game (keys, mouse or gamepad, how far one Step turns, how many Rows), draw the zone of the screen to capture, and start a Session. Panowww turns the camera, takes a lossless Shot after every Step, and leaves a folder ready to stitch in [PTGui](https://ptgui.com) or [Autopano Giga](https://www.kolor.com/autopano/).
 
 New to game panoramas? Watch [How to Create a 360° Panorama in a Video Game](https://www.youtube.com/watch?v=ZR5Tn9tmDEM).
 
@@ -61,7 +61,7 @@ New to game panoramas? Watch [How to Create a 360° Panorama in a Video Game](ht
 | Permissions | Accessibility and Screen Recording | Runs as administrator |
 | Gamepad Games | Not available | [ViGEmBus 1.22.0](https://github.com/nefarius/ViGEmBus/releases/tag/v1.22.0) |
 
-On both: the game runs in **borderless windowed** mode, and you need a stitching program such as [PTGui](https://ptgui.com) or Autopano Giga.
+On both: the game runs in **borderless windowed** mode, and you need a stitching program such as [PTGui](https://ptgui.com) or [Autopano Giga](https://www.kolor.com/autopano/).
 
 ## Download
 
