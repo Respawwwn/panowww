@@ -331,6 +331,8 @@ cache/thumbnails/<session-id>/rNN_cNN.jpg     # history thumbnails, generated on
 | `newGameDefaults.startPole`, `.waitAfterMoveMs`, `.waitAfterShotMs` | `nadir`, 300, 300 |
 | `checkForUpdates` | `true` |
 | `displayPreview` | `true` |
+| `appearance` | `auto` (`light`, `dark`) |
+| `onboarded` | `false`; `true` once onboarding was closed with *Later* or *Continue* (§11.11) |
 
 `local-games.json` (`format: "panowww-local-games"`, `version: 1`): map Game `id` → `{ zone: { displayId, x, y, w, h, displayW, displayH, scale } }`. Coordinates are points on macOS, physical pixels on Windows; `displayId` is the OS's stable display identifier. At load, a zone whose display is gone or whose size/scale changed is reported as *display changed*; it is never rescaled, the user redraws it.
 
@@ -519,7 +521,7 @@ One popover component (shared with the failed-row `?`): `nothingMoved.title`, `n
 
 ### 11.11 Onboarding window
 
-Shown at first launch, whenever a permission is missing at launch, and from Settings → *Review permissions…*. `onboarding.title`.
+Shown at first launch (`onboarded` in `settings.json`, set by *Later* or *Continue*), whenever a macOS permission is missing at launch, and from Settings → *Review permissions…*. A missing ViGEmBus never brings it back: the driver is optional. `onboarding.title`.
 - macOS: `onboarding.mac.subtitle`, `intro`; Accessibility and Screen Recording rows with red/green dot, status text and *Open System Settings*; `onboarding.mac.stuck`; the macOS 26 picker card; the gamepad card. *Later* / *Continue* (Continue disabled until both are green).
 - Windows: `onboarding.win.subtitle`; *Running as administrator* card; ViGEmBus row with *Install ViGEmBus ↗* (official release page) and `onboarding.win.vigem.tip`; *Later* / *Continue*.
 
@@ -669,8 +671,8 @@ All user-visible strings live in `ui/src/lib/strings.ts`, keyed as below; per-OS
 | `onboarding.mac.picker` | card (macOS 26) | box | At the first capture, macOS may ask whether Panowww can bypass the system window picker. Click Allow before you start a Session, or the alert lands in your first Shot. |
 | `onboarding.mac.gamepad` | card | box | Virtual gamepad is unavailable on macOS. Games that need a controller run on Windows only; keyboard and mouse work here. |
 | `onboarding.win.subtitle` | Windows | subtitle | Before the first Session |
-| `onboarding.win.admin` | card | box | Running as administrator. Windows asks at each launch: many games run elevated, and only an elevated app can drive them. |
-| `onboarding.win.vigem` | ViGEmBus row, with *Install ViGEmBus ↗* | status | Virtual controller driver, only for gamepad Games. No longer maintained, but works. |
+| `onboarding.win.admin` | card | box | Panowww must run as administrator. Windows asks at every launch; this is normal. Elevated, Panowww can inject input into games that run elevated themselves, which Windows would otherwise block. |
+| `onboarding.win.vigem` | ViGEmBus row, with *Install ViGEmBus ↗* | status | Virtual controller driver, only needed for gamepad Games. |
 | `onboarding.win.vigem.tip` | under the row | line | Keyboard and mouse Games work without ViGEmBus. |
 | `settings.folder` | under Sessions folder | line | One folder per Game, one timestamped folder per Session. |
 | `settings.shortcuts` | under Start / Stop | line | Pick a combo the game does not use. The game keeps the focus when you press it. |

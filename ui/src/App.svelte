@@ -40,11 +40,14 @@ onMount(() => {
     await Promise.allSettled([settings.load(), games.load()]);
     unwatch = await games.watch().catch(() => null);
     unrun = await run.subscribe().catch(() => null);
-    // Onboarding shows whenever a permission is missing at launch (§11.11).
+    // Onboarding shows at the first launch and whenever a macOS permission
+    // is missing at launch (§11.11). ViGEmBus is optional: a missing driver
+    // never brings it back. On Windows the first launch is the one showing
+    // of the administrator card.
     const permissions = await api.onboarding.permissions().catch(() => null);
     if (
       permissions &&
-      !(permissions.accessibility && permissions.screenRecording && permissions.vigem)
+      (!settings.value.onboarded || !(permissions.accessibility && permissions.screenRecording))
     ) {
       windows.show("onboarding");
     }
