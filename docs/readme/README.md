@@ -8,10 +8,10 @@ magick shot.png -resize 1760x\> -strip tmp.png && cwebp -q 84 -alpha_q 100 -m 6 
 
 | File | What | Source |
 |---|---|---|
+| `hero.svg` | Animated hero: Capture zone, Session, stitched panorama | built locally from the app captures and the Session's Shots |
 | `download-macos.svg`, `download-windows.svg` | Download buttons under the header | drawn by hand |
-| `setup.webp` | Game Setup, a mouse Game | app, CleanShot window capture |
+| `setup.webp` | Game Setup, World of Warcraft, zone set | app, CleanShot window capture |
 | `capture-zone.webp` | Capture zone picker over World of Warcraft | app, full-screen capture |
-| `session.webp` | Session running (also the hero until issue 27) | design board `B-SessionRunning` |
-| `session-end.webp` | Session completed | design board `B-SessionEnd` |
+| `session.webp` | Session running | design board `B-SessionRunning` with the real Shots |
+| `session-end.webp` | Session completed | app, CleanShot window capture |
 
-The two Session images are the direction-B boards of `prototype/visual-design`, rendered in headless Chrome with the canvas runtime stubbed, the sample Games and Shots swapped for the human's Games and real World of Warcraft Shots. Retake them from the app once a full clean Session exists.
