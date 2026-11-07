@@ -41,13 +41,6 @@ New to game panoramas? Watch [How to Create a 360° Panorama in a Video Game](ht
 | <img src="docs/readme/session.webp" alt="Session running" width="440"> | <img src="docs/readme/session-end.webp" alt="Session completed" width="440"> |
 | **Follow the Session** with live thumbnails. | **Every Shot is in**: zip the Session or reveal it, then stitch. |
 
-<!-- Still to take, see docs/readme/README.md:
-| <img src="docs/readme/check-overlap.webp" alt="Check overlap" width="440"> | <img src="docs/readme/overlay.webp" alt="Overlay over the game during a Session" width="440"> |
-| **Check overlap** between two Shots before you start. | **The game keeps the focus**: the countdown and progress are drawn over it. |
-| <img src="docs/readme/sessions.webp" alt="Sessions list" width="440"> | |
-| **Every Session in one list**: zip it, reveal it, delete it. | |
--->
-
 ## Quick start
 
 1. **Add a Game**: pick the Input device and the keys or moves that turn the camera.

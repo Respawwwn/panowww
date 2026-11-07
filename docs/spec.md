@@ -721,7 +721,7 @@ Full process in [docs/release.md](release.md). Summary:
   1. *Header*, centred: app icon, title, tagline, badges (latest release, platforms macOS · Windows, licence MIT, Discord), then two buttons *Download for macOS* / *Download for Windows* linking `releases/latest`.
   2. *Hero*: an animated two-display mockup (the game on one, Panowww at 60–80 % on the other, over a background, zooming on each step), produced by issue 27; a static screenshot until it exists.
   3. *Why Panowww*: what it does, the hand-off to PTGui or Autopano Giga, link to [How to Create a 360° Panorama in a Video Game](https://www.youtube.com/watch?v=ZR5Tn9tmDEM).
-  4. *Screenshots*: Capture zone picker, Game Setup, Check overlap, overlay during a Session, Session view, Sessions list (stitching joins when it exists).
+  4. *Screenshots*: Game Setup, Capture zone picker, Session running, Session completed (decided 2026-11-07: four are enough; stitching joins when it exists).
   5. *Quick start*: five lines, Game → Capture zone → Test → Session → zip → stitch.
   6. *Requirements*: macOS 14+ on Apple Silicon, Windows 10/11 x64, game in borderless windowed mode, ViGEmBus for a gamepad Game, a stitching program.
   7. *Download*: the two files of the latest release.
