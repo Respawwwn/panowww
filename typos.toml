@@ -21,7 +21,3 @@ extend-ignore-re = ["\\b[0-9a-f]{7}\\b"]
 # Brand names: Respawwwn and Panowww.
 # A crate name cited in the research notes.
 scap = "scap"
-
-[default.extend-identifiers]
-# The wizard library (scripts/signing-certificate.sh) is copied verbatim.
-NAMEs = "NAMEs"

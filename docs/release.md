@@ -61,7 +61,39 @@ Where things are:
 
 The CI imports the certificate into a temporary keychain, trusts it for code signing (`codesign` refuses an untrusted self-signed identity with "no identity found"), and passes `APPLE_SIGNING_IDENTITY` to the Tauri build. (Tauri's own `APPLE_CERTIFICATE` variables only accept Apple-issued certificates, which is why we don't use them.)
 
-Generating or rotating the certificate is a guided one-off: run `scripts/signing-certificate.sh` from the repository root. It makes the certificate with openssl, walks you through the 1Password item, sets the three secrets with `gh`, switches GitHub Actions on if needed, and deletes the local files at the end.
+### Rotating the certificate
+
+Only when it expires (10 years after 2026-11-08), leaks or is lost. Every user then grants the two permissions again: say so in the release notes.
+
+1. Write `panowww-signing.cnf`:
+   ```ini
+   [req]
+   distinguished_name = dn
+   x509_extensions = ext
+   prompt = no
+   [dn]
+   CN = Respawwwn Panowww Code Signing
+   O = Respawwwn
+   [ext]
+   basicConstraints = critical, CA:false
+   keyUsage = critical, digitalSignature
+   extendedKeyUsage = critical, codeSigning
+   ```
+2. Make the certificate and the `.p12` (`-legacy`: macOS's `security import` cannot read OpenSSL 3's default `.p12` cipher):
+   ```sh
+   openssl req -x509 -newkey rsa:2048 -nodes -days 3650 -config panowww-signing.cnf \
+     -keyout panowww-signing.key -out panowww-signing.crt
+   openssl pkcs12 -export -legacy -inkey panowww-signing.key -in panowww-signing.crt \
+     -name "Respawwwn Panowww Code Signing" -out panowww-signing.p12 -passout pass:<new password>
+   ```
+3. Replace the files, the password, the expiry date and the SHA-1 (`openssl x509 -in panowww-signing.crt -noout -fingerprint -sha1`) in the 1Password item.
+4. Set the three secrets:
+   ```sh
+   base64 < panowww-signing.p12 | tr -d '\n' | gh secret set MACOS_SIGNING_P12_BASE64
+   gh secret set MACOS_SIGNING_P12_PASSWORD   # paste the password
+   gh secret set APPLE_SIGNING_IDENTITY        # the CN, if it changed
+   ```
+5. Delete the local files.
 
 ## Going public
 
