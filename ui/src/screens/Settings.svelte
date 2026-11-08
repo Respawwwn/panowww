@@ -185,6 +185,13 @@ function number(value: string): number {
       label={strings.settings.checkForUpdates}
       onchange={(on) => save({ checkForUpdates: on })}
     />
+    <Switch
+      checked={s.includePrereleases}
+      label={strings.settings.includePrereleases.label}
+      disabled={!s.checkForUpdates}
+      onchange={(on) => save({ includePrereleases: on })}
+    />
+    <Tip text={strings.settings.includePrereleases.hint} />
   </section>
 
   <div class="actions">

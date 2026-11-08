@@ -333,6 +333,7 @@ cache/thumbnails/<session-id>/rNN_cNN.jpg     # history thumbnails, generated on
 | `displayPreview` | `true` |
 | `appearance` | `auto` (`light`, `dark`) |
 | `onboarded` | `false`; `true` once onboarding was closed with *Later* or *Continue* (§11.11) |
+| `includePrereleases` | `false`; the update check also offers releases marked as pre-release (§14) |
 
 `local-games.json` (`format: "panowww-local-games"`, `version: 1`): map Game `id` → `{ zone: { displayId, x, y, w, h, displayW, displayH, scale } }`. Coordinates are points on macOS, physical pixels on Windows; `displayId` is the OS's stable display identifier. At load, a zone whose display is gone or whose size/scale changed is reported as *display changed*; it is never rescaled, the user redraws it.
 
@@ -527,7 +528,7 @@ Shown at first launch (`onboarded` in `settings.json`, set by *Later* or *Contin
 
 ### 11.12 Settings window
 
-Left-aligned labels. Sessions folder (path, *Change…*, *Reveal*, `settings.folder`); Shortcuts Start / Stop (*Record…*, *Reset*, `settings.shortcuts`, `settings.shortcuts.mac`); New Game defaults (Start pole, two delays, `settings.defaults`); Display preview switch (`settings.displayPreview.*`); General: *Check for updates at launch*, *Review permissions…*, *Reveal logs*.
+Left-aligned labels. Sessions folder (path, *Change…*, *Reveal*, `settings.folder`); Shortcuts Start / Stop (*Record…*, *Reset*, `settings.shortcuts`, `settings.shortcuts.mac`); New Game defaults (Start pole, two delays, `settings.defaults`); Display preview switch (`settings.displayPreview.*`); Updates: *Check for updates at launch*, then *Include pre-releases* (`settings.includePrereleases.*`, disabled while the first switch is off); *Review permissions…*, *Reveal logs*.
 
 ### 11.13 About window
 
@@ -680,6 +681,8 @@ All user-visible strings live in `ui/src/lib/strings.ts`, keyed as below; per-OS
 | `settings.defaults` | under New Game defaults | line | Applied to every new Game. Existing Games keep their values. |
 | `settings.displayPreview.label` | Settings | label | Show the Display preview during a countdown and a Session |
 | `settings.displayPreview.hint` | under the switch | line | Turn it off if the game stutters while Panowww runs. |
+| `settings.includePrereleases.label` | Settings | label | Include pre-releases |
+| `settings.includePrereleases.hint` | under the switch | line | Also offer betas and release candidates. Off, only stable releases show up. |
 | `about.tagline` | About, README, empty state | line | Automated 360° panorama capture for video games. |
 | `about.licence` | About | line | Panowww is a Respawwwn project by Kevin Wenger. MIT License. The Respawwwn name and logo are not covered by the license. |
 | `about.upToDate` | About | chip | You're up to date. |
@@ -715,7 +718,7 @@ Full process in [docs/release.md](release.md). Summary:
 - **macOS signing**: stable **self-signed** certificate (openssl, EKU codeSigning, 10 years) so Accessibility and Screen Recording grants survive updates; imported by a hand-written CI step into a temp keychain, then `APPLE_SIGNING_IDENTITY=<CN>`. Secrets `MACOS_SIGNING_P12_BASE64`, `MACOS_SIGNING_P12_PASSWORD`, `APPLE_SIGNING_IDENTITY`; 1Password item *Panowww macOS signing certificate*. Not notarized: Gatekeeper still shows "Apple could not verify" → *Open Anyway*. No Windows signing (SmartScreen *More info → Run anyway*).
 - **Versioning**: SemVer, single source of truth = workspace `Cargo.toml` `version` (`tauri.conf.json` reads it). Repo starts at `0.0.1`; first CI-built release `v0.1.0`; all `0.x` pre-releases; public debut `v1.0.0-beta.1`; stable `v1.0.0`.
 - **Release**: tag `vX.Y.Z` → `tauri-action@v1` (`macos-latest` arm64 + `windows-latest`) → **draft** GitHub Release with auto-generated notes → human reviews and publishes. No release-please, no Conventional Commits. Private repo until the beta: tag sparingly (macOS minutes ×10).
-- **Update check**: passive, at launch, GitHub Releases API; newer → bottom bar linking the release page; switch in Settings; silent failure (private repo, offline).
+- **Update check**: passive, at launch, GitHub Releases API (the releases list, not `releases/latest`, which hides pre-releases); the highest published version above the running one → bottom bar linking its release page; drafts never count, releases marked as pre-release only when *Include pre-releases* is on (off by default); switch in Settings; silent failure (offline, rate limit).
 - **ViGEmBus**: never redistributed; onboarding and README link the official v1.22.0 release page with the "archived but works, gamepad only" note.
 - **README** (English, non-technical, centred header in HTML, the rest in Markdown), in this order, decided 2026-11-06 against reference READMEs (`docs/research/readme-references.md`):
   1. *Header*, centred: app icon, title, tagline, badges (latest release, platforms macOS · Windows, licence MIT, Discord), then two buttons *Download for macOS* / *Download for Windows* linking `releases/latest`.
