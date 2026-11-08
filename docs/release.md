@@ -14,9 +14,10 @@ Written for the maintainer, who is not a Rust developer. Nothing here needs Rust
 Pushing a tag `v*` runs the release workflow (`.github/workflows/release.yml`):
 
 1. Builds on `macos-latest` (Apple Silicon only) and `windows-latest` (x64 only).
-2. Signs the macOS app with our self-signed certificate (see below).
+2. Signs the macOS app with our self-signed certificate (see below), after importing it into a temporary keychain and trusting it for code signing.
 3. Bundles `Panowww.dmg` and `Panowww-setup.exe`.
-4. Creates a **draft** GitHub Release with GitHub's auto-generated notes and attaches both files.
+4. Creates a **draft** GitHub Release with GitHub's auto-generated notes and attaches both files, marked as a pre-release for any `0.x` or `-beta` tag.
+5. Prints the app's designated requirement in the macOS job log: it must name our certificate (`certificate leaf = H"…"`), never a `cdhash`.
 
 It never publishes by itself. A failed build leaves no release.
 
@@ -35,7 +36,7 @@ While the repo is private, GitHub Actions minutes are billed and macOS counts ×
 5. Wait for the *Release* workflow in the **Actions** tab (10–20 minutes).
 6. Open **Releases**: a draft `vX.Y.Z` exists with the two files attached.
 7. Read the generated notes, add two or three human lines at the top (what changed for users), remove noise.
-8. Tick **Set as a pre-release** for any `0.x` or `-beta` version.
+8. Check that **Set as a pre-release** is ticked for any `0.x` or `-beta` version (the workflow ticks it).
 9. **Publish release**.
 10. Install the published DMG and setup.exe on a real machine each and run the manual test checklist (`docs/manual-test.md`) before announcing.
 
@@ -58,9 +59,9 @@ Where things are:
   - `MACOS_SIGNING_P12_PASSWORD`: its password
   - `APPLE_SIGNING_IDENTITY`: the certificate name (CN), exactly as in 1Password
 
-The CI imports the certificate into a temporary keychain and passes `APPLE_SIGNING_IDENTITY` to the Tauri build. (Tauri's own `APPLE_CERTIFICATE` variables only accept Apple-issued certificates, which is why we don't use them.)
+The CI imports the certificate into a temporary keychain, trusts it for code signing (`codesign` refuses an untrusted self-signed identity with "no identity found"), and passes `APPLE_SIGNING_IDENTITY` to the Tauri build. (Tauri's own `APPLE_CERTIFICATE` variables only accept Apple-issued certificates, which is why we don't use them.)
 
-Generating or rotating the certificate is a guided one-off (the implementation issue ships a wizard script). Afterwards, update the 1Password item and the three secrets.
+Generating or rotating the certificate is a guided one-off: run `scripts/signing-certificate.sh` from the repository root. It makes the certificate with openssl, walks you through the 1Password item, sets the three secrets with `gh`, switches GitHub Actions on if needed, and deletes the local files at the end.
 
 ## Going public
 
