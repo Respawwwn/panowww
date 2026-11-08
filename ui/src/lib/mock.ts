@@ -222,8 +222,8 @@ export function installMock(): void {
         return "/Volumes/Shots/Panowww";
       case "stitcher_check":
         return args.stitcher === "ptgui"
-          ? { installed: true, version: "13.10" }
-          : { installed: true, version: "4.4.2" };
+          ? { installed: true, genuine: true, product: "PTGui", version: "13.10" }
+          : { installed: true, genuine: true, product: "Autopano Giga", version: "4.4.2" };
       case "choose_stitcher":
         return args.stitcher === "ptgui"
           ? "/Applications/PTGui Pro.app"

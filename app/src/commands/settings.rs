@@ -143,10 +143,12 @@ pub async fn stitcher_check(
     else {
         return Ok(StitcherCheck {
             installed: false,
+            genuine: false,
+            product: None,
             version: None,
         });
     };
-    tauri::async_runtime::spawn_blocking(move || stitchers::check(&program))
+    tauri::async_runtime::spawn_blocking(move || stitchers::check(stitcher, &program))
         .await
         .map_err(AppError::internal)
 }

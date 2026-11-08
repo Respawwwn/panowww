@@ -407,6 +407,8 @@ export const strings = {
     stitcherVersion: "{stitcher} version: {version}",
     stitcherVersionUnknown: "not detected",
     stitcherNotInstalled: "not installed",
+    stitcherWrongProgram: "not {stitcher} ({product})",
+    stitcherUnknownProgram: "unknown program",
     recheck: "Check again",
     stitcherHint: {
       macos: "Pick the application.",

@@ -364,6 +364,7 @@ async function back() {
 
   .actions {
     display: flex;
+    justify-content: flex-end;
     gap: 8px;
   }
 
@@ -371,6 +372,7 @@ async function back() {
     margin: -8px 0 0;
     font-size: 11.5px;
     color: var(--muted);
+    text-align: right;
   }
 
   .note.error {

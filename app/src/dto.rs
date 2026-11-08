@@ -256,12 +256,16 @@ pub struct UpdateInfo {
 }
 
 /// What Settings shows under a Stitcher's row (spec §11.12): the program
-/// is still there, and its version when it can be read.
+/// is still there, it really is that Stitcher (its product name says so),
+/// and its version when it can be read.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct StitcherCheck {
     pub installed: bool,
+    pub genuine: bool,
+    /// The product name the program carries, whatever it is.
+    pub product: Option<String>,
     pub version: Option<String>,
 }
 

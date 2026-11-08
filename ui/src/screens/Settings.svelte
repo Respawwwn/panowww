@@ -75,7 +75,7 @@ async function recheck(stitcher: Stitcher) {
   checks[stitcher] = null;
   checks[stitcher] = await api.settings
     .checkStitcher(stitcher)
-    .catch(() => ({ installed: false, version: null }));
+    .catch(() => ({ installed: false, genuine: false, product: null, version: null }));
 }
 
 // Checked when the window opens and whenever a path changes.
@@ -87,16 +87,25 @@ $effect(() => {
   }
 });
 
-function versionText(check: StitcherCheck | null): string {
+/** Green only for the right program with a readable version. */
+function versionOk(check: StitcherCheck | null): boolean {
+  return check !== null && check.installed && check.genuine && check.version !== null;
+}
+
+function versionText(stitcher: Stitcher, check: StitcherCheck | null): string {
   if (check === null) {
     return "…";
   }
-  if (check.version) {
-    return check.version;
+  if (!check.installed) {
+    return strings.settings.stitcherNotInstalled;
   }
-  return check.installed
-    ? strings.settings.stitcherVersionUnknown
-    : strings.settings.stitcherNotInstalled;
+  if (!check.genuine) {
+    return interpolate(strings.settings.stitcherWrongProgram, {
+      stitcher: strings.settings.stitcher[stitcher],
+      product: check.product ?? strings.settings.stitcherUnknownProgram,
+    });
+  }
+  return check.version ?? strings.settings.stitcherVersionUnknown;
 }
 
 async function chooseStitcher(stitcher: Stitcher) {
@@ -249,8 +258,8 @@ function number(value: string): number {
           {#if program}
             {@const check = checks[stitcher]}
             <div class="status">
-              <span class="dot" class:ok={Boolean(check?.version)} class:bad={check !== null && !check.version}></span>
-              <span>{interpolate(strings.settings.stitcherVersion, { stitcher: name, version: versionText(check) })}</span>
+              <span class="dot" class:ok={versionOk(check)} class:bad={check !== null && !versionOk(check)}></span>
+              <span>{interpolate(strings.settings.stitcherVersion, { stitcher: name, version: versionText(stitcher, check) })}</span>
               <button type="button" class="recheck" title={strings.settings.recheck} aria-label={strings.settings.recheck} onclick={() => recheck(stitcher)}>
                 <Icon name="refresh" size={13} />
               </button>
