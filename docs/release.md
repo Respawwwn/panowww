@@ -36,7 +36,7 @@ While the repo is private, GitHub Actions minutes are billed and macOS counts ×
 5. Wait for the *Release* workflow in the **Actions** tab (10–20 minutes).
 6. Open **Releases**: a draft `vX.Y.Z` exists with the two files attached.
 7. Read the generated notes, add two or three human lines at the top (what changed for users), remove noise.
-8. Check that **Set as a pre-release** is ticked for any `0.x` or `-beta` version (the workflow ticks it).
+8. Check that **Set as a pre-release** is ticked for any `0.x` or `-beta` version (the workflow ticks it). The app's update bar only shows a pre-release to users who turned on *Include pre-releases* in Settings; untick it and every user is told.
 9. **Publish release**.
 10. Install the published DMG and setup.exe on a real machine each and run the manual test checklist (`docs/manual-test.md`) before announcing.
 
