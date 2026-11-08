@@ -410,6 +410,10 @@ export const strings = {
     },
     updatesTitle: "Updates",
     checkForUpdates: "Check for updates at launch",
+    includePrereleases: {
+      label: "Include pre-releases",
+      hint: "Also offer betas and release candidates. Off, only stable releases show up.",
+    },
     reviewPermissions: "Review permissions…",
     revealLogs: "Reveal logs",
   },

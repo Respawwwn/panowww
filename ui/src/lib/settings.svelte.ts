@@ -19,6 +19,7 @@ export const defaultSettings: Settings = {
   displayPreview: true,
   appearance: "auto",
   onboarded: false,
+  includePrereleases: false,
 };
 
 let current = $state<Settings>(structuredClone(defaultSettings));

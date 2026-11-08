@@ -51,8 +51,9 @@ pub async fn check_for_updates(state: State<'_, SharedState>) -> CmdResult<Optio
         return Ok(None);
     }
     let version = state.version.clone();
+    let include_prereleases = state.settings().include_prereleases;
     Ok(
-        tauri::async_runtime::spawn_blocking(move || update::check(&version))
+        tauri::async_runtime::spawn_blocking(move || update::check(&version, include_prereleases))
             .await
             .ok()
             .flatten(),

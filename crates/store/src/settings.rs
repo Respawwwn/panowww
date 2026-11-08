@@ -76,6 +76,9 @@ impl Default for Shortcuts {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[ts(export)]
+// Four independent switches, each one key of settings.json; a sub-struct
+// would change the file for nothing.
+#[expect(clippy::struct_excessive_bools, reason = "one key per switch")]
 pub struct Settings {
     pub format: SettingsFormat,
     pub version: u32,
@@ -92,6 +95,9 @@ pub struct Settings {
     /// shown at first launch). Missing in older files means not yet.
     #[serde(default)]
     pub onboarded: bool,
+    /// The update check also offers pre-releases (spec §14). Off by default.
+    #[serde(default)]
+    pub include_prereleases: bool,
 }
 
 /// The window's appearance (spec §12: follows the OS by default).
@@ -117,6 +123,7 @@ impl Default for Settings {
             display_preview: true,
             appearance: Appearance::Auto,
             onboarded: false,
+            include_prereleases: false,
         }
     }
 }
@@ -195,6 +202,7 @@ fn read(path: &Path, text: &str) -> Result<Loaded<Settings>, StoreError> {
                 display_preview: v0.display_preview.unwrap_or(defaults.display_preview),
                 appearance: defaults.appearance,
                 onboarded: defaults.onboarded,
+                include_prereleases: defaults.include_prereleases,
             },
             migrated: true,
         })
@@ -253,7 +261,11 @@ mod tests {
     fn a_version_one_file_without_the_newer_keys_loads_with_their_defaults() {
         let (_dir, paths) = paths();
         let mut text = serde_json::to_string(&Settings::default()).unwrap();
-        for key in [r#","appearance":"auto""#, r#","onboarded":false"#] {
+        for key in [
+            r#","appearance":"auto""#,
+            r#","onboarded":false"#,
+            r#","includePrereleases":false"#,
+        ] {
             assert!(text.contains(key), "{text}");
             text = text.replace(key, "");
         }
@@ -261,6 +273,7 @@ mod tests {
         let settings = Settings::load(&paths).unwrap();
         assert_eq!(settings.appearance, Appearance::Auto);
         assert!(!settings.onboarded);
+        assert!(!settings.include_prereleases);
     }
 
     #[test]
