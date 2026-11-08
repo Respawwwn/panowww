@@ -2908,7 +2908,7 @@ dependencies = [
 
 [[package]]
 name = "panowww-app"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "base64 0.22.1",
  "image",
@@ -2936,7 +2936,7 @@ dependencies = [
 
 [[package]]
 name = "panowww-capture"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "block2",
  "image",
@@ -2954,7 +2954,7 @@ dependencies = [
 
 [[package]]
 name = "panowww-core"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "fast_image_resize",
  "image",
@@ -2970,7 +2970,7 @@ dependencies = [
 
 [[package]]
 name = "panowww-input"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "objc2-application-services",
  "objc2-core-foundation",
@@ -2983,7 +2983,7 @@ dependencies = [
 
 [[package]]
 name = "panowww-store"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "image",
  "jiff",

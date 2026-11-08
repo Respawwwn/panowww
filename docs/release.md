@@ -26,8 +26,8 @@ While the repo is private, GitHub Actions minutes are billed and macOS counts ×
 ## Making a release
 
 1. Make sure `main` is green (the CI workflow passed on the last commit).
-2. Bump the version in the root `Cargo.toml`, then run `cargo generate-lockfile --offline` so `Cargo.lock` follows (or just run `cargo build` once).
-3. Commit: `git commit -am "Release vX.Y.Z"`.
+2. Bump the version in the root `Cargo.toml`, then run `cargo update -w --offline` so `Cargo.lock` follows (it touches only Panowww's own crates). The crates depend on each other by path only, so nothing else carries the version.
+3. Commit on a branch (`chore/release-X.Y.Z`): `git commit -am "Release vX.Y.Z"`, then merge it into `main`.
 4. Tag and push:
    ```sh
    git tag vX.Y.Z

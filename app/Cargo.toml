@@ -26,10 +26,10 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 base64 = "0.22"
 image = { version = "0.25", default-features = false, features = ["jpeg"] }
-panowww-capture = { version = "0.0.1", path = "../crates/capture" }
+panowww-capture = { path = "../crates/capture" }
 panowww-core = { path = "../crates/core" }
-panowww-input = { version = "0.0.1", path = "../crates/input" }
-panowww-store = { version = "0.0.1", path = "../crates/store" }
+panowww-input = { path = "../crates/input" }
+panowww-store = { path = "../crates/store" }
 semver = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
