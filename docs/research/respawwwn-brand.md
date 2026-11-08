@@ -1,6 +1,6 @@
 # Respawwwn brand identity for Panowww
 
-Research for ticket [004](../.wayfinder/tickets/004-respawwwn-brand.md). Question: what from the Respawwwn universe should Panowww reuse, and under what terms?
+Research for planning ticket 004 *Respawwwn brand identity for Panowww* (the planning map is not published). Question: what from the Respawwwn universe should Panowww reuse, and under what terms?
 
 Sources (read on 2026-10-29):
 

@@ -461,7 +461,7 @@ Virtual Xbox 360 controller through ViGEmBus 1.22.0 + `vigem-client` behind our 
 
 ## 11. UX
 
-One main window, macOS master/detail; minimum ≈ 1040 × 640, no responsive stacking. Separate windows: Capture zone picker, Check overlap, All Sessions, Settings (also `Cmd+,` / `Ctrl+,`), About, Onboarding. Everything is navigated by state in the Svelte app. No drag-and-drop anywhere (Windows runs elevated; UIPI blocks drops): file pickers and save dialogs only. Wireframes: variant D of `prototype/ux-wireframes/index.html` (branch `prototype/ux-wireframes`); visual reference: direction B on branch `prototype/visual-design` and the Claude Design canvas (private).
+One main window, macOS master/detail; minimum ≈ 1040 × 640, no responsive stacking. Separate windows: Capture zone picker, Check overlap, All Sessions, Settings (also `Cmd+,` / `Ctrl+,`), About, Onboarding. Everything is navigated by state in the Svelte app. No drag-and-drop anywhere (Windows runs elevated; UIPI blocks drops): file pickers and save dialogs only. Wireframes: variant D of `prototype/ux-wireframes/index.html` (branch `prototype/ux-wireframes`, not published); visual reference: direction B on branch `prototype/visual-design` and the Claude Design canvas (private).
 
 ### 11.1 Window shell
 
@@ -537,7 +537,7 @@ Centred: app icon, `Panowww {version}`, `about.tagline`, Respawwwn R mark + *By 
 
 ## 12. Visual design
 
-Direction **B "Respawwwn family"**: Sindre Sorhus-style native calm wearing Respawwwn's purple. Reference stylesheet `prototype/visual-design/project/b.css`; boards `B-*.dc.html` on that branch (superseded by §13 where wording differs, and by the 2026-10-30 refinements folded into §11).
+Direction **B "Respawwwn family"**: Sindre Sorhus-style native calm wearing Respawwwn's purple. Reference stylesheet `prototype/visual-design/project/b.css`; boards `B-*.dc.html` on that branch, which is not published (superseded by §13 where wording differs, and by the 2026-10-30 refinements folded into §11).
 
 - **Type**: Inter, tabular numbers for every count. Title 22/700, window title 18/700, section 14/600, body 13/400, label 12/500 muted, tip 11.5/400 muted, overline 11/600 uppercase, counter 26/700. Buttons, chips and key caps carry a 1 px optical top nudge.
 - **Light**: content `#fbfbfd`, sidebar `#ebe8f6`, card `#fff`, line `#e6e3f1`, lavender `#efecf9` (text `#4a3c96`), accent `#6454b5`, accent deep `#4a3c96`, text `#1b1740`, muted `#6b6788`, faint `#9a96b6`, ok `#2eaa5d`, warn `#d98c00`, bad `#e5365f`.
@@ -545,7 +545,7 @@ Direction **B "Respawwwn family"**: Sindre Sorhus-style native calm wearing Resp
 - **Shapes**: cards 14 px, fields 8 px, buttons / tabs / chips are pills (Windows: 8 / 4 px, caption bar ─ ☐ ✕). Shadow `0 1px 2px` at 6 % on light, none on dark. Spacing 4 · 8 · 12 · 16 · 20 · 24; main padding 24, dialogs 20, cards 14; sidebar rows 34, controls 28.
 - **Components**: pill tabs (selected purple); primary pill purple, secondary white with lavender border, ghost, danger (soft red); numbered lavender badges; lavender status box with green/red dot; chips completed / interrupted / failed; **key caps** = flat lavender caps joined by `+`, never button-like; tips = 11.5 muted line or lavender box (amber warning, green verdict); thumbnails = real images 16:9 with the name overlaid; popover; inline confirmation slide.
 - **Overlay**: see §10.
-- **App icon**: concept *Lens + orbit* on the Respawwwn recipe (ground `#6454B5`, white glyph, thick black rounded outline): lens with pupil and highlight, 248° orbit arc ending in an arrowhead tangent at the bottom right. Vector source `#ic-orbit` in `prototype/visual-design/project/Icons.dc.html`. The human finalises it; implementation produces the macOS squircle set and the Windows ICO.
+- **App icon**: concept *Lens + orbit* on the Respawwwn recipe (ground `#6454B5`, white glyph, thick black rounded outline): lens with pupil and highlight, 248° orbit arc ending in an arrowhead tangent at the bottom right. Vector source `#ic-orbit` in `prototype/visual-design/project/Icons.dc.html` (branch not published; the icon now lives in `assets/icon/panowww.svg`). The human finalises it; implementation produces the macOS squircle set and the Windows ICO.
 - **Brand**: Respawwwn marks are rights-reserved; only the R mark in About (and the wordmark if wanted) under `assets/brand/` with the NOTICE; colours and OFL fonts are free to reuse. Panowww has its own icon.
 
 ---
@@ -740,7 +740,7 @@ Full process in [docs/release.md](release.md). Summary:
 
 ## 15. Pending Windows facts
 
-*Windows verification of the spike* (branch `prototype/overlay-shortcut-spike`, `spike/README.md` protocol) ran on **2026-11-01** and is closed: Windows 11 Home, two 1920×1080 displays, GTX 1070, ViGEmBus 1.22.0; targets NoClip in a maximized browser, Overwatch (borderless, passive tests only because of its anti-cheat) and Star Wars Battlefront 2 (offline Arcade, raw-input Frostbite game). Facts not reached are recorded as such with the decision taken; the design holds everywhere.
+*Windows verification of the spike* (branch `prototype/overlay-shortcut-spike`, not published; `spike/README.md` protocol) ran on **2026-11-01** and is closed: Windows 11 Home, two 1920×1080 displays, GTX 1070, ViGEmBus 1.22.0; targets NoClip in a maximized browser, Overwatch (borderless, passive tests only because of its anti-cheat) and Star Wars Battlefront 2 (offline Arcade, raw-input Frostbite game). Facts not reached are recorded as such with the decision taken; the design holds everywhere.
 
 | # | Open fact | Design as written | If it fails | Result |
 |---|---|---|---|---|

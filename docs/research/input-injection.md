@@ -1,6 +1,6 @@
 # Input injection in Rust on macOS and Windows
 
-Research for ticket [002](../.wayfinder/tickets/002-input-injection.md). Checked 2026-10-29.
+Research for planning ticket 002 *Input injection in Rust on macOS and Windows* (the planning map is not published). Checked 2026-10-29.
 Question: how does Panowww reliably drive a game camera with an injected **keyboard**, **mouse** (including click-and-drag) or **gamepad** (Windows only), what permissions it needs, and how this fails with raw-input and anti-cheat games.
 
 Confidence tags: **[doc]** = stated by the primary source linked; **[src]** = read in source code; **[inferred]** = my reasoning from the sources, not stated by them; **[unverified]** = no primary source found, must be tested.

@@ -1,6 +1,6 @@
 # Research: Capture zone screenshots in Rust on macOS and Windows
 
-Ticket: [003 – Screen zone capture in Rust on macOS and Windows](../.wayfinder/tickets/003-screen-capture.md)
+Planning ticket 003 *Screen zone capture in Rust on macOS and Windows* (the planning map is not published).
 Researched: 2026-10-29. Crate versions are from the crates.io API on that date.
 
 Words follow [GLOSSARY.md](../GLOSSARY.md): a **Shot** is one screenshot of the **Capture zone** taken during a **Session**.

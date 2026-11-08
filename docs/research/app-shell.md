@@ -1,6 +1,6 @@
 # Research: App shell (Tauri vs pure-Rust UI)
 
-Ticket: [`.wayfinder/tickets/001-app-shell.md`](../.wayfinder/tickets/001-app-shell.md). Researched 2026-10-29.
+Planning ticket 001 *App shell: Tauri or pure Rust* (the planning map is not published). Researched 2026-10-29.
 
 Statements marked **(inference)** are my reasoning, not something a source says. Everything else links to the source that owns it.
 
