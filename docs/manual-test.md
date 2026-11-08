@@ -247,3 +247,15 @@ Game matrix:
 | NoClip (noclip.website) | Keyboard | Arrow keys | Maximized browser, primary display | ✓ 2026-11-04 | – | – | 7 × 13 Session, 91 Shots |
 | Star Wars Battlefront 2 (2017) | Mouse | Move (raw input) | Borderless, primary display | – | ✓ 2026-11-04 | – | Offline Arcade only; 6 × 13 Sessions, 78 Shots |
 | Overwatch | Gamepad | Right stick | Primary display | – | – | ✓ 2026-11-07 | Practice range; 5 × 7 Session, 35 Shots |
+
+## Release (issue 21)
+
+Two test tags, `v0.0.1-test.1` and `v0.0.1-test.2`, pushed on `feat/21-release`; their draft Releases and tags were deleted afterwards.
+
+| # | Check | How | Pass | Result |
+|---|---|---|---|---|
+| RL1 | Draft Release | Push a tag `v*` | One draft pre-release with `Panowww.dmg` and `Panowww-setup.exe`, both jobs green | Pass, twice (2026-11-08, aa1a9bb) |
+| RL2 | Stable designated requirement | Compare the *show the designated requirement* step of two runs | Both read `identifier "com.respawwwn.panowww" and certificate root = H"ebcaea28…7bae"`, never a `cdhash` | Pass (2026-11-08, aa1a9bb) |
+| RL3 | Permissions survive an update | Install the first DMG, grant Accessibility and Screen Recording, install the second over it, relaunch | Both permissions still green, nothing to grant again | Pass (2026-11-08, aa1a9bb) |
+| RL4 | Gatekeeper | Open a downloaded DMG, then the app the first time | macOS warns once for each and *Open Anyway* gets through, as the README says (not notarized) | Pass, expected (2026-11-08, aa1a9bb) |
+| RL5 | Windows install from the Release | Run `Panowww-setup.exe` from a draft Release | SmartScreen *More info → Run anyway*, UAC prompt, the app starts | To do on the Windows machine with `v0.1.0` |
