@@ -105,6 +105,7 @@ Reference game in a full-screen Space on the zone's display. The overlay is a `t
 | F14 | Dark colours | Settings → Appearance → Dark, walk the main screens | Neutral greys of direction A (no purple tint) on sidebar, content, cards and fields; purple accent; the Start card's *Start Session* is the toolbar purple; the `Cmd` + `,` caps stand out from the sidebar | Pass (2026-11-05, a45f4e4) |
 | F15 | Sidebar footer | Look at the sidebar footer, light then dark | The cog icon of the design beside *Settings*; a separator line above All Sessions, Settings and About, visible in both themes | Pass (2026-11-05, 413bc92) |
 | F16 | Onboarding once | Both permissions granted; delete `settings.json` (or set `onboarded` to `false`), launch, *Continue*; relaunch | Onboarding shows at the first launch although both rows are green; after *Continue*, `onboarded` is `true` in `settings.json` and the next launch goes straight to the window | Not tested yet: the `onboarded` flag was added on 2026-11-04 (issue 26, found on Windows where nothing is ever missing). Run at the next macOS pass |
+| F17 | Open in a Stitcher | Settings → Stitchers: *Choose…* PTGui and Autopano Giga (`.app`); open a completed Session from a table; *Open in PTGui* twice, *Open in Autopano Giga*; then *Reset* one | The two buttons show for a completed Session only; PTGui opens the project with every Shot (the `.pts` sits in the Session folder, the second click opens it without recreating it); Autopano Giga loads every Shot and *Detect* runs; a moved program is reported under the buttons with a pointer to Settings; the reset Stitcher's button disappears | Not tested yet (issue #5) |
 
 ## macOS · Capture zone picker (issue 13)
 
@@ -239,6 +240,7 @@ unplugged.
 | WF10 | Rebinding | Settings → change Start to another combo, Save; try Start = Stop | The old combo does nothing, the new one starts; Start = Stop is refused inline | Pass (2026-11-04, 6615ded) |
 | WF11 | Update bar | Build with a version below the latest published Release (edit the workspace `version`, not committed), launch with *Include pre-releases* off, then on | Off: no bar while the latest Release is marked as pre-release; on: the bottom bar names the Release and links its page; *Check for updates at launch* off hides it | Pass (2026-11-08, 9c4f017 built as 0.0.9 against the published v0.1.0 pre-release): no bar with the switch off, the bar names 0.1.0 with it on, no bar once *Check for updates at launch* is off; three launches in the log |
 | WF12 | WebView2 bootstrapper | Install on a machine without the WebView2 runtime | The installer downloads and installs the runtime before the app | Not available: Windows 11 ships the runtime |
+| WF13 | Open in a Stitcher | Settings → Stitchers: *Choose…* `PTGui.exe` and `AutopanoGiga_x64.exe`; open a completed Session from a table; *Open in PTGui* twice, *Open in Autopano Giga*; then *Reset* one | Same as F17 | Not tested yet (issue #5) |
 
 Game matrix:
 
