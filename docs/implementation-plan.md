@@ -1,5 +1,7 @@
 # Panowww v1 implementation plan
 
+> **Completed on 2026-11-08** with `v0.1.0`. This is the v1 backlog as it was worked through, kept for the record: "issue N" in `docs/manual-test.md`, `docs/spec.md` and the commit history refers to this plan, not to GitHub issue #N. New work is tracked in [GitHub Issues](https://github.com/Respawwwn/panowww/issues). The `prototype/*` branches it cites are not published.
+
 Ordered issues that implement [docs/spec.md](spec.md), each sized for one Claude Code session (≈ 100K tokens of context). macOS first; Windows issues come after *Windows verification of the spike* closes. Each issue becomes a GitHub issue on `Respawwwn/panowww` once the repo has a remote; until then this file is the backlog.
 
 Conventions for every issue:
