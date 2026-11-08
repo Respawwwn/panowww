@@ -166,6 +166,7 @@ export function installMock(): void {
       case "show_zone":
       case "overlay_state":
       case "reveal_path":
+      case "open_in_stitcher":
       case "open_url":
         return null;
       case "share_game":
@@ -219,6 +220,10 @@ export function installMock(): void {
         return defaultSettings.sessionsFolder;
       case "choose_sessions_folder":
         return "/Volumes/Shots/Panowww";
+      case "choose_stitcher":
+        return args.stitcher === "ptgui"
+          ? "/Applications/PTGui Pro.app"
+          : "/Applications/Autopano Giga.app";
       case "permissions":
         return { accessibility: true, screenRecording: true, vigem: true };
       default:

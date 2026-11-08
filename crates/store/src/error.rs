@@ -47,6 +47,18 @@ pub enum StoreError {
     Png { path: PathBuf, message: String },
     #[error("Could not zip {}: {message}", path.display())]
     Zip { path: PathBuf, message: String },
+    /// A Stitcher's program is no longer where Settings says.
+    #[error("{stitcher} is not at {} any more. Choose it again in Settings.", path.display())]
+    StitcherMissing {
+        stitcher: &'static str,
+        path: PathBuf,
+    },
+    /// A Stitcher could not open the Session.
+    #[error("{stitcher} could not open the Session: {message}")]
+    Stitcher {
+        stitcher: &'static str,
+        message: String,
+    },
 }
 
 impl StoreError {

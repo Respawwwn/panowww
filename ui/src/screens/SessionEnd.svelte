@@ -1,19 +1,21 @@
 <script lang="ts">
 // Session end (spec §11.7, board B-SessionEnd): the state chip and the
 // Game's name in the toolbar with *Back to Game*; the summary card with
-// the title, the date line, the counts, *Zip Session* and *Reveal*; the
-// Shots card with the folder and the full grid. Shown for the run that
-// just ended and for any Session opened from a table; no preview.
+// the title, the date line, the counts, *Zip Session*, *Reveal* and, for
+// a completed Session, *Open in…* per Stitcher set in Settings; the Shots
+// card with the folder and the full grid. Shown for the run that just
+// ended and for any Session opened from a table; no preview.
 import Button from "../components/Button.svelte";
 import Chip from "../components/Chip.svelte";
 import Icon from "../components/Icon.svelte";
 import Thumbnail from "../components/Thumbnail.svelte";
 import Tip from "../components/Tip.svelte";
-import { api, isAppError } from "../lib/api";
+import { api, isAppError, type Stitcher } from "../lib/api";
 import { formatBytes, formatDuration, formatWhen, shotLabel } from "../lib/format";
 import { nav } from "../lib/nav.svelte";
 import { reasonFragment, stateTone } from "../lib/sessionText";
 import type { SessionView } from "../lib/sessionView";
+import { settings } from "../lib/settings.svelte";
 import { detectPlatform } from "../lib/shortcut";
 import { interpolate, strings } from "../lib/strings";
 
@@ -147,6 +149,25 @@ async function reveal() {
   }
 }
 
+/** The Stitchers set in Settings, in display order; completed Sessions only. */
+const stitchers = $derived(
+  view.status === "completed"
+    ? (["ptgui", "autopanoGiga"] as const).filter((s) => settings.value.stitchers[s] !== null)
+    : [],
+);
+
+async function openIn(stitcher: Stitcher) {
+  if (!folder) {
+    return;
+  }
+  actionError = null;
+  try {
+    await api.sessions.openIn(folder, stitcher);
+  } catch (error) {
+    actionError = isAppError(error) ? error.message : String(error);
+  }
+}
+
 const cells = $derived.by(() => {
   const byKey = new Map(
     view.shots.map((s) => [`${s.row}-${s.col}`, s.src ?? thumbs[s.file] ?? null]),
@@ -220,6 +241,11 @@ async function back() {
         <Icon name="folder" />
         {platform === "macos" ? strings.detail.revealInFinder : strings.detail.revealInExplorer}
       </Button>
+      {#each stitchers as stitcher (stitcher)}
+        <Button size="lg" disabled={!folder} onclick={() => openIn(stitcher)}>
+          {interpolate(strings.session.end.openIn, { stitcher: strings.settings.stitcher[stitcher] })}
+        </Button>
+      {/each}
     </div>
   </section>
   {#if zipped || actionError}

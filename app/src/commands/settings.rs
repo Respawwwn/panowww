@@ -1,7 +1,8 @@
-//! Settings: read, write, the Sessions folder picker, the logs, the
-//! shortcuts.
+//! Settings: read, write, the Sessions folder picker, the Stitcher
+//! picker, the logs, the shortcuts.
 
 use panowww_store::settings::Settings;
+use panowww_store::stitchers::Stitcher;
 use tauri::{AppHandle, Manager, State};
 use tauri_plugin_dialog::DialogExt;
 
@@ -90,6 +91,32 @@ pub async fn choose_sessions_folder<R: tauri::Runtime>(
 ) -> CmdResult<Option<String>> {
     let dialog = app.dialog().file();
     let chosen = tauri::async_runtime::spawn_blocking(move || dialog.blocking_pick_folder())
+        .await
+        .map_err(AppError::internal)?;
+    Ok(chosen
+        .and_then(|p| p.into_path().ok())
+        .map(|p| p.display().to_string()))
+}
+
+/// File picker for a Stitcher's program (spec §11.12): the `.exe` on
+/// Windows, the `.app` on macOS; `None` when cancelled. The UI saves the
+/// settings as a whole.
+#[tauri::command]
+pub async fn choose_stitcher<R: tauri::Runtime>(
+    app: AppHandle<R>,
+    stitcher: Stitcher,
+) -> CmdResult<Option<String>> {
+    let (kind, extensions): (&str, &[&str]) = if cfg!(target_os = "macos") {
+        ("Application", &["app"])
+    } else {
+        ("Program", &["exe"])
+    };
+    let dialog = app
+        .dialog()
+        .file()
+        .set_title(stitcher.name())
+        .add_filter(kind, extensions);
+    let chosen = tauri::async_runtime::spawn_blocking(move || dialog.blocking_pick_file())
         .await
         .map_err(AppError::internal)?;
     Ok(chosen

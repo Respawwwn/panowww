@@ -1,6 +1,7 @@
 <script lang="ts">
 // Settings (spec §11.12): Sessions folder, the two shortcuts with their
-// recorders, New Game defaults, the Display preview switch, General.
+// recorders, New Game defaults, the Stitchers' programs, the Display
+// preview switch, General.
 // Every change is saved at once; a shortcut the OS refuses shows its
 // error next to the recorder.
 import { onMount } from "svelte";
@@ -11,7 +12,7 @@ import ShortcutRecorder from "../components/ShortcutRecorder.svelte";
 import Switch from "../components/Switch.svelte";
 import Tip from "../components/Tip.svelte";
 import WindowFrame from "../components/WindowFrame.svelte";
-import { api, isAppError } from "../lib/api";
+import { api, isAppError, type Stitcher } from "../lib/api";
 import type { Settings } from "../lib/generated/Settings";
 import { defaultSettings, settings } from "../lib/settings.svelte";
 import { detectPlatform } from "../lib/shortcut";
@@ -62,6 +63,15 @@ async function save(patch: Partial<Settings>, which: "start" | "stop" = "stop") 
     } else {
       saveError = message;
     }
+  }
+}
+
+const stitcherRows: Stitcher[] = ["ptgui", "autopanoGiga"];
+
+async function chooseStitcher(stitcher: Stitcher) {
+  const program = await api.settings.chooseStitcher(stitcher).catch(() => null);
+  if (program) {
+    await save({ stitchers: { ...s.stitchers, [stitcher]: program } });
   }
 }
 
@@ -176,6 +186,33 @@ function number(value: string): number {
       />
       <span class="unit">ms</span>
     </Field>
+  </section>
+
+  <section class="card">
+    <h3>{strings.settings.stitchersTitle}</h3>
+    <Tip text={strings.settings.stitchers} />
+    {#each stitcherRows as stitcher (stitcher)}
+      {@const program = s.stitchers[stitcher]}
+      <Field label={strings.settings.stitcher[stitcher]} id="s-stitcher-{stitcher}">
+        <input
+          id="s-stitcher-{stitcher}"
+          class="wide"
+          type="text"
+          readonly
+          value={program ?? ""}
+          placeholder={strings.settings.stitcherNotSet}
+          title={program ?? strings.settings.stitcherNotSet}
+          ondblclick={() => chooseStitcher(stitcher)}
+        />
+        <Button size="sm" onclick={() => chooseStitcher(stitcher)}>{strings.settings.choose}</Button>
+        {#if program}
+          <Button size="sm" variant="ghost" onclick={() => save({ stitchers: { ...s.stitchers, [stitcher]: null } })}>
+            {strings.settings.reset}
+          </Button>
+        {/if}
+      </Field>
+    {/each}
+    <Tip text={platform === "macos" ? strings.settings.stitcherHint.macos : strings.settings.stitcherHint.windows} />
   </section>
 
   <section class="card">

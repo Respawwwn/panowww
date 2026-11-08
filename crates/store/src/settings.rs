@@ -1,6 +1,6 @@
 //! `settings.json` (spec §6): the Sessions folder, the two global
-//! shortcuts, the New Game defaults, the update check and the Display
-//! preview switch.
+//! shortcuts, the New Game defaults, the update check, the Display
+//! preview switch, the appearance and the Stitchers' paths.
 
 use std::path::{Path, PathBuf};
 
@@ -11,6 +11,7 @@ use ts_rs::TS;
 use crate::StoreError;
 use crate::json::{self, Loaded};
 use crate::paths::{AppPaths, default_sessions_folder, expand_home};
+use crate::stitchers::Stitcher;
 
 /// Value of the `format` field.
 pub const FORMAT: &str = "panowww-settings";
@@ -98,6 +99,37 @@ pub struct Settings {
     /// The update check also offers pre-releases (spec §14). Off by default.
     #[serde(default)]
     pub include_prereleases: bool,
+    /// Where the Stitchers are (spec §11.12); missing in older files means
+    /// none is set.
+    #[serde(default)]
+    pub stitchers: Stitchers,
+}
+
+/// The program behind each *Open in…* button of a completed Session;
+/// `None` hides the button. macOS keeps the `.app`, Windows the `.exe`.
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct Stitchers {
+    pub ptgui: Option<PathBuf>,
+    pub autopano_giga: Option<PathBuf>,
+}
+
+impl Stitchers {
+    #[must_use]
+    pub fn path(&self, stitcher: Stitcher) -> Option<&Path> {
+        match stitcher {
+            Stitcher::Ptgui => self.ptgui.as_deref(),
+            Stitcher::AutopanoGiga => self.autopano_giga.as_deref(),
+        }
+    }
+
+    /// The Stitchers that are set, in display order.
+    pub fn set(&self) -> impl Iterator<Item = Stitcher> + '_ {
+        [Stitcher::Ptgui, Stitcher::AutopanoGiga]
+            .into_iter()
+            .filter(|s| self.path(*s).is_some())
+    }
 }
 
 /// The window's appearance (spec §12: follows the OS by default).
@@ -124,6 +156,7 @@ impl Default for Settings {
             appearance: Appearance::Auto,
             onboarded: false,
             include_prereleases: false,
+            stitchers: Stitchers::default(),
         }
     }
 }
@@ -203,6 +236,7 @@ fn read(path: &Path, text: &str) -> Result<Loaded<Settings>, StoreError> {
                 appearance: defaults.appearance,
                 onboarded: defaults.onboarded,
                 include_prereleases: defaults.include_prereleases,
+                stitchers: defaults.stitchers,
             },
             migrated: true,
         })
@@ -265,6 +299,7 @@ mod tests {
             r#","appearance":"auto""#,
             r#","onboarded":false"#,
             r#","includePrereleases":false"#,
+            r#","stitchers":{"ptgui":null,"autopanoGiga":null}"#,
         ] {
             assert!(text.contains(key), "{text}");
             text = text.replace(key, "");
@@ -274,6 +309,22 @@ mod tests {
         assert_eq!(settings.appearance, Appearance::Auto);
         assert!(!settings.onboarded);
         assert!(!settings.include_prereleases);
+        assert_eq!(settings.stitchers, Stitchers::default());
+    }
+
+    #[test]
+    fn a_stitcher_path_round_trips_and_lists_as_set() {
+        let (_dir, paths) = paths();
+        let mut settings = Settings::default();
+        settings.stitchers.autopano_giga = Some(PathBuf::from("C:/Kolor/AutopanoGiga_x64.exe"));
+        settings.save(&paths).unwrap();
+        let loaded = Settings::load(&paths).unwrap();
+        assert_eq!(loaded.stitchers, settings.stitchers);
+        assert_eq!(loaded.stitchers.path(Stitcher::Ptgui), None);
+        assert_eq!(
+            loaded.stitchers.set().collect::<Vec<_>>(),
+            [Stitcher::AutopanoGiga]
+        );
     }
 
     #[test]
