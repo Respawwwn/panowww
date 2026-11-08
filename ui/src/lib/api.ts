@@ -22,6 +22,7 @@ import type { RunnerPhase } from "./generated/RunnerPhase";
 import type { SessionSummary } from "./generated/SessionSummary";
 import type { Settings } from "./generated/Settings";
 import type { Stitcher } from "./generated/Stitcher";
+import type { StitcherCheck } from "./generated/StitcherCheck";
 import type { UpdateInfo } from "./generated/UpdateInfo";
 import type { Zone } from "./generated/Zone";
 import type { ZoneState } from "./generated/ZoneState";
@@ -36,6 +37,7 @@ export type {
   RunKindDto,
   RunnerPhase,
   Stitcher,
+  StitcherCheck,
   UpdateInfo,
   ZoneState,
 };
@@ -138,6 +140,8 @@ export const api = {
     defaultSessionsFolder: () => invoke<string>("default_sessions_folder"),
     /** Program picker for a Stitcher (`.exe` / `.app`); null when cancelled. */
     chooseStitcher: (stitcher: Stitcher) => invoke<string | null>("choose_stitcher", { stitcher }),
+    /** Is the Stitcher's program still there, and which version. */
+    checkStitcher: (stitcher: Stitcher) => invoke<StitcherCheck>("stitcher_check", { stitcher }),
     revealLogs: () => invoke<void>("reveal_logs"),
     /** Settings open: the global shortcuts pause. */
     setShortcutsEnabled: (enabled: boolean) => invoke<void>("set_shortcuts_enabled", { enabled }),

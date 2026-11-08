@@ -220,6 +220,10 @@ export function installMock(): void {
         return defaultSettings.sessionsFolder;
       case "choose_sessions_folder":
         return "/Volumes/Shots/Panowww";
+      case "stitcher_check":
+        return args.stitcher === "ptgui"
+          ? { installed: true, version: "13.10" }
+          : { installed: true, version: "4.4.2" };
       case "choose_stitcher":
         return args.stitcher === "ptgui"
           ? "/Applications/PTGui Pro.app"

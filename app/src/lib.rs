@@ -13,6 +13,7 @@ mod picker;
 mod runner;
 mod shortcuts;
 mod state;
+mod stitchers;
 mod update;
 
 use std::sync::{Arc, Mutex, RwLock};

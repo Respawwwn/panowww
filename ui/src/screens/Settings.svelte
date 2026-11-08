@@ -7,16 +7,17 @@
 import { onMount } from "svelte";
 import Button from "../components/Button.svelte";
 import Field from "../components/Field.svelte";
+import Icon from "../components/Icon.svelte";
 import Segmented from "../components/Segmented.svelte";
 import ShortcutRecorder from "../components/ShortcutRecorder.svelte";
 import Switch from "../components/Switch.svelte";
 import Tip from "../components/Tip.svelte";
 import WindowFrame from "../components/WindowFrame.svelte";
-import { api, isAppError, type Stitcher } from "../lib/api";
+import { api, isAppError, type Stitcher, type StitcherCheck } from "../lib/api";
 import type { Settings } from "../lib/generated/Settings";
 import { defaultSettings, settings } from "../lib/settings.svelte";
 import { detectPlatform } from "../lib/shortcut";
-import { strings } from "../lib/strings";
+import { interpolate, strings } from "../lib/strings";
 import { windows } from "../lib/windows.svelte";
 
 const platform = detectPlatform();
@@ -67,6 +68,36 @@ async function save(patch: Partial<Settings>, which: "start" | "stop" = "stop") 
 }
 
 const stitcherRows: Stitcher[] = ["ptgui", "autopanoGiga"];
+/** The line under each row; `null` while the check runs. */
+let checks = $state<Record<Stitcher, StitcherCheck | null>>({ ptgui: null, autopanoGiga: null });
+
+async function recheck(stitcher: Stitcher) {
+  checks[stitcher] = null;
+  checks[stitcher] = await api.settings
+    .checkStitcher(stitcher)
+    .catch(() => ({ installed: false, version: null }));
+}
+
+// Checked when the window opens and whenever a path changes.
+$effect(() => {
+  for (const stitcher of stitcherRows) {
+    if (s.stitchers[stitcher]) {
+      void recheck(stitcher);
+    }
+  }
+});
+
+function versionText(check: StitcherCheck | null): string {
+  if (check === null) {
+    return "…";
+  }
+  if (check.version) {
+    return check.version;
+  }
+  return check.installed
+    ? strings.settings.stitcherVersionUnknown
+    : strings.settings.stitcherNotInstalled;
+}
 
 async function chooseStitcher(stitcher: Stitcher) {
   const program = await api.settings.chooseStitcher(stitcher).catch(() => null);
@@ -191,25 +222,41 @@ function number(value: string): number {
   <section class="card">
     <h3>{strings.settings.stitchersTitle}</h3>
     <Tip text={strings.settings.stitchers} />
+    <Tip text={strings.settings.stitchersNote} />
     {#each stitcherRows as stitcher (stitcher)}
       {@const program = s.stitchers[stitcher]}
-      <Field label={strings.settings.stitcher[stitcher]} id="s-stitcher-{stitcher}">
-        <input
-          id="s-stitcher-{stitcher}"
-          class="wide"
-          type="text"
-          readonly
-          value={program ?? ""}
-          placeholder={strings.settings.stitcherNotSet}
-          title={program ?? strings.settings.stitcherNotSet}
-          ondblclick={() => chooseStitcher(stitcher)}
-        />
-        <Button size="sm" onclick={() => chooseStitcher(stitcher)}>{strings.settings.choose}</Button>
-        {#if program}
-          <Button size="sm" variant="ghost" onclick={() => save({ stitchers: { ...s.stitchers, [stitcher]: null } })}>
-            {strings.settings.reset}
-          </Button>
-        {/if}
+      {@const name = strings.settings.stitcher[stitcher]}
+      <Field label={name} id="s-stitcher-{stitcher}">
+        <div class="stack">
+          <div class="line">
+            <input
+              id="s-stitcher-{stitcher}"
+              class="wide"
+              type="text"
+              readonly
+              value={program ?? ""}
+              placeholder={strings.settings.stitcherNotSet}
+              title={program ?? strings.settings.stitcherNotSet}
+              ondblclick={() => chooseStitcher(stitcher)}
+            />
+            <Button size="sm" onclick={() => chooseStitcher(stitcher)}>{strings.settings.choose}</Button>
+            {#if program}
+              <Button size="sm" variant="ghost" onclick={() => save({ stitchers: { ...s.stitchers, [stitcher]: null } })}>
+                {strings.settings.reset}
+              </Button>
+            {/if}
+          </div>
+          {#if program}
+            {@const check = checks[stitcher]}
+            <div class="status">
+              <span class="dot" class:ok={Boolean(check?.version)} class:bad={check !== null && !check.version}></span>
+              <span>{interpolate(strings.settings.stitcherVersion, { stitcher: name, version: versionText(check) })}</span>
+              <button type="button" class="recheck" title={strings.settings.recheck} aria-label={strings.settings.recheck} onclick={() => recheck(stitcher)}>
+                <Icon name="refresh" size={13} />
+              </button>
+            </div>
+          {/if}
+        </div>
       </Field>
     {/each}
     <Tip text={platform === "macos" ? strings.settings.stitcherHint.macos : strings.settings.stitcherHint.windows} />
@@ -242,6 +289,58 @@ function number(value: string): number {
 </WindowFrame>
 
 <style>
+  .stack {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    color: var(--muted);
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex: none;
+    background: var(--line2);
+  }
+
+  .dot.ok {
+    background: var(--ok);
+  }
+
+  .dot.bad {
+    background: var(--bad);
+  }
+
+  .recheck {
+    display: inline-flex;
+    padding: 2px;
+    border: 0;
+    border-radius: 4px;
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+  }
+
+  .recheck:hover {
+    color: var(--fg);
+    background: var(--hover);
+  }
+
   .card {
     display: flex;
     flex-direction: column;

@@ -43,6 +43,7 @@
     "allow-save-settings",
     "allow-choose-sessions-folder",
     "allow-choose-stitcher",
+    "allow-stitcher-check",
     "allow-default-sessions-folder",
     "allow-reveal-logs",
     "allow-apply-shortcuts",

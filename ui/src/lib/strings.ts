@@ -400,9 +400,14 @@ export const strings = {
     defaults: "Applied to every new Game. Existing Games keep their values.",
     stitchersTitle: "Stitchers",
     stitchers:
-      "A Stitcher assembles a Session's Shots into a panorama. Set one and a completed Session gets an Open in… button. Panowww never stitches itself.",
+      "A Stitcher assembles a Session's Shots into a panorama. Set one and a completed Session gets an Open in… button.",
+    stitchersNote: "Panowww never stitches itself.",
     stitcher: { ptgui: "PTGui", autopanoGiga: "Autopano Giga" },
     stitcherNotSet: "Not set",
+    stitcherVersion: "{stitcher} version: {version}",
+    stitcherVersionUnknown: "not detected",
+    stitcherNotInstalled: "not installed",
+    recheck: "Check again",
     stitcherHint: {
       macos: "Pick the application.",
       windows: "Pick the program's .exe, for example PTGui.exe or AutopanoGiga_x64.exe.",

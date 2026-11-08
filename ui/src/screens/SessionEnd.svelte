@@ -1,10 +1,14 @@
 <script lang="ts">
 // Session end (spec §11.7, board B-SessionEnd): the state chip and the
 // Game's name in the toolbar with *Back to Game*; the summary card with
-// the title, the date line, the counts, *Zip Session*, *Reveal* and, for
-// a completed Session, *Open in…* per Stitcher set in Settings; the Shots
-// card with the folder and the full grid. Shown for the run that just
-// ended and for any Session opened from a table; no preview.
+// the actions row (*Open in…* per Stitcher set in Settings, completed
+// Sessions only, the first one primary; *Zip Session*, primary when no
+// Stitcher is set; *Reveal*), sized like the Game header's Duplicate and
+// Share; the summary card with the title, the date line and the counts;
+// the Shots card with the folder and the full grid, which fills the
+// window when there is room and never shrinks below its grid. Shown for
+// the run that just ended and for any Session opened from a table; no
+// preview.
 import Button from "../components/Button.svelte";
 import Chip from "../components/Chip.svelte";
 import Icon from "../components/Icon.svelte";
@@ -212,6 +216,26 @@ async function back() {
 </div>
 
 <div class="end">
+  <div class="actions">
+    {#each stitchers as stitcher, i (stitcher)}
+      <Button variant={i === 0 ? "primary" : "secondary"} disabled={!folder} onclick={() => openIn(stitcher)}>
+        <Icon name={stitcher === "ptgui" ? "ptgui" : "autopano"} size={14} />
+        {interpolate(strings.session.end.openIn, { stitcher: strings.settings.stitcher[stitcher] })}
+      </Button>
+    {/each}
+    <Button variant={stitchers.length === 0 ? "primary" : "secondary"} disabled={!folder} onclick={zip}>
+      <Icon name="zip" size={14} />
+      {strings.session.end.zip}
+    </Button>
+    <Button disabled={!folder} onclick={reveal}>
+      <Icon name="folder" size={14} />
+      {platform === "macos" ? strings.detail.revealInFinder : strings.detail.revealInExplorer}
+    </Button>
+  </div>
+  {#if zipped || actionError}
+    <p class="note" class:error={Boolean(actionError)}>{actionError ?? zipped}</p>
+  {/if}
+
   <section class="card summary">
     <div class="titles">
       <h2>{title}</h2>
@@ -232,25 +256,7 @@ async function back() {
         <div class="sub">{strings.session.end.onDisk}</div>
       </div>
     </div>
-    <div class="actions">
-      <Button variant="primary" size="lg" disabled={!folder} onclick={zip}>
-        <Icon name="zip" size={15} />
-        {strings.session.end.zip}
-      </Button>
-      <Button size="lg" disabled={!folder} onclick={reveal}>
-        <Icon name="folder" />
-        {platform === "macos" ? strings.detail.revealInFinder : strings.detail.revealInExplorer}
-      </Button>
-      {#each stitchers as stitcher (stitcher)}
-        <Button size="lg" disabled={!folder} onclick={() => openIn(stitcher)}>
-          {interpolate(strings.session.end.openIn, { stitcher: strings.settings.stitcher[stitcher] })}
-        </Button>
-      {/each}
-    </div>
   </section>
-  {#if zipped || actionError}
-    <p class="note" class:error={Boolean(actionError)}>{actionError ?? zipped}</p>
-  {/if}
 
   <section class="card shots">
     <div class="head">
@@ -371,13 +377,14 @@ async function back() {
     color: var(--bad-fg);
   }
 
+  /* Grows to the bottom of the window when there is room, never shrinks
+     below its grid: the background always covers every Shot. */
   .shots {
-    flex: 1;
+    flex: 1 0 auto;
     display: flex;
     flex-direction: column;
     gap: 10px;
     padding: 14px;
-    min-height: 0;
   }
 
   .head {

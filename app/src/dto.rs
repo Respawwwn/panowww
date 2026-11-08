@@ -255,6 +255,16 @@ pub struct UpdateInfo {
     pub url: String,
 }
 
+/// What Settings shows under a Stitcher's row (spec §11.12): the program
+/// is still there, and its version when it can be read.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct StitcherCheck {
+    pub installed: bool,
+    pub version: Option<String>,
+}
+
 /// The Runner's phase, for the UI and the tests (spec §4.4).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]

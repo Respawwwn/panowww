@@ -41,6 +41,7 @@ const COMMANDS: &[&str] = &[
     "save_settings",
     "choose_sessions_folder",
     "choose_stitcher",
+    "stitcher_check",
     "default_sessions_folder",
     "reveal_logs",
     "apply_shortcuts",

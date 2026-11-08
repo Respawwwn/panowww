@@ -78,6 +78,7 @@ pub fn handler<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + 
         settings::save_settings,
         settings::choose_sessions_folder,
         settings::choose_stitcher,
+        settings::stitcher_check,
         settings::default_sessions_folder,
         settings::reveal_logs,
         settings::apply_shortcuts,

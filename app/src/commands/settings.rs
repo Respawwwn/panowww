@@ -1,14 +1,18 @@
 //! Settings: read, write, the Sessions folder picker, the Stitcher
 //! picker, the logs, the shortcuts.
 
+use std::path::Path;
+
 use panowww_store::settings::Settings;
 use panowww_store::stitchers::Stitcher;
 use tauri::{AppHandle, Manager, State};
 use tauri_plugin_dialog::DialogExt;
 
+use crate::dto::StitcherCheck;
 use crate::error::{AppError, CmdResult};
 use crate::shortcuts;
 use crate::state::SharedState;
+use crate::stitchers;
 
 #[tauri::command]
 pub fn get_settings(state: State<'_, SharedState>) -> Settings {
@@ -122,6 +126,29 @@ pub async fn choose_stitcher<R: tauri::Runtime>(
     Ok(chosen
         .and_then(|p| p.into_path().ok())
         .map(|p| p.display().to_string()))
+}
+
+/// The line under a Stitcher's row: installed, and which version. A
+/// Stitcher without a path is simply not installed.
+#[tauri::command]
+pub async fn stitcher_check(
+    state: State<'_, SharedState>,
+    stitcher: Stitcher,
+) -> CmdResult<StitcherCheck> {
+    let Some(program) = state
+        .settings()
+        .stitchers
+        .path(stitcher)
+        .map(Path::to_path_buf)
+    else {
+        return Ok(StitcherCheck {
+            installed: false,
+            version: None,
+        });
+    };
+    tauri::async_runtime::spawn_blocking(move || stitchers::check(&program))
+        .await
+        .map_err(AppError::internal)
 }
 
 /// The default Sessions folder, resolved (`~/Pictures/Panowww` with the
