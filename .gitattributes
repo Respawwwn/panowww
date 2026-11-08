@@ -1,0 +1,11 @@
+# LF in every checkout, Windows included: Biome, rustfmt and the shell
+# scripts expect it, and git on the Windows CI runner would write CRLF.
+* text=auto eol=lf
+
+# Binary files git must never touch.
+*.png binary
+*.jpg binary
+*.webp binary
+*.ico binary
+*.icns binary
+*.woff2 binary
