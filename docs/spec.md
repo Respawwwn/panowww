@@ -334,6 +334,7 @@ cache/thumbnails/<session-id>/rNN_cNN.jpg     # history thumbnails, generated on
 | `appearance` | `auto` (`light`, `dark`) |
 | `onboarded` | `false`; `true` once onboarding was closed with *Later* or *Continue* (§11.11) |
 | `includePrereleases` | `false`; the update check also offers releases marked as pre-release (§14) |
+| `stitchers.ptgui`, `stitchers.autopanoGiga` | `null`; the Stitcher's program (`.app` on macOS, `.exe` on Windows) behind *Open in…* (§11.7, §11.12) |
 
 `local-games.json` (`format: "panowww-local-games"`, `version: 1`): map Game `id` → `{ zone: { displayId, x, y, w, h, displayW, displayH, scale } }`. Coordinates are points on macOS, physical pixels on Windows; `displayId` is the OS's stable display identifier. At load, a zone whose display is gone or whose size/scale changed is reported as *display changed*; it is never rescaled, the user redraws it.
 
@@ -506,7 +507,9 @@ Head card: Game name, `Row 2 of 6`, progress bar, `17 / 78 Shots`, `≈ 3 min 10
 
 ### 11.7 Session end
 
-Summary card: `session.end.completed.title` / `interrupted.title` / `failed.title`; line `date · duration · 6 × 13 · PNG`; Shots count; size; **Zip Session**; **Reveal in Finder** / **Reveal in Explorer**; *Back to Game*. Completed: `session.end.next` box. Interrupted: amber chip + `session.end.interrupted.note`. Failed: red chip + `sessions.failed.template` with its reason fragment. Full Shots grid below. No preview.
+Actions row above the summary card, right-aligned, buttons sized like the Game header's *Duplicate* / *Share*: completed only, one **Open in PTGui** / **Open in Autopano Giga** button per Stitcher set in Settings (`session.end.openIn`, each with its icon, the first one primary, PTGui before Autopano Giga); **Zip Session** (primary when no Stitcher is set); **Reveal in Finder** / **Reveal in Explorer**. The zip path or the action's error shows under the row. Summary card: `session.end.completed.title` / `interrupted.title` / `failed.title`; line `date · duration · 6 × 13 · PNG`; Shots count; size; *Back to Game* in the toolbar. Completed: `session.end.next` box. Interrupted: amber chip + `session.end.interrupted.note`. Failed: red chip + `sessions.failed.template` with its reason fragment. Full Shots grid below in a card that fills the window when there is room and never shrinks below its grid. No preview.
+
+*Open in…* (GLOSSARY *Stitcher*): the Shots are passed as relative names with the Session folder as the working directory, which keeps a 36 × 36 grid far under the Windows command-line limit. PTGui: the first click runs `PTGui -createproject <Shots> -output <Session>.pts` (no window, a few seconds, PTGui 13 or later; every Shot, no control points, PTGui estimates the field of view) and opens the project; later clicks open the existing `.pts` in the Session folder. Autopano Giga: the program is launched with every Shot as an argument; it loads them in one group and creates no project until the user saves one. A program that moved or was uninstalled is reported under the buttons with a pointer to Settings. Not in the Sessions tables.
 
 ### 11.8 Check overlap window
 
@@ -528,7 +531,7 @@ Shown at first launch (`onboarded` in `settings.json`, set by *Later* or *Contin
 
 ### 11.12 Settings window
 
-Left-aligned labels. Sessions folder (path, *Change…*, *Reveal*, `settings.folder`); Shortcuts Start / Stop (*Record…*, *Reset*, `settings.shortcuts`, `settings.shortcuts.mac`); New Game defaults (Start pole, two delays, `settings.defaults`); Display preview switch (`settings.displayPreview.*`); Updates: *Check for updates at launch*, then *Include pre-releases* (`settings.includePrereleases.*`, disabled while the first switch is off); *Review permissions…*, *Reveal logs*.
+Left-aligned labels. Sessions folder (path, *Change…*, *Reveal*, `settings.folder`); Shortcuts Start / Stop (*Record…*, *Reset*, `settings.shortcuts`, `settings.shortcuts.mac`); New Game defaults (Start pole, two delays, `settings.defaults`); Display preview switch (`settings.displayPreview.*`); Stitchers: `settings.stitchers` and `settings.stitchersNote` on two lines, then one row per Stitcher, PTGui and Autopano Giga, drawn like the Sessions folder row (path or `settings.stitcherNotSet`, *Choose…* opening the program picker, `.app` on macOS and `.exe` on Windows, *Reset* when set; `settings.stitcherHint.*`). Under a set row, the version line `settings.stitcherVersion` with a green dot and the version read from the program (the Windows version resource, the macOS bundle's `CFBundleShortVersionString`), or a red dot with `settings.stitcherNotInstalled` (program gone), `settings.stitcherWrongProgram` (the product name, `ProductName` on Windows and `CFBundleName` on macOS, is not PTGui / an Autopano: another program was picked) or `settings.stitcherVersionUnknown` (right program, version unreadable), and a refresh icon (`settings.recheck`) that runs the check again; checked when the window opens and when the path changes; Updates: *Check for updates at launch*, then *Include pre-releases* (`settings.includePrereleases.*`, disabled while the first switch is off); *Review permissions…*, *Reveal logs*.
 
 ### 11.13 About window
 
@@ -639,7 +642,8 @@ All user-visible strings live in `ui/src/lib/strings.ts`, keyed as below; per-OS
 | `session.end.completed.title` | summary card | title | All {n} Shots are in |
 | `session.end.interrupted.title` | summary card | title | Stopped after {n} Shots |
 | `session.end.failed.title` | summary card | title | Failed at Shot {n} |
-| `session.end.next` | summary card, completed | box | Next: drop the folder or the zip into PTGui or Autopano Giga. |
+| `session.end.next` | summary card, completed | box | Next: open the Session in a Stitcher, or drop the folder or the zip into one. |
+| `session.end.openIn` | summary card, completed, per Stitcher set | button | Open in {stitcher} |
 | `session.end.interrupted.note` | summary card, interrupted | line | The Shots taken are kept. An interrupted Session cannot be resumed: start a new one from the same pole. |
 | `session.end.failed.note` | summary card, failed | line | = `sessions.failed.template` |
 | `sessions.folder` | footer of both tables | line | Sessions are saved in {path} · Change the folder in Settings |
@@ -683,6 +687,17 @@ All user-visible strings live in `ui/src/lib/strings.ts`, keyed as below; per-OS
 | `settings.displayPreview.hint` | under the switch | line | Turn it off if the game stutters while Panowww runs. |
 | `settings.includePrereleases.label` | Settings | label | Include pre-releases |
 | `settings.includePrereleases.hint` | under the switch | line | Also offer betas and release candidates. Off, only stable releases show up. |
+| `settings.stitchers` | Settings, Stitchers card | line | A Stitcher assembles a Session's Shots into a panorama. Set one and a completed Session gets an Open in… button. |
+| `settings.stitchersNote` | line 2 | line | Panowww never stitches itself. |
+| `settings.stitcherNotSet` | Stitcher row, empty | placeholder | Not set |
+| `settings.stitcherVersion` | under a set row | line | {stitcher} version: {version} |
+| `settings.stitcherVersionUnknown` | version line, red | fragment | not detected |
+| `settings.stitcherNotInstalled` | version line, red | fragment | not installed |
+| `settings.stitcherWrongProgram` | version line, red | fragment | not {stitcher} ({product}) |
+| `settings.stitcherUnknownProgram` | `{product}` when the program names none | fragment | unknown program |
+| `settings.recheck` | refresh icon | tooltip | Check again |
+| `settings.stitcherHint.macos` | under the rows, macOS | line | Pick the application. |
+| `settings.stitcherHint.windows` | under the rows, Windows | line | Pick the program's .exe, for example PTGui.exe or AutopanoGiga_x64.exe. |
 | `about.tagline` | About, README, empty state | line | Automated 360° panorama capture for video games. |
 | `about.licence` | About | line | Panowww is a Respawwwn project by Kevin Wenger. MIT License. The Respawwwn name and logo are not covered by the license. |
 | `about.upToDate` | About | chip | You're up to date. |

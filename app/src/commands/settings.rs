@@ -1,13 +1,18 @@
-//! Settings: read, write, the Sessions folder picker, the logs, the
-//! shortcuts.
+//! Settings: read, write, the Sessions folder picker, the Stitcher
+//! picker, the logs, the shortcuts.
+
+use std::path::Path;
 
 use panowww_store::settings::Settings;
+use panowww_store::stitchers::Stitcher;
 use tauri::{AppHandle, Manager, State};
 use tauri_plugin_dialog::DialogExt;
 
+use crate::dto::StitcherCheck;
 use crate::error::{AppError, CmdResult};
 use crate::shortcuts;
 use crate::state::SharedState;
+use crate::stitchers;
 
 #[tauri::command]
 pub fn get_settings(state: State<'_, SharedState>) -> Settings {
@@ -95,6 +100,57 @@ pub async fn choose_sessions_folder<R: tauri::Runtime>(
     Ok(chosen
         .and_then(|p| p.into_path().ok())
         .map(|p| p.display().to_string()))
+}
+
+/// File picker for a Stitcher's program (spec §11.12): the `.exe` on
+/// Windows, the `.app` on macOS; `None` when cancelled. The UI saves the
+/// settings as a whole.
+#[tauri::command]
+pub async fn choose_stitcher<R: tauri::Runtime>(
+    app: AppHandle<R>,
+    stitcher: Stitcher,
+) -> CmdResult<Option<String>> {
+    let (kind, extensions): (&str, &[&str]) = if cfg!(target_os = "macos") {
+        ("Application", &["app"])
+    } else {
+        ("Program", &["exe"])
+    };
+    let dialog = app
+        .dialog()
+        .file()
+        .set_title(stitcher.name())
+        .add_filter(kind, extensions);
+    let chosen = tauri::async_runtime::spawn_blocking(move || dialog.blocking_pick_file())
+        .await
+        .map_err(AppError::internal)?;
+    Ok(chosen
+        .and_then(|p| p.into_path().ok())
+        .map(|p| p.display().to_string()))
+}
+
+/// The line under a Stitcher's row: installed, and which version. A
+/// Stitcher without a path is simply not installed.
+#[tauri::command]
+pub async fn stitcher_check(
+    state: State<'_, SharedState>,
+    stitcher: Stitcher,
+) -> CmdResult<StitcherCheck> {
+    let Some(program) = state
+        .settings()
+        .stitchers
+        .path(stitcher)
+        .map(Path::to_path_buf)
+    else {
+        return Ok(StitcherCheck {
+            installed: false,
+            genuine: false,
+            product: None,
+            version: None,
+        });
+    };
+    tauri::async_runtime::spawn_blocking(move || stitchers::check(stitcher, &program))
+        .await
+        .map_err(AppError::internal)
 }
 
 /// The default Sessions folder, resolved (`~/Pictures/Panowww` with the

@@ -47,6 +47,10 @@ uuid = { version = "1", features = ["serde", "v4"] }
 [target.'cfg(target_os = "macos")'.dependencies]
 tauri-nspanel = "2.1"
 
+[target.'cfg(target_os = "windows")'.dependencies]
+# The version resource of a Stitcher's program (Settings).
+windows = { version = "0.62", features = ["Win32_Foundation", "Win32_Storage_FileSystem"] }
+
 [dev-dependencies]
 panowww-core = { path = "../crates/core", features = ["test-support"] }
 tauri = { version = "2", features = ["test"] }

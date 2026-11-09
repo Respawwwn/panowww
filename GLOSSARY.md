@@ -50,3 +50,7 @@ The Shots taken at one camera pitch during a full horizontal turn.
 
 **Overlap**
 The share of image two neighbouring Shots have in common. Stitching needs enough of it, but not too much.
+
+**Stitcher**
+A program that assembles a Session's Shots into a panorama: PTGui, Autopano Giga. Panowww opens a completed Session in it and never stitches itself.
+_Avoid_: stitching software, editor, external tool.

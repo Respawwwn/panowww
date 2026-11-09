@@ -21,6 +21,8 @@ import type { RunKindDto } from "./generated/RunKindDto";
 import type { RunnerPhase } from "./generated/RunnerPhase";
 import type { SessionSummary } from "./generated/SessionSummary";
 import type { Settings } from "./generated/Settings";
+import type { Stitcher } from "./generated/Stitcher";
+import type { StitcherCheck } from "./generated/StitcherCheck";
 import type { UpdateInfo } from "./generated/UpdateInfo";
 import type { Zone } from "./generated/Zone";
 import type { ZoneState } from "./generated/ZoneState";
@@ -34,6 +36,8 @@ export type {
   RunEvent,
   RunKindDto,
   RunnerPhase,
+  Stitcher,
+  StitcherCheck,
   UpdateInfo,
   ZoneState,
 };
@@ -118,6 +122,9 @@ export const api = {
     zip: (folder: string) => invoke<string>("zip_session", { folder }),
     reveal: (folder: string) => invoke<void>("reveal_path", { path: folder }),
     delete: (folder: string) => invoke<void>("delete_session", { folder }),
+    /** Opens the Session in the Stitcher set in Settings; rejects when it moved. */
+    openIn: (folder: string, stitcher: Stitcher) =>
+      invoke<void>("open_in_stitcher", { folder, stitcher }),
     /** data: URL of the history thumbnail, generated on demand. */
     thumbnail: (folder: string, file: string) =>
       invoke<string>("session_thumbnail", { folder, file }),
@@ -131,6 +138,10 @@ export const api = {
     chooseSessionsFolder: () => invoke<string | null>("choose_sessions_folder"),
     /** The default Sessions folder, resolved for this machine. */
     defaultSessionsFolder: () => invoke<string>("default_sessions_folder"),
+    /** Program picker for a Stitcher (`.exe` / `.app`); null when cancelled. */
+    chooseStitcher: (stitcher: Stitcher) => invoke<string | null>("choose_stitcher", { stitcher }),
+    /** Is the Stitcher's program still there, and which version. */
+    checkStitcher: (stitcher: Stitcher) => invoke<StitcherCheck>("stitcher_check", { stitcher }),
     revealLogs: () => invoke<void>("reveal_logs"),
     /** Settings open: the global shortcuts pause. */
     setShortcutsEnabled: (enabled: boolean) => invoke<void>("set_shortcuts_enabled", { enabled }),

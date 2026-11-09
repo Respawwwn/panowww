@@ -7,7 +7,8 @@
 //! re-reads a changed Game ([`watcher`]), Session folders and their
 //! `session.json` ([`sink::SessionSink`], the core `ShotSink`), the PNG
 //! worker ([`png`]), the Sessions listing, zip, reveal and delete
-//! ([`sessions`]) and history thumbnails ([`thumbnails`]). Every JSON file
+//! ([`sessions`]), history thumbnails ([`thumbnails`]) and opening a
+//! Session in a Stitcher ([`stitchers`]). Every JSON file
 //! is written atomically and carries a `format` / `version` envelope
 //! migrated like the Game file.
 #![forbid(unsafe_code)]
@@ -22,6 +23,7 @@ pub mod session;
 pub mod sessions;
 pub mod settings;
 pub mod sink;
+pub mod stitchers;
 pub mod thumbnails;
 pub mod watcher;
 

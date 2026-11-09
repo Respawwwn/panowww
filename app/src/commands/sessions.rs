@@ -1,9 +1,11 @@
-//! The Sessions tables: listing, size, zip, reveal, delete, thumbnails.
+//! The Sessions tables: listing, size, zip, reveal, delete, thumbnails,
+//! and opening a Session in a Stitcher.
 
 use std::path::Path;
 
 use panowww_store::session::SessionRecord;
 use panowww_store::sessions::{self, SessionSummary};
+use panowww_store::stitchers::{self, Stitcher};
 use panowww_store::thumbnails;
 use tauri::State;
 use uuid::Uuid;
@@ -68,4 +70,27 @@ pub fn session_thumbnail(
 #[tauri::command]
 pub fn reveal_path(path: String) -> CmdResult<()> {
     Ok(sessions::reveal(Path::new(&path))?)
+}
+
+/// Session end → *Open in PTGui* / *Open in Autopano Giga* (spec §11.7):
+/// the program set in Settings opens the Session's Shots. Blocking while
+/// PTGui creates its project (a few seconds), so off the main thread.
+#[tauri::command]
+pub async fn open_in_stitcher(
+    state: State<'_, SharedState>,
+    folder: String,
+    stitcher: Stitcher,
+) -> CmdResult<()> {
+    let program = state
+        .settings()
+        .stitchers
+        .path(stitcher)
+        .map(Path::to_path_buf)
+        .ok_or_else(|| AppError::not_found(format!("{} in Settings", stitcher.name())))?;
+    tauri::async_runtime::spawn_blocking(move || {
+        stitchers::open(stitcher, &program, Path::new(&folder))
+    })
+    .await
+    .map_err(AppError::internal)??;
+    Ok(())
 }

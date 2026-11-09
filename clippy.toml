@@ -1,2 +1,2 @@
 # OS product names that appear in prose; ".." keeps clippy's defaults.
-doc-valid-idents = ["AppKit", "ScreenCaptureKit", "ViGEm", "ViGEmBus", "WebView2", "XInput", ".."]
+doc-valid-idents = ["AppKit", "PTGui", "ScreenCaptureKit", "ViGEm", "ViGEmBus", "WebView2", "XInput", ".."]

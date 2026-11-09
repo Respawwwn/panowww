@@ -18,7 +18,10 @@ type Props = {
     | "back"
     | "check"
     | "stop"
-    | "warn";
+    | "warn"
+    | "refresh"
+    | "ptgui"
+    | "autopano";
   size?: number;
 };
 
@@ -66,6 +69,16 @@ let { name, size = 16 }: Props = $props();
   {:else if name === "warn"}
     <path d="M12 3.5 2.8 19.5h18.4L12 3.5z" />
     <path d="M12 10v4M12 17h.01" />
+  {:else if name === "refresh"}
+    <path d="M20 12a8 8 0 1 1-2.4-5.7M20 4v5h-5" />
+  {:else if name === "ptgui"}
+    <!-- Stitched strips of a panorama. -->
+    <rect x="2" y="7" width="20" height="10" rx="2" />
+    <path d="M8.5 7l1 10M15.5 7l-1 10" />
+  {:else if name === "autopano"}
+    <!-- Detection: a lens with its points. -->
+    <circle cx="12" cy="12" r="8" />
+    <path d="M12 4v3M12 17v3M4 12h3M17 12h3M12 12h.01" />
   {/if}
 </svg>
 

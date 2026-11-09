@@ -13,7 +13,7 @@ Captures 360° panorama source Shots inside video games by driving the in-game c
 
 ## Vocabulary
 
-Use the glossary terms in identifiers, comments, strings and commit messages: Game, Input device, Capture zone, Session, Shot, Test (Turn test, Pitch test), Step, Step once, Row, Overlap, Sample, Check overlap, Display preview, Nadir / Zenith. Never use the `_Avoid_` words (profile, config, preset, region, screenshot, dry-run, live view…).
+Use the glossary terms in identifiers, comments, strings and commit messages: Game, Input device, Capture zone, Session, Shot, Test (Turn test, Pitch test), Step, Step once, Row, Overlap, Sample, Check overlap, Display preview, Nadir / Zenith, Stitcher. Never use the `_Avoid_` words (profile, config, preset, region, screenshot, dry-run, live view…).
 
 ## Crates
 
