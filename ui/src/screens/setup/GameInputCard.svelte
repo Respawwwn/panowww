@@ -24,13 +24,6 @@ type Props = {
 
 let { editor, open, ontoggle, platform, flash }: Props = $props();
 
-/** The header glows with whichever of its fields does. */
-const headFlash = $derived(
-  flash && ["turnHoldMs", "pitchHoldMs", "turnDelta", "pitchDelta"].includes(flash.field)
-    ? flash.n
-    : 0,
-);
-
 const devices: { id: Device; label: string }[] = [
   { id: "keyboard", label: "Keyboard" },
   { id: "mouse", label: "Mouse" },
@@ -49,7 +42,6 @@ function number(value: string): number {
   summary={inputSummary(editor.game.input)}
   {open}
   {ontoggle}
-  flash={headFlash}
 >
   <Field label={strings.setup.game.name} id="game-name" error={editor.error("name")}>
     <input

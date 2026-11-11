@@ -18,17 +18,13 @@ type Props = {
 
 let { editor, open, ontoggle, flash }: Props = $props();
 
-const headFlash = $derived(
-  flash && (flash.field === "shotsPerRow" || flash.field === "rows") ? flash.n : 0,
-);
-
 function number(value: string): number {
   const n = Number(value);
   return Number.isFinite(n) ? n : 0;
 }
 </script>
 
-<CollapsibleCard n={2} title={strings.setup.grid.title} summary={gridSummary(editor.game)} {open} {ontoggle} flash={headFlash}>
+<CollapsibleCard n={2} title={strings.setup.grid.title} summary={gridSummary(editor.game)} {open} {ontoggle}>
   <Field
     label={strings.setup.grid.startPoleLabel}
     tip={editor.game.startPole === "nadir" ? strings.setup.grid.startPole.nadir : strings.setup.grid.startPole.zenith}
