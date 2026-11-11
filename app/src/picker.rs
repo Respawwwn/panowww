@@ -360,12 +360,13 @@ fn place_physical<R: Runtime>(
                 && at.y == y
                 && size.width == display.width
                 && size.height == display.height => {}
-        (at, size) => tracing::warn!(
-            label,
-            want = format!("{}×{} at ({x}, {y})", display.width, display.height),
-            got = format!("{size:?} at {at:?}"),
-            "picker window does not cover its display"
-        ),
+        (at, size) => {
+            // Built outside the macro: inside it, `display` names tracing's
+            // own `display` helper, not this function's argument.
+            let want = format!("{}×{} at ({x}, {y})", display.width, display.height);
+            let got = format!("{size:?} at {at:?}");
+            tracing::warn!(label, want, got, "picker window does not cover its display");
+        }
     }
 }
 
