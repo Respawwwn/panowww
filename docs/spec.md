@@ -397,11 +397,13 @@ All use the Game's `waitAfterMove` and **no** `waitAfterShot` (nothing to settle
 ### 7.5 Calibration assistant
 
 A guided loop per axis in the Calibrate card, in the recommended order, no blocking wizard:
-1. Turn test → *Overshot* / *Undershot* buttons adjust the turn value **relatively** (fine ±2 %, coarse ±10 %, integer-rounded, clamped to the schema bounds; `turnDelta`, `turnHoldMs` or `stickDeflection`), re-run.
-2. Check overlap (turn) → off-target Overlap means changing *Shots per Row* and going back to 1.
-3. Pitch test → adjust the pitch value the same way.
-4. Check overlap (pitch) → adjust *Rows*.
+1. Check overlap (turn) → *Overshot* / *Undershot* buttons adjust the turn Step **relatively** (fine ±2 %, coarse ±10 %, integer-rounded, clamped to the schema bounds; `turnDelta` or `turnHoldMs`): too little Overlap means the Step is too big (Overshot), too much means too small (Undershot). Check again until the Overlap sits in the target.
+2. Turn test → *Decrease* / *Increase* buttons (−3 −1 +1 +3) change *Shots per Row*, clamped to the schema bounds: went past the landmark, fewer; stopped short, more. Re-run.
+3. Check overlap (pitch) → adjust the pitch Step the same way (`pitchDelta` or `pitchHoldMs`).
+4. Pitch test → the same count buttons change *Rows*.
 5. Step once (turn / pitch) to feel a Step.
+
+The Step size is settled first because the Overlap depends on it alone; the Tests then only pick how many of those Steps make a full turn or a pole-to-pole tilt.
 
 Delays are not tool-calibrated (tips under the fields). The assistant edits the Game's own fields; nothing else is stored.
 
@@ -481,7 +483,7 @@ Left pane, collapsible cards with numbered lavender badges, one open at a time, 
 
 Right pane, always visible:
 - **Capture zone · this machine**: status line with green/red dot: `Display {n} · {w} × {h} at ({x}, {y})` or `setup.zone.notSet`; amber `setup.zone.displayChanged` / `setup.zone.hdr` boxes when relevant; *Set zone…* / *Change zone…*; *Show zone* / *Hide zone* toggle that draws the overlay frame alone, without a run, so the user can position the game.
-- **Calibrate**: `setup.calibrate.countdown` on top; 1 · Turn test [Run] + `Overshot −10 % −2 %  +2 % +10 % Undershot`; 2 · Check overlap (turn) [Open]; 3 · Pitch test [Run] + the same adjust row; 4 · Check overlap (pitch) [Open]; *Step once: Turn / Pitch*; tips per tool (§13.2); a permanent *Nothing moved?* link at the bottom. Tools are disabled with the same reasons as Start.
+- **Calibrate**: `setup.calibrate.countdown` on top; 1 · Check overlap (turn) [Open] + `Overshot −10 % −2 %  +2 % +10 % Undershot`; 2 · Turn test [Run] + `Decrease −3 −1  +1 +3 Increase`; 3 · Check overlap (pitch) [Open] + the same Step-size row; 4 · Pitch test [Run] + the same count row; *Step once: Turn / Pitch*; tips per tool (§13.2); a permanent *Nothing moved?* link at the bottom. Tools are disabled with the same reasons as Start.
 - **Result line** after a Test or Step once: under the tool that ran, `setup.calibrate.result.*` ending with the *Nothing moved?* link; stays until the next run or a Game switch. If `ScreenUnchanged` fired: the amber `setup.calibrate.nothingMoved.detected` replaces it and the checklist popover opens by itself.
 - Form labels left-aligned. Validation messages inline under the field, the Game is saved on every valid change (autosave, no Save button).
 
@@ -564,12 +566,12 @@ All user-visible strings live in `ui/src/lib/strings.ts`, keyed as below; per-OS
 |---|---|---|---|
 | `setup.game.notes.placeholder` | Notes field | placeholder | Photo mode, HUD off, borderless 2560 × 1440, weather settled. |
 | `setup.input.keyboard.keys` | under the three key caps | line | Three distinct keys, no modifiers. Panowww presses the key at that position on your keyboard, whatever the layout. |
-| `setup.input.keyboard.hold` | under the turn / pitch holds | line | How long the key stays pressed for one Step. Calibrate with the Turn and Pitch tests. |
+| `setup.input.keyboard.hold` | under the turn / pitch holds | line | How long the key stays pressed for one Step. Calibrate with Check overlap. |
 | `setup.input.mouse.mode` | under Move / Drag | line | Move: the cursor alone. Drag: a button held while moving, what most free cameras expect. |
 | `setup.input.mouse.crossOs` | under the deltas | line | Mouse values are not promised to match between macOS and Windows: recalibrate on each. |
 | `setup.input.gamepad.unavailableMac` | banner, macOS only | box amber | Virtual gamepad is unavailable on macOS. You can set this Game up here, but it only runs on Windows, where it needs ViGEmBus. |
 | `setup.input.gamepad.deflection` | under Deflection, Windows | line | Needs ViGEmBus. Right stick of a virtual Xbox 360 controller, as a share of full travel. |
-| `setup.input.gamepad.hold` | under the holds | line | How long the stick stays pushed for one Step. Calibrate with the Turn and Pitch tests. |
+| `setup.input.gamepad.hold` | under the holds | line | How long the stick stays pushed for one Step. Calibrate with Check overlap. |
 
 ### 13.2 Game Setup · Grid & timing, Start card, Capture zone, Calibrate
 
@@ -578,7 +580,7 @@ All user-visible strings live in `ui/src/lib/strings.ts`, keyed as below; per-OS
 | `setup.grid.startPole.nadir` | under Start pole (nadir) | line | Start looking straight down. The first Row is the ground, the last one the sky. |
 | `setup.grid.startPole.zenith` | under Start pole (zenith) | line | Start looking straight up. The first Row is the sky, the last one the ground. |
 | `setup.grid.shotsPerRow` | under Shots per Row | line | Each Row ends with a closing turn back to the start heading. |
-| `setup.grid.rows` | under Rows | line | Off-target Overlap? Change Shots per Row or Rows, then recalibrate. |
+| `setup.grid.rows` | under Rows | line | Turn test off its landmark? Change Shots per Row. Pitch test off the pole? Change Rows. |
 | `setup.grid.waitAfterMove` | under Wait after move | line | Motion blur in the Shots → raise this. |
 | `setup.grid.waitAfterShot` | under Wait after Shot | line | A swallowed Step → raise this. |
 | `setup.start.shortcutStart` | under the Start card, line 1 | line | Start with the game in front  [Ctrl+Shift+8] |
@@ -591,14 +593,14 @@ All user-visible strings live in `ui/src/lib/strings.ts`, keyed as below; per-OS
 | `setup.zone.displayChanged` | status, display gone / scale changed | box amber | Display {n} is gone or its resolution changed. Draw the zone again. |
 | `setup.zone.hdr` | status, Windows, HDR display | box amber | HDR is on for Display {n}. Shots come out washed out: turn HDR off in Windows or in the game. |
 | `setup.calibrate.countdown` | top of the Calibrate card | line | Tests start after a 5 s countdown: switch to the game. |
-| `setup.calibrate.turnTest` | under 1 · Turn test | line | Pick a landmark. After the turn the camera must point at it again. Overshot or undershot? Adjust, then run again. |
-| `setup.calibrate.overlapTurn` | under 2 · Check overlap (turn) | line | Aim at the horizon first. Off-target Overlap → change Shots per Row, then back to step 1. |
-| `setup.calibrate.pitchTest.nadir` | under 3 · Pitch test (nadir) | line | Point the camera straight down first. Reposition it by hand afterwards. |
-| `setup.calibrate.pitchTest.zenith` | under 3 · Pitch test (zenith) | line | Point the camera straight up first. Reposition it by hand afterwards. |
-| `setup.calibrate.overlapPitch` | under 4 · Check overlap (pitch) | line | Off-target Overlap → change Rows, then back to step 3. |
+| `setup.calibrate.overlapTurn` | `?` of 1 · Check overlap (turn) | popover | Aim at the horizon first. Takes two Samples one turn Step apart and superimposes them; slide until they line up. Too little Overlap? Reduce the Step (Overshot). Too much? Increase it (Undershot). Then check again. |
+| `setup.calibrate.turnTest` | `?` of 2 · Turn test | popover | Turns the camera a full circle, Step by Step, and should end exactly where it started. Went past the start? Decrease Shots per Row. Stopped short? Increase them. Then run it again. |
+| `setup.calibrate.overlapPitch` | `?` of 3 · Check overlap (pitch) | popover | Same as `overlapTurn` for the pitch Step. |
+| `setup.calibrate.pitchTest.nadir` | `?` of 4 · Pitch test (nadir) | popover | Point the camera straight down first. The test tilts it up, Step by Step, and should end exactly straight up. Went past the top? Decrease Rows. Stopped short? Increase them. Then run it again; reposition the camera by hand afterwards. |
+| `setup.calibrate.pitchTest.zenith` | `?` of 4 · Pitch test (zenith) | popover | Same, from straight up to straight down. |
 | `setup.calibrate.stepOnce` | under Step once | line | One Step on its own, to feel its size. |
-| `setup.calibrate.result.turnTest` | under 1, after the run | line | Turn test done · {n} Steps. Back on the landmark? |
-| `setup.calibrate.result.pitchTest` | under 3, after the run | line | Pitch test done · {n} Steps. On the opposite pole? |
+| `setup.calibrate.result.turnTest` | under 2, after the run | line | Turn test done · {n} Steps. Back on the landmark? |
+| `setup.calibrate.result.pitchTest` | under 4, after the run | line | Pitch test done · {n} Steps. On the opposite pole? |
 | `setup.calibrate.result.stepOnce` | under Step once | line | Step done. |
 | `setup.calibrate.result.stopped` | under the tool that was stopped | line | Test stopped. |
 | `setup.calibrate.nothingMoved.link` | end of the result line, bottom of the card | link | Nothing moved? |
@@ -612,10 +614,10 @@ All user-visible strings live in `ui/src/lib/strings.ts`, keyed as below; per-OS
 | `zonePicker.tip` | next to the display chip | line | Game in borderless windowed mode. Keep HUD and menus out of the zone. |
 | `overlap.instruction` | under the title | line | Two Samples one Step apart, superimposed. Slide until they line up. |
 | `overlap.verdict.ok` | verdict box | box green | {p} % Overlap, in the 25–35 % target. |
-| `overlap.verdict.low.turn` | verdict box | box amber | {p} % Overlap, too little → more Shots per Row. |
-| `overlap.verdict.low.pitch` | verdict box | box amber | {p} % Overlap, too little → more Rows. |
-| `overlap.verdict.high.turn` | verdict box | box amber | {p} % Overlap, more than needed → fewer Shots per Row. |
-| `overlap.verdict.high.pitch` | verdict box | box amber | {p} % Overlap, more than needed → fewer Rows. |
+| `overlap.verdict.low.turn` | verdict box | box amber | {p} % Overlap, too little: the turn Step is too big → Overshot (−) in the Calibrate card. |
+| `overlap.verdict.low.pitch` | verdict box | box amber | {p} % Overlap, too little: the pitch Step is too big → Overshot (−) in the Calibrate card. |
+| `overlap.verdict.high.turn` | verdict box | box amber | {p} % Overlap, more than needed: the turn Step is too small → Undershot (+) in the Calibrate card. |
+| `overlap.verdict.high.pitch` | verdict box | box amber | {p} % Overlap, more than needed: the pitch Step is too small → Undershot (+) in the Calibrate card. |
 | `overlap.tip` | bottom of the window | box | Aim at the horizon before taking Samples. Samples stay in memory, nothing is saved. |
 
 ### 13.4 Countdown, Session, Session end, Sessions tables, overlay

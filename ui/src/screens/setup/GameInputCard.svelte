@@ -75,7 +75,7 @@ function number(value: string): number {
     </Field>
     <Field label={strings.setup.input.keyboard.turnHold} id="turn-hold" error={editor.error("input.turnHoldMs")}>
       <input id="turn-hold" type="number" min="1" max="5000" value={input.turnHoldMs} oninput={(e) => editor.updateInput({ turnHoldMs: number(e.currentTarget.value) })} />
-      <span class="unit">ms</span>
+      <span class="unit">{strings.setup.input.msPerStep}</span>
     </Field>
     <Field
       label={strings.setup.input.keyboard.pitchHold}
@@ -84,7 +84,7 @@ function number(value: string): number {
       tip={strings.setup.input.keyboard.hold}
     >
       <input id="pitch-hold" type="number" min="1" max="5000" value={input.pitchHoldMs} oninput={(e) => editor.updateInput({ pitchHoldMs: number(e.currentTarget.value) })} />
-      <span class="unit">ms</span>
+      <span class="unit">{strings.setup.input.msPerStep}</span>
     </Field>
   {:else if editor.game.input.device === "mouse"}
     {@const input = editor.game.input}
@@ -143,7 +143,7 @@ function number(value: string): number {
     </Field>
     <Field label={strings.setup.input.keyboard.turnHold} id="g-turn-hold" error={editor.error("input.turnHoldMs")}>
       <input id="g-turn-hold" type="number" min="1" max="5000" value={input.turnHoldMs} oninput={(e) => editor.updateInput({ turnHoldMs: number(e.currentTarget.value) })} />
-      <span class="unit">ms</span>
+      <span class="unit">{strings.setup.input.msPerStep}</span>
     </Field>
     <Field
       label={strings.setup.input.keyboard.pitchHold}
@@ -152,7 +152,7 @@ function number(value: string): number {
       tip={strings.setup.input.gamepad.hold}
     >
       <input id="g-pitch-hold" type="number" min="1" max="5000" value={input.pitchHoldMs} oninput={(e) => editor.updateInput({ pitchHoldMs: number(e.currentTarget.value) })} />
-      <span class="unit">ms</span>
+      <span class="unit">{strings.setup.input.msPerStep}</span>
     </Field>
     <Field label={strings.setup.input.vertical}>
       <Checkbox checked={input.invertVertical} label={strings.setup.input.invertVertical} onchange={(v) => editor.updateInput({ invertVertical: v })} />
