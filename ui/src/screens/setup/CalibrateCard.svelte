@@ -20,8 +20,8 @@ import { interpolate, strings } from "../../lib/strings";
 type Props = {
   game: Game;
   disabled: DisabledReason | null;
-  /** The Game after a Step-size adjust, to put in the editor. */
-  onadjusted: (game: Game) => void;
+  /** The Game after a Step-size adjust on `axis`, to put in the editor. */
+  onadjusted: (game: Game, axis: "turn" | "pitch") => void;
   /** Shots per Row (turn) or Rows (pitch) changed by `by`, clamped. */
   onadjustcount: (axis: "turn" | "pitch", by: number) => void;
   onopenoverlap: (axis: "turn" | "pitch") => void;
@@ -106,7 +106,7 @@ async function adjust(
 ) {
   adjustError = null;
   try {
-    onadjusted(await api.games.adjustStep(game.id, axis, observation, magnitude));
+    onadjusted(await api.games.adjustStep(game.id, axis, observation, magnitude), axis);
   } catch (error) {
     adjustError = isAppError(error) || error instanceof Error ? error.message : String(error);
   }

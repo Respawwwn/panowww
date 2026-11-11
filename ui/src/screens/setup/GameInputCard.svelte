@@ -8,7 +8,7 @@ import KeyRecorder from "../../components/KeyRecorder.svelte";
 import Segmented from "../../components/Segmented.svelte";
 import Tip from "../../components/Tip.svelte";
 import type { GameEditor } from "../../lib/editor.svelte";
-import { inputSummary } from "../../lib/game";
+import { type Flash, flashOf, inputSummary } from "../../lib/game";
 import type { Device } from "../../lib/generated/Device";
 import type { Platform } from "../../lib/shortcut";
 import { strings } from "../../lib/strings";
@@ -18,9 +18,18 @@ type Props = {
   open: boolean;
   ontoggle: () => void;
   platform: Platform;
+  /** The field the Calibrate card just changed, to glow. */
+  flash: Flash | null;
 };
 
-let { editor, open, ontoggle, platform }: Props = $props();
+let { editor, open, ontoggle, platform, flash }: Props = $props();
+
+/** The header glows with whichever of its fields does. */
+const headFlash = $derived(
+  flash && ["turnHoldMs", "pitchHoldMs", "turnDelta", "pitchDelta"].includes(flash.field)
+    ? flash.n
+    : 0,
+);
 
 const devices: { id: Device; label: string }[] = [
   { id: "keyboard", label: "Keyboard" },
@@ -34,7 +43,14 @@ function number(value: string): number {
 }
 </script>
 
-<CollapsibleCard n={1} title={strings.setup.game.title} summary={inputSummary(editor.game.input)} {open} {ontoggle}>
+<CollapsibleCard
+  n={1}
+  title={strings.setup.game.title}
+  summary={inputSummary(editor.game.input)}
+  {open}
+  {ontoggle}
+  flash={headFlash}
+>
   <Field label={strings.setup.game.name} id="game-name" error={editor.error("name")}>
     <input
       id="game-name"
@@ -73,7 +89,12 @@ function number(value: string): number {
     >
       <KeyRecorder code={input.lookDownKey} onchange={(code) => editor.updateInput({ lookDownKey: code })} />
     </Field>
-    <Field label={strings.setup.input.keyboard.turnHold} id="turn-hold" error={editor.error("input.turnHoldMs")}>
+    <Field
+      label={strings.setup.input.keyboard.turnHold}
+      id="turn-hold"
+      error={editor.error("input.turnHoldMs")}
+      flash={flashOf(flash, "turnHoldMs")}
+    >
       <input id="turn-hold" type="number" min="1" max="5000" value={input.turnHoldMs} oninput={(e) => editor.updateInput({ turnHoldMs: number(e.currentTarget.value) })} />
       <span class="unit">{strings.setup.input.msPerStep}</span>
     </Field>
@@ -82,6 +103,7 @@ function number(value: string): number {
       id="pitch-hold"
       error={editor.error("input.pitchHoldMs")}
       tip={strings.setup.input.keyboard.hold}
+      flash={flashOf(flash, "pitchHoldMs")}
     >
       <input id="pitch-hold" type="number" min="1" max="5000" value={input.pitchHoldMs} oninput={(e) => editor.updateInput({ pitchHoldMs: number(e.currentTarget.value) })} />
       <span class="unit">{strings.setup.input.msPerStep}</span>
@@ -111,7 +133,12 @@ function number(value: string): number {
         />
       </Field>
     {/if}
-    <Field label={strings.setup.input.mouse.turnDelta} id="turn-delta" error={editor.error("input.turnDelta")}>
+    <Field
+      label={strings.setup.input.mouse.turnDelta}
+      id="turn-delta"
+      error={editor.error("input.turnDelta")}
+      flash={flashOf(flash, "turnDelta")}
+    >
       <input id="turn-delta" type="number" min="1" max="100000" value={input.turnDelta} oninput={(e) => editor.updateInput({ turnDelta: number(e.currentTarget.value) })} />
       <span class="unit">{strings.setup.input.mouse.unit}</span>
     </Field>
@@ -120,6 +147,7 @@ function number(value: string): number {
       id="pitch-delta"
       error={editor.error("input.pitchDelta")}
       tip={strings.setup.input.mouse.crossOs}
+      flash={flashOf(flash, "pitchDelta")}
     >
       <input id="pitch-delta" type="number" min="1" max="100000" value={input.pitchDelta} oninput={(e) => editor.updateInput({ pitchDelta: number(e.currentTarget.value) })} />
       <span class="unit">{strings.setup.input.mouse.unit}</span>
@@ -141,7 +169,12 @@ function number(value: string): number {
       <input id="deflection" type="number" min="0.1" max="1" step="0.05" value={input.stickDeflection} oninput={(e) => editor.updateInput({ stickDeflection: number(e.currentTarget.value) })} />
       <span class="unit">{strings.setup.input.gamepad.unit}</span>
     </Field>
-    <Field label={strings.setup.input.keyboard.turnHold} id="g-turn-hold" error={editor.error("input.turnHoldMs")}>
+    <Field
+      label={strings.setup.input.keyboard.turnHold}
+      id="g-turn-hold"
+      error={editor.error("input.turnHoldMs")}
+      flash={flashOf(flash, "turnHoldMs")}
+    >
       <input id="g-turn-hold" type="number" min="1" max="5000" value={input.turnHoldMs} oninput={(e) => editor.updateInput({ turnHoldMs: number(e.currentTarget.value) })} />
       <span class="unit">{strings.setup.input.msPerStep}</span>
     </Field>
@@ -150,6 +183,7 @@ function number(value: string): number {
       id="g-pitch-hold"
       error={editor.error("input.pitchHoldMs")}
       tip={strings.setup.input.gamepad.hold}
+      flash={flashOf(flash, "pitchHoldMs")}
     >
       <input id="g-pitch-hold" type="number" min="1" max="5000" value={input.pitchHoldMs} oninput={(e) => editor.updateInput({ pitchHoldMs: number(e.currentTarget.value) })} />
       <span class="unit">{strings.setup.input.msPerStep}</span>

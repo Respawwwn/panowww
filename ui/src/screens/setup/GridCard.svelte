@@ -5,16 +5,22 @@ import CollapsibleCard from "../../components/CollapsibleCard.svelte";
 import Field from "../../components/Field.svelte";
 import Segmented from "../../components/Segmented.svelte";
 import type { GameEditor } from "../../lib/editor.svelte";
-import { gridSummary } from "../../lib/game";
+import { type Flash, flashOf, gridSummary } from "../../lib/game";
 import { strings } from "../../lib/strings";
 
 type Props = {
   editor: GameEditor;
   open: boolean;
   ontoggle: () => void;
+  /** The field the Calibrate card just changed, to glow. */
+  flash: Flash | null;
 };
 
-let { editor, open, ontoggle }: Props = $props();
+let { editor, open, ontoggle, flash }: Props = $props();
+
+const headFlash = $derived(
+  flash && (flash.field === "shotsPerRow" || flash.field === "rows") ? flash.n : 0,
+);
 
 function number(value: string): number {
   const n = Number(value);
@@ -22,7 +28,7 @@ function number(value: string): number {
 }
 </script>
 
-<CollapsibleCard n={2} title={strings.setup.grid.title} summary={gridSummary(editor.game)} {open} {ontoggle}>
+<CollapsibleCard n={2} title={strings.setup.grid.title} summary={gridSummary(editor.game)} {open} {ontoggle} flash={headFlash}>
   <Field
     label={strings.setup.grid.startPoleLabel}
     tip={editor.game.startPole === "nadir" ? strings.setup.grid.startPole.nadir : strings.setup.grid.startPole.zenith}
@@ -36,10 +42,10 @@ function number(value: string): number {
       onchange={(id) => editor.update({ startPole: id as "nadir" | "zenith" })}
     />
   </Field>
-  <Field label={strings.setup.grid.shotsPerRowLabel} id="shots-per-row" error={editor.error("shotsPerRow")} tip={strings.setup.grid.shotsPerRow}>
+  <Field label={strings.setup.grid.shotsPerRowLabel} id="shots-per-row" flash={flashOf(flash, "shotsPerRow")} error={editor.error("shotsPerRow")} tip={strings.setup.grid.shotsPerRow}>
     <input id="shots-per-row" type="number" min="3" max="72" value={editor.game.shotsPerRow} oninput={(e) => editor.update({ shotsPerRow: number(e.currentTarget.value) })} />
   </Field>
-  <Field label={strings.setup.grid.rowsLabel} id="rows" error={editor.error("rows")} tip={strings.setup.grid.rows}>
+  <Field label={strings.setup.grid.rowsLabel} id="rows" flash={flashOf(flash, "rows")} error={editor.error("rows")} tip={strings.setup.grid.rows}>
     <input id="rows" type="number" min="2" max="36" value={editor.game.rows} oninput={(e) => editor.update({ rows: number(e.currentTarget.value) })} />
   </Field>
   <Field label={strings.setup.grid.waitAfterMoveLabel} id="wait-move" error={editor.error("waitAfterMoveMs")} tip={strings.setup.grid.waitAfterMove}>

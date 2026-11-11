@@ -92,3 +92,28 @@ export function adjustCount(
   const next = Math.min(ROWS.max, Math.max(ROWS.min, game.rows + by));
   return { rows: next };
 }
+
+/** The Game field the Calibrate card changed, to point the user at it. */
+export type AdjustedField =
+  | "turnHoldMs"
+  | "pitchHoldMs"
+  | "turnDelta"
+  | "pitchDelta"
+  | "shotsPerRow"
+  | "rows";
+
+/** A field to flash in its card; `n` grows so the same field flashes again. */
+export type Flash = { field: AdjustedField; n: number };
+
+/** The field `adjust_step` moves for this device and axis (core::calibrate). */
+export function adjustedField(input: Input, axis: "turn" | "pitch"): AdjustedField {
+  if (input.device === "mouse") {
+    return axis === "turn" ? "turnDelta" : "pitchDelta";
+  }
+  return axis === "turn" ? "turnHoldMs" : "pitchHoldMs";
+}
+
+/** The flash counter for `field`, 0 when the flash is on another one. */
+export function flashOf(flash: Flash | null, field: AdjustedField): number {
+  return flash?.field === field ? flash.n : 0;
+}

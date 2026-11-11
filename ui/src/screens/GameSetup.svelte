@@ -6,7 +6,13 @@ import { onDestroy, untrack } from "svelte";
 import RichLine from "../components/RichLine.svelte";
 import { api, isAppError, type ZoneState } from "../lib/api";
 import { GameEditor } from "../lib/editor.svelte";
-import { adjustCount, disabledReason } from "../lib/game";
+import {
+  type AdjustedField,
+  adjustCount,
+  adjustedField,
+  disabledReason,
+  type Flash,
+} from "../lib/game";
 import { games } from "../lib/games.svelte";
 import type { Game } from "../lib/generated/Game";
 import { run } from "../lib/run.svelte";
@@ -35,6 +41,13 @@ let editor = $state(
   ),
 );
 let openCard = $state<1 | 2 | 0>(1);
+/** The field a Calibrate button just changed: its card opens and it glows. */
+let flash = $state<Flash | null>(null);
+
+function show(field: AdjustedField) {
+  openCard = field === "shotsPerRow" || field === "rows" ? 2 : 1;
+  flash = { field, n: (flash?.n ?? 0) + 1 };
+}
 let zone = $state<ZoneState | null>(null);
 let zoneShown = $state(false);
 let zoneError = $state<string | null>(null);
@@ -140,8 +153,8 @@ const disabled = $derived(disabledReason(editor.game, zone?.status === "ready", 
 <div class="panes">
   <div class="cols">
   <div class="left">
-    <GameInputCard {editor} open={openCard === 1} ontoggle={() => (openCard = openCard === 1 ? 0 : 1)} {platform} />
-    <GridCard {editor} open={openCard === 2} ontoggle={() => (openCard = openCard === 2 ? 0 : 2)} />
+    <GameInputCard {editor} open={openCard === 1} ontoggle={() => (openCard = openCard === 1 ? 0 : 1)} {platform} {flash} />
+    <GridCard {editor} open={openCard === 2} ontoggle={() => (openCard = openCard === 2 ? 0 : 2)} {flash} />
     <StartCard {editor} sessionsFolder={settings.value.sessionsFolder} {disabled} onstart={startSession} />
     {#if startError}
       <p class="error">{startError}</p>
@@ -155,11 +168,15 @@ const disabled = $derived(disabledReason(editor.game, zone?.status === "ready", 
     <CalibrateCard
       game={editor.game}
       {disabled}
-      onadjusted={(adjusted) => {
+      onadjusted={(adjusted, axis) => {
         editor.replace(adjusted);
         games.replace(adjusted);
+        show(adjustedField(adjusted.input, axis));
       }}
-      onadjustcount={(axis, by) => editor.update(adjustCount(editor.game, axis, by))}
+      onadjustcount={(axis, by) => {
+        editor.update(adjustCount(editor.game, axis, by));
+        show(axis === "turn" ? "shotsPerRow" : "rows");
+      }}
       onopenoverlap={openOverlap}
     />
   </div>

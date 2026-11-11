@@ -1,5 +1,13 @@
 import { describe, expect, test } from "vitest";
-import { adjustCount, defaultInput, disabledReason, gridSummary, inputSummary } from "./game";
+import {
+  adjustCount,
+  adjustedField,
+  defaultInput,
+  disabledReason,
+  flashOf,
+  gridSummary,
+  inputSummary,
+} from "./game";
 import type { Game } from "./generated/Game";
 
 const game: Game = {
@@ -64,5 +72,20 @@ describe("adjustCount", () => {
     expect(adjustCount({ ...game, shotsPerRow: 71 }, "turn", 3)).toEqual({ shotsPerRow: 72 });
     expect(adjustCount({ ...game, rows: 2 }, "pitch", -1)).toEqual({ rows: 2 });
     expect(adjustCount({ ...game, rows: 35 }, "pitch", 3)).toEqual({ rows: 36 });
+  });
+});
+
+describe("adjustedField and flashOf", () => {
+  test("holds for keyboard and gamepad, deltas for mouse", () => {
+    expect(adjustedField(defaultInput("keyboard"), "turn")).toBe("turnHoldMs");
+    expect(adjustedField(defaultInput("gamepad"), "pitch")).toBe("pitchHoldMs");
+    expect(adjustedField(defaultInput("mouse"), "turn")).toBe("turnDelta");
+    expect(adjustedField(defaultInput("mouse"), "pitch")).toBe("pitchDelta");
+  });
+
+  test("the counter reaches its field only", () => {
+    expect(flashOf({ field: "rows", n: 3 }, "rows")).toBe(3);
+    expect(flashOf({ field: "rows", n: 3 }, "shotsPerRow")).toBe(0);
+    expect(flashOf(null, "rows")).toBe(0);
   });
 });

@@ -1,6 +1,8 @@
 <script lang="ts">
 // Collapsible card of the Setup left pane (spec §11.2): numbered badge,
 // title, one-line summary, chevron; one open at a time is the parent's job.
+// `flash` (a counter) glows the header once, when a field inside changed
+// from elsewhere.
 import type { Snippet } from "svelte";
 import Badge from "./Badge.svelte";
 
@@ -10,21 +12,24 @@ type Props = {
   summary?: string;
   open: boolean;
   ontoggle?: () => void;
+  flash?: number;
   children?: Snippet;
 };
 
-let { n, title, summary = "", open, ontoggle, children }: Props = $props();
+let { n, title, summary = "", open, ontoggle, flash = 0, children }: Props = $props();
 </script>
 
 <section class="card" class:open>
-  <button type="button" class="head" aria-expanded={open} onclick={ontoggle}>
-    <Badge {n} />
-    <b>{title}</b>
-    <span class="sum">{summary}</span>
-    <svg class="chev" viewBox="0 0 16 16" aria-hidden="true">
-      <path d={open ? "M4 10l4-4 4 4" : "M4 6l4 4 4-4"} />
-    </svg>
-  </button>
+  {#key flash}
+    <button type="button" class="head" class:flash={flash > 0} aria-expanded={open} onclick={ontoggle}>
+      <Badge {n} />
+      <b>{title}</b>
+      <span class="sum">{summary}</span>
+      <svg class="chev" viewBox="0 0 16 16" aria-hidden="true">
+        <path d={open ? "M4 10l4-4 4 4" : "M4 6l4 4 4-4"} />
+      </svg>
+    </button>
+  {/key}
   {#if open}
     <div class="body">{@render children?.()}</div>
   {/if}
@@ -66,6 +71,25 @@ let { n, title, summary = "", open, ontoggle, children }: Props = $props();
     stroke-width: 1.75;
     stroke-linecap: round;
     stroke-linejoin: round;
+  }
+
+  .head.flash {
+    animation: head-flash 0.9s ease-out;
+  }
+
+  @keyframes head-flash {
+    0% {
+      background: var(--lav);
+    }
+    100% {
+      background: transparent;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .head.flash {
+      animation: head-flash 0.9s steps(1, end);
+    }
   }
 
   .body {
