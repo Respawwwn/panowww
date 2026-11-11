@@ -1,6 +1,8 @@
 <script lang="ts">
 // A form row (spec §11.2): left-aligned label, the control, a tip under it,
-// and the validation message inline when the value breaks a rule.
+// and the validation message inline when the value breaks a rule. `flash`
+// (a counter, 0 for none) brings the row into view and glows its control
+// once per change, for the Calibrate card's buttons.
 import type { Snippet } from "svelte";
 import type { InterpolationValues } from "../lib/strings";
 import Tip from "./Tip.svelte";
@@ -12,16 +14,27 @@ type Props = {
   tip?: string;
   tipValues?: InterpolationValues;
   error?: string | null;
+  flash?: number;
   children?: Snippet;
 };
 
-let { label, id, tip, tipValues, error = null, children }: Props = $props();
+let { label, id, tip, tipValues, error = null, flash = 0, children }: Props = $props();
+
+let row = $state<HTMLDivElement | null>(null);
+
+$effect(() => {
+  if (flash > 0) {
+    row?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+});
 </script>
 
-<div class="row">
+<div class="row" bind:this={row}>
   <label for={id}>{label}</label>
   <div class="ctl">
-    <div class="h">{@render children?.()}</div>
+    {#key flash}
+      <div class="h" class:flash={flash > 0}>{@render children?.()}</div>
+    {/key}
     {#if error}
       <p class="error" role="alert">{error}</p>
     {:else if tip}
@@ -81,5 +94,38 @@ let { label, id, tip, tipValues, error = null, children }: Props = $props();
   .h :global(.unit) {
     color: var(--muted);
     font-size: 12px;
+  }
+
+  /* The glow of a value the Calibrate card just changed. */
+  .h.flash :global(input:not([type="checkbox"])) {
+    animation: flash 0.9s ease-out;
+  }
+
+  @keyframes flash {
+    0% {
+      box-shadow: 0 0 0 3px var(--accent);
+      background: var(--lav);
+    }
+    100% {
+      box-shadow: 0 0 0 3px transparent;
+      background: var(--field);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .h.flash :global(input:not([type="checkbox"])) {
+      animation: flash-still 0.9s steps(1, end);
+    }
+
+    @keyframes flash-still {
+      0% {
+        box-shadow: 0 0 0 3px var(--accent);
+        background: var(--lav);
+      }
+      100% {
+        box-shadow: none;
+        background: var(--field);
+      }
+    }
   }
 </style>

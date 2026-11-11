@@ -70,3 +70,50 @@ export function disabledReason(
   }
   return null;
 }
+
+/** The schema bounds of the grid counts, as `core::game::validate` has them. */
+export const SHOTS_PER_ROW = { min: 3, max: 72 } as const;
+export const ROWS = { min: 2, max: 36 } as const;
+
+/**
+ * The count row of a Test (spec §7.5): Shots per Row for the turn axis,
+ * Rows for the pitch axis, moved by `by` and clamped to the schema bounds.
+ * Returns the patch for the editor.
+ */
+export function adjustCount(
+  game: Game,
+  axis: "turn" | "pitch",
+  by: number,
+): Pick<Game, "shotsPerRow"> | Pick<Game, "rows"> {
+  if (axis === "turn") {
+    const next = Math.min(SHOTS_PER_ROW.max, Math.max(SHOTS_PER_ROW.min, game.shotsPerRow + by));
+    return { shotsPerRow: next };
+  }
+  const next = Math.min(ROWS.max, Math.max(ROWS.min, game.rows + by));
+  return { rows: next };
+}
+
+/** The Game field the Calibrate card changed, to point the user at it. */
+export type AdjustedField =
+  | "turnHoldMs"
+  | "pitchHoldMs"
+  | "turnDelta"
+  | "pitchDelta"
+  | "shotsPerRow"
+  | "rows";
+
+/** A field to flash in its card; `n` grows so the same field flashes again. */
+export type Flash = { field: AdjustedField; n: number };
+
+/** The field `adjust_step` moves for this device and axis (core::calibrate). */
+export function adjustedField(input: Input, axis: "turn" | "pitch"): AdjustedField {
+  if (input.device === "mouse") {
+    return axis === "turn" ? "turnDelta" : "pitchDelta";
+  }
+  return axis === "turn" ? "turnHoldMs" : "pitchHoldMs";
+}
+
+/** The flash counter for `field`, 0 when the flash is on another one. */
+export function flashOf(flash: Flash | null, field: AdjustedField): number {
+  return flash?.field === field ? flash.n : 0;
+}
