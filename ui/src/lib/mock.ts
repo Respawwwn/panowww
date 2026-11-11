@@ -123,6 +123,31 @@ export function installMock(): void {
         }
         return `/games/${g.name}.panowww.json`;
       }
+      case "adjust_step": {
+        // core::calibrate::adjust: ±2 % or ±10 % of the field, at least 1.
+        const e = entries.find((e) => e.kind === "game" && e.game.id === args.id);
+        if (e?.kind !== "game") {
+          return Promise.reject({ kind: "notFound", message: "The Game was not found." });
+        }
+        const input = { ...e.game.input };
+        const field =
+          input.device === "mouse"
+            ? args.axis === "turn"
+              ? "turnDelta"
+              : "pitchDelta"
+            : args.axis === "turn"
+              ? "turnHoldMs"
+              : "pitchHoldMs";
+        const value = (input as unknown as Record<string, number>)[field] ?? 1;
+        const change = Math.max(
+          1,
+          Math.round((value * (args.magnitude === "fine" ? 2 : 10)) / 100),
+        );
+        (input as unknown as Record<string, number>)[field] =
+          args.observation === "overshot" ? Math.max(1, value - change) : value + change;
+        e.game = { ...e.game, input: input as Game["input"] };
+        return e.game;
+      }
       case "create_game": {
         const g = game(crypto.randomUUID(), String(args.name), defaultInput("keyboard"));
         entries.push({ kind: "game", game: g, path: `/games/${g.name}.panowww.json` });
