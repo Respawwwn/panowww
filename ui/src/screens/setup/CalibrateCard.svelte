@@ -1,8 +1,10 @@
 <script lang="ts">
-// Calibrate (spec §11.2, §7.5): the four numbered tools with their adjust
-// rows, Step once, the result line under the tool that ran, the amber
-// line and the auto-opened checklist when the screen did not change, the
-// permanent Nothing moved? link.
+// Calibrate (spec §11.2, §7.5): the four numbered tools, Overlap first
+// on each axis. Check overlap carries the Step-size row (Overshot /
+// Undershot, relative), the Tests carry the count row (Decrease /
+// Increase Shots per Row or Rows). Then Step once, the result line under
+// the tool that ran, the amber line and the auto-opened checklist when the
+// screen did not change, the permanent Nothing moved? link.
 import Badge from "../../components/Badge.svelte";
 import Button from "../../components/Button.svelte";
 import HelpButton from "../../components/HelpButton.svelte";
@@ -18,12 +20,14 @@ import { interpolate, strings } from "../../lib/strings";
 type Props = {
   game: Game;
   disabled: DisabledReason | null;
-  /** The Game after an adjust, to put in the editor. */
+  /** The Game after a Step-size adjust, to put in the editor. */
   onadjusted: (game: Game) => void;
+  /** Shots per Row (turn) or Rows (pitch) changed by `by`, clamped. */
+  onadjustcount: (axis: "turn" | "pitch", by: number) => void;
   onopenoverlap: (axis: "turn" | "pitch") => void;
 };
 
-let { game, disabled, onadjusted, onopenoverlap }: Props = $props();
+let { game, disabled, onadjusted, onadjustcount, onopenoverlap }: Props = $props();
 
 let popover = $state(false);
 let adjustError = $state<string | null>(null);
@@ -136,6 +140,17 @@ const locked = $derived(disabled !== null || run.busy);
     </div>
   {/snippet}
 
+  {#snippet countRow(axis: "turn" | "pitch")}
+    <div class="adjust">
+      <span>{s.decrease}</span>
+      <Button disabled={locked} onclick={() => onadjustcount(axis, -3)}>−3</Button>
+      <Button disabled={locked} onclick={() => onadjustcount(axis, -1)}>−1</Button>
+      <Button disabled={locked} onclick={() => onadjustcount(axis, 1)}>+1</Button>
+      <Button disabled={locked} onclick={() => onadjustcount(axis, 3)}>+3</Button>
+      <span>{s.increase}</span>
+    </div>
+  {/snippet}
+
   {#snippet helpFor(tool: Tool | "overlapTurn" | "overlapPitch", text: string)}
     <span class="help">
       <HelpButton subtle label={text} on={help === tool} onclick={() => (help = help === tool ? null : tool)} />
@@ -158,22 +173,23 @@ const locked = $derived(disabled !== null || run.busy);
     <Badge n={1} />
     <div class="t">
       <div class="n">
-        <b>{s.turnTestTitle}</b>
-        {@render helpFor("turnTest", s.turnTest)}
-        <Button size="sm" disabled={locked} onclick={() => start({ kind: "turnTest" })}>{s.run}</Button>
+        <b>{s.overlapTurnTitle}</b>
+        {@render helpFor("overlapTurn", s.overlapTurn)}
+        <Button size="sm" disabled={locked} onclick={() => onopenoverlap("turn")}>{s.run}</Button>
       </div>
       {@render adjustRow("turn")}
-      {@render result("turnTest")}
     </div>
   </div>
   <div class="step">
     <Badge n={2} />
     <div class="t">
       <div class="n">
-        <b>{s.overlapTurnTitle}</b>
-        {@render helpFor("overlapTurn", strings.overlap.instruction)}
-        <Button size="sm" disabled={locked} onclick={() => onopenoverlap("turn")}>{s.run}</Button>
+        <b>{s.turnTestTitle}</b>
+        {@render helpFor("turnTest", s.turnTest)}
+        <Button size="sm" disabled={locked} onclick={() => start({ kind: "turnTest" })}>{s.run}</Button>
       </div>
+      {@render countRow("turn")}
+      {@render result("turnTest")}
     </div>
   </div>
   <div class="sep"></div>
@@ -181,22 +197,23 @@ const locked = $derived(disabled !== null || run.busy);
     <Badge n={3} />
     <div class="t">
       <div class="n">
-        <b>{s.pitchTestTitle}</b>
-        {@render helpFor("pitchTest", game.startPole === "nadir" ? s.pitchTest.nadir : s.pitchTest.zenith)}
-        <Button size="sm" disabled={locked} onclick={() => start({ kind: "pitchTest" })}>{s.run}</Button>
+        <b>{s.overlapPitchTitle}</b>
+        {@render helpFor("overlapPitch", s.overlapPitch)}
+        <Button size="sm" disabled={locked} onclick={() => onopenoverlap("pitch")}>{s.run}</Button>
       </div>
       {@render adjustRow("pitch")}
-      {@render result("pitchTest")}
     </div>
   </div>
   <div class="step">
     <Badge n={4} />
     <div class="t">
       <div class="n">
-        <b>{s.overlapPitchTitle}</b>
-        {@render helpFor("overlapPitch", strings.overlap.instruction)}
-        <Button size="sm" disabled={locked} onclick={() => onopenoverlap("pitch")}>{s.run}</Button>
+        <b>{s.pitchTestTitle}</b>
+        {@render helpFor("pitchTest", game.startPole === "nadir" ? s.pitchTest.nadir : s.pitchTest.zenith)}
+        <Button size="sm" disabled={locked} onclick={() => start({ kind: "pitchTest" })}>{s.run}</Button>
       </div>
+      {@render countRow("pitch")}
+      {@render result("pitchTest")}
     </div>
   </div>
   <div class="sep"></div>

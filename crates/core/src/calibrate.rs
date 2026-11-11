@@ -1,7 +1,8 @@
-//! The calibration assistant's maths (spec §7.5): after a Turn test or a
-//! Pitch test the user says *Overshot* or *Undershot*, and the Step's own
-//! field moves by a relative amount, integer-rounded and clamped to the
-//! schema bounds.
+//! The calibration assistant's maths (spec §7.5): after Check overlap the
+//! user says *Overshot* (too little Overlap, the Step is too big) or
+//! *Undershot*, and the Step's own field moves by a relative amount,
+//! integer-rounded and clamped to the schema bounds. The Tests' count
+//! buttons (Shots per Row, Rows) are a plain clamped add, done in the UI.
 
 use std::ops::RangeInclusive;
 
@@ -10,12 +11,12 @@ use crate::game::validate::{HOLD_MS, MOUSE_DELTA};
 use crate::game::{Game, Input};
 use crate::plan::Axis;
 
-/// What the user saw after the Test.
+/// What the Overlap told the user about the Step.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Observation {
-    /// The camera went past its landmark: the Step is too big.
+    /// Too little Overlap: the Step is too big.
     Overshot,
-    /// The camera stopped short: the Step is too small.
+    /// Too much Overlap: the Step is too small.
     Undershot,
 }
 

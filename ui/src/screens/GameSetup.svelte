@@ -6,7 +6,7 @@ import { onDestroy, untrack } from "svelte";
 import RichLine from "../components/RichLine.svelte";
 import { api, isAppError, type ZoneState } from "../lib/api";
 import { GameEditor } from "../lib/editor.svelte";
-import { disabledReason } from "../lib/game";
+import { adjustCount, disabledReason } from "../lib/game";
 import { games } from "../lib/games.svelte";
 import type { Game } from "../lib/generated/Game";
 import { run } from "../lib/run.svelte";
@@ -159,6 +159,7 @@ const disabled = $derived(disabledReason(editor.game, zone?.status === "ready", 
         editor.replace(adjusted);
         games.replace(adjusted);
       }}
+      onadjustcount={(axis, by) => editor.update(adjustCount(editor.game, axis, by))}
       onopenoverlap={openOverlap}
     />
   </div>

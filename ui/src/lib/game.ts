@@ -70,3 +70,25 @@ export function disabledReason(
   }
   return null;
 }
+
+/** The schema bounds of the grid counts, as `core::game::validate` has them. */
+export const SHOTS_PER_ROW = { min: 3, max: 72 } as const;
+export const ROWS = { min: 2, max: 36 } as const;
+
+/**
+ * The count row of a Test (spec §7.5): Shots per Row for the turn axis,
+ * Rows for the pitch axis, moved by `by` and clamped to the schema bounds.
+ * Returns the patch for the editor.
+ */
+export function adjustCount(
+  game: Game,
+  axis: "turn" | "pitch",
+  by: number,
+): Pick<Game, "shotsPerRow"> | Pick<Game, "rows"> {
+  if (axis === "turn") {
+    const next = Math.min(SHOTS_PER_ROW.max, Math.max(SHOTS_PER_ROW.min, game.shotsPerRow + by));
+    return { shotsPerRow: next };
+  }
+  const next = Math.min(ROWS.max, Math.max(ROWS.min, game.rows + by));
+  return { rows: next };
+}

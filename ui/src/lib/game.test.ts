@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { defaultInput, disabledReason, gridSummary, inputSummary } from "./game";
+import { adjustCount, defaultInput, disabledReason, gridSummary, inputSummary } from "./game";
 import type { Game } from "./generated/Game";
 
 const game: Game = {
@@ -48,5 +48,21 @@ describe("disabledReason", () => {
     expect(disabledReason(gamepad, true, "windows")).toBeNull();
     expect(disabledReason(game, false, "macos")).toBe("noZone");
     expect(disabledReason(game, true, "macos")).toBeNull();
+  });
+});
+
+describe("adjustCount", () => {
+  test("moves Shots per Row on the turn axis and Rows on the pitch axis", () => {
+    expect(adjustCount(game, "turn", 3)).toEqual({ shotsPerRow: 16 });
+    expect(adjustCount(game, "turn", -1)).toEqual({ shotsPerRow: 12 });
+    expect(adjustCount(game, "pitch", 1)).toEqual({ rows: 7 });
+    expect(adjustCount(game, "pitch", -3)).toEqual({ rows: 3 });
+  });
+
+  test("clamps to the schema bounds", () => {
+    expect(adjustCount({ ...game, shotsPerRow: 4 }, "turn", -3)).toEqual({ shotsPerRow: 3 });
+    expect(adjustCount({ ...game, shotsPerRow: 71 }, "turn", 3)).toEqual({ shotsPerRow: 72 });
+    expect(adjustCount({ ...game, rows: 2 }, "pitch", -1)).toEqual({ rows: 2 });
+    expect(adjustCount({ ...game, rows: 35 }, "pitch", 3)).toEqual({ rows: 36 });
   });
 });
