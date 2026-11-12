@@ -217,7 +217,7 @@ display. The app runs elevated (UAC prompt at launch).
 | WA15 | Settings and scroll shadows | As F11, F12 and F13 | Same as on macOS | Pass (2026-11-07, 389d6f1) |
 | WA16 | Dark colours | As F14, with `Ctrl` + `,`; the caption bar follows Dark | Same as on macOS | Pass, Dark left saved (2026-11-07, 389d6f1) |
 | WA17 | Sidebar footer | As F15 | Same as on macOS | Pass (2026-11-07, 389d6f1) |
-| WA18 | Drag on the secondary display | Mouse-drag Game with its zone on the secondary display, left of the primary then right of it: Turn test, then a short Session; a mouse-move and a keyboard Game on the same display | The cursor is parked in the middle of the zone on the secondary before each Step, the camera orbits, the Shots differ; move and keyboard unchanged (issue 10, reported by a user: the cursor landed on the primary) | Not run yet |
+| WA18 | Drag on the secondary display | Mouse-drag Game with its zone on the secondary display, left of the primary then right of it: Turn test, then a short Session; a mouse-move and a keyboard Game on the same display | The cursor is parked in the middle of the zone on the secondary before each Step, the camera orbits, the Shots differ; move and keyboard unchanged (issue 10, reported by a user: the cursor landed on the primary) | Pass as reported by the user, secondary on the left of the primary (2026-11-12, 3db8338, release build): the log shows the zone on the secondary moved to global coordinates (`x: 581` to `x: -1339`, origin −1920 / 45) before two runs of two Shots, and a run on the primary left as is. Not in the log: the secondary on the right, a full Session |
 
 ## Windows · full flow (issue 26)
 
