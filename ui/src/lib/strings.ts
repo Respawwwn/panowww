@@ -49,7 +49,7 @@ export const strings = {
         cancel: "Cancel",
         pressKey: "Press a key",
         keys: "Three distinct keys, no modifiers. Panowww presses the key at that position on your keyboard, whatever the layout.",
-        hold: "How long the key stays pressed for one Step. Calibrate with the Turn and Pitch tests.",
+        hold: "How long the key stays pressed for one Step. Calibrate with Check overlap.",
       },
       mouse: {
         modeLabel: "Mode",
@@ -73,10 +73,11 @@ export const strings = {
           "Virtual gamepad is unavailable on macOS. You can set this Game up here, but it only runs on Windows, where it needs ViGEmBus.",
         deflection:
           "Needs ViGEmBus. Right stick of a virtual Xbox 360 controller, as a share of full travel.",
-        hold: "How long the stick stays pushed for one Step. Calibrate with the Turn and Pitch tests.",
+        hold: "How long the stick stays pushed for one Step. Calibrate with Check overlap.",
       },
       vertical: "Vertical",
       invertVertical: "Invert",
+      msPerStep: "ms per Step",
     },
     grid: {
       title: "Grid & timing",
@@ -92,7 +93,7 @@ export const strings = {
         zenith: "Start looking straight up. The first Row is the sky, the last one the ground.",
       },
       shotsPerRow: "Each Row ends with a closing turn back to the start heading.",
-      rows: "Off-target Overlap? Change Shots per Row or Rows, then recalibrate.",
+      rows: "Turn test off its landmark? Change Shots per Row. Pitch test off the pole? Change Rows.",
       waitAfterMove: "Motion blur in the Shots → raise this.",
       waitAfterShot: "A swallowed Step → raise this.",
     },
@@ -128,6 +129,8 @@ export const strings = {
       stop: "Stop",
       overshot: "Overshot",
       undershot: "Undershot",
+      decrease: "Decrease",
+      increase: "Increase",
       turn: "Turn",
       pitch: "Pitch",
       turnTestTitle: "Turn test",
@@ -136,17 +139,18 @@ export const strings = {
       overlapPitchTitle: "Check overlap",
       stepOnceTitle: "Step once",
       running: "{tool} running…",
-      turnTest:
-        "Turns the camera a full circle, Step by Step, and should end exactly where it started. Went past the start? Reduce (overshot). Stopped short? Increase (undershot). Then run it again.",
       overlapTurn:
-        "Aim at the horizon first. Off-target Overlap → change Shots per Row, then back to step 1.",
+        "Aim at the horizon first. Takes two Samples one turn Step apart and superimposes them; slide until they line up. Too little Overlap? Reduce the Step (Overshot). Too much? Increase it (Undershot). Then check again.",
+      turnTest:
+        "Turns the camera a full circle, Step by Step, and should end exactly where it started. Went past the start? Decrease Shots per Row. Stopped short? Increase them. Then run it again.",
+      overlapPitch:
+        "Aim at the horizon first. Takes two Samples one pitch Step apart and superimposes them; slide until they line up. Too little Overlap? Reduce the Step (Overshot). Too much? Increase it (Undershot). Then check again.",
       pitchTest: {
         nadir:
-          "Point the camera straight down first. The test tilts it up, Step by Step, and should end exactly straight up. Went past the top? Reduce (overshot). Stopped short? Increase (undershot). Then run it again; reposition the camera by hand afterwards.",
+          "Point the camera straight down first. The test tilts it up, Step by Step, and should end exactly straight up. Went past the top? Decrease Rows. Stopped short? Increase them. Then run it again; reposition the camera by hand afterwards.",
         zenith:
-          "Point the camera straight up first. The test tilts it down, Step by Step, and should end exactly straight down. Went past the bottom? Reduce (overshot). Stopped short? Increase (undershot). Then run it again; reposition the camera by hand afterwards.",
+          "Point the camera straight up first. The test tilts it down, Step by Step, and should end exactly straight down. Went past the bottom? Decrease Rows. Stopped short? Increase them. Then run it again; reposition the camera by hand afterwards.",
       },
-      overlapPitch: "Off-target Overlap → change Rows, then back to step 3.",
       stepOnce: "One Step on its own, to feel its size.",
       result: {
         turnTest: "Turn test done · {n} Steps. Back on the landmark?",
@@ -187,12 +191,14 @@ export const strings = {
     verdict: {
       ok: "{p} % Overlap, in the 25–35 % target.",
       low: {
-        turn: "{p} % Overlap, too little → more Shots per Row.",
-        pitch: "{p} % Overlap, too little → more Rows.",
+        turn: "{p} % Overlap, too little: the turn Step is too big → Overshot (−) in the Calibrate card.",
+        pitch:
+          "{p} % Overlap, too little: the pitch Step is too big → Overshot (−) in the Calibrate card.",
       },
       high: {
-        turn: "{p} % Overlap, more than needed → fewer Shots per Row.",
-        pitch: "{p} % Overlap, more than needed → fewer Rows.",
+        turn: "{p} % Overlap, more than needed: the turn Step is too small → Undershot (+) in the Calibrate card.",
+        pitch:
+          "{p} % Overlap, more than needed: the pitch Step is too small → Undershot (+) in the Calibrate card.",
       },
     },
     tip: "Aim at the horizon before taking Samples. Samples stay in memory, nothing is saved.",

@@ -17,12 +17,12 @@ describe("slider → Overlap → verdict", () => {
     expect(verdict(35.1)).toBe("high");
   });
 
-  test("the verdict names what to change per axis", () => {
+  test("the verdict names the Step button to press per axis", () => {
     expect(verdictText("ok", "turn")).toContain("target");
-    expect(verdictText("low", "turn")).toContain("more Shots per Row");
-    expect(verdictText("low", "pitch")).toContain("more Rows");
-    expect(verdictText("high", "turn")).toContain("fewer Shots per Row");
-    expect(verdictText("high", "pitch")).toContain("fewer Rows");
+    expect(verdictText("low", "turn")).toContain("turn Step is too big → Overshot (−)");
+    expect(verdictText("low", "pitch")).toContain("pitch Step is too big → Overshot (−)");
+    expect(verdictText("high", "turn")).toContain("turn Step is too small → Undershot (+)");
+    expect(verdictText("high", "pitch")).toContain("pitch Step is too small → Undershot (+)");
   });
 
   test("a slider position maps end to end", () => {
