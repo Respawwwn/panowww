@@ -210,7 +210,6 @@ display. The app runs elevated (UAC prompt at launch).
 | WA8 | Reveal in Explorer | Sessions tab → *Reveal* on a row; Settings → *Reveal logs* | Explorer opens with the folder selected | Found: both opened Documents, and Sessions went to `target\release\~\Pictures\Panowww`: the UI's `~/Pictures/Panowww` placeholder had been saved as the Sessions folder (a consequence of the WA1 race) and a literal `~` is relative; `~` now expands on load and save, Explorer gets a native path. A space in the path (`Kevin Wenger`) still sent Explorer to Documents: `/select,"<path>"` is now one raw argument. Pass (2026-11-04, 96fed26): Explorer opens the parent with the Session (or `logs`) selected, as Finder's reveal does |
 | WA9 | Nothing moved? popover | Open it from a Windows mouse Game and a gamepad Game | Item 4 ends with "Use a gamepad Game for them."; the gamepad line mentions player 1 and the restart | Pass (2026-11-03, a177336) |
 | WA10 | Second display at 125 % | Set the secondary display to 125 %, draw a zone there, *Show zone*, run a Session | The picker covers that display exactly, the frame lands where the Shot is taken | Skipped by decision, as the matching macOS row (2026-11-03) |
-| WA11 | Drag on the secondary display | Mouse-drag Game with its zone on the secondary display, left of the primary then right of it: Turn test, then a short Session; a mouse-move and a keyboard Game on the same display | The cursor is parked in the middle of the zone on the secondary before each Step, the camera orbits, the Shots differ; move and keyboard unchanged (issue 10, reported by a user: the cursor landed on the primary) | Not run yet |
 | WA11 | Reset the Sessions folder | Settings → *Change* the folder, then *Reset* | As F8, the folder back to `C:\Users\<you>\Pictures\Panowww` with backslashes | Pass: `settings.json` holds `C:\Users\<you>\Pictures\Panowww` after the Reset (2026-11-07, 389d6f1, installed build) |
 | WA12 | Start card folder | As F9 | As F9, with `\` separators and a trailing `\` | Pass (2026-11-07, 389d6f1) |
 | WA13 | Settings shortcut caps | As F10 with Ctrl+, | `Ctrl` + `,` caps, Ctrl+, opens Settings | Pass (2026-11-07, 389d6f1) |
@@ -218,6 +217,7 @@ display. The app runs elevated (UAC prompt at launch).
 | WA15 | Settings and scroll shadows | As F11, F12 and F13 | Same as on macOS | Pass (2026-11-07, 389d6f1) |
 | WA16 | Dark colours | As F14, with `Ctrl` + `,`; the caption bar follows Dark | Same as on macOS | Pass, Dark left saved (2026-11-07, 389d6f1) |
 | WA17 | Sidebar footer | As F15 | Same as on macOS | Pass (2026-11-07, 389d6f1) |
+| WA18 | Drag on the secondary display | Mouse-drag Game with its zone on the secondary display, left of the primary then right of it: Turn test, then a short Session; a mouse-move and a keyboard Game on the same display | The cursor is parked in the middle of the zone on the secondary before each Step, the camera orbits, the Shots differ; move and keyboard unchanged (issue 10, reported by a user: the cursor landed on the primary) | Not run yet |
 
 ## Windows · full flow (issue 26)
 
