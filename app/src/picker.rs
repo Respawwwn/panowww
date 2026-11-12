@@ -167,10 +167,19 @@ impl Picker {
         let zone = current
             .filter(|z| z.display_id == window.display.id)
             .map(Zone::rect);
+        // The page draws in CSS pixels; the zone is in the backend's
+        // coordinates (spec §4.2): points on macOS, physical pixels on
+        // Windows, where a CSS pixel covers scale of them.
+        let units_per_css_pixel = if cfg!(target_os = "windows") && window.display.scale > 0.0 {
+            window.display.scale
+        } else {
+            1.0
+        };
         Ok(PickerSetup {
             display: window.display,
             display_index: window.index,
             zone,
+            units_per_css_pixel,
             appearance,
         })
     }

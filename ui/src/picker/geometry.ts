@@ -1,11 +1,29 @@
 // The rectangle maths of the Capture zone picker (spec §11.4), in display
-// points: drawing from a corner, moving, resizing by a handle, clamping to
-// the display, the X / Y / W / H fields.
+// coordinates: drawing from a corner, moving, resizing by a handle, clamping
+// to the display, the X / Y / W / H fields, and the conversion from and to
+// the CSS pixels the page draws in.
 import type { Rect } from "../lib/generated/Rect";
 
 export type Point = { x: number; y: number };
 export type Size = { w: number; h: number };
 export type Handle = "nw" | "ne" | "sw" | "se";
+
+/** A pointer position in CSS pixels as display coordinates: one CSS pixel
+ * covers unitsPerCssPixel of them (1 on macOS, the display scale on
+ * Windows). */
+export function fromCss(p: Point, unitsPerCssPixel: number): Point {
+  return { x: p.x * unitsPerCssPixel, y: p.y * unitsPerCssPixel };
+}
+
+/** A rectangle in display coordinates as the CSS pixels that draw it. */
+export function toCss(r: Rect, unitsPerCssPixel: number): Rect {
+  return {
+    x: r.x / unitsPerCssPixel,
+    y: r.y / unitsPerCssPixel,
+    w: r.w / unitsPerCssPixel,
+    h: r.h / unitsPerCssPixel,
+  };
+}
 
 /** Smallest zone that still makes sense; below it a drag is a click. */
 export const MIN_SIDE = 8;

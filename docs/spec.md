@@ -493,7 +493,7 @@ Same header row (title; *Reveal in Finder* / *Delete* right). Banner `damaged.ti
 
 ### 11.4 Capture zone picker
 
-Separate window per display, covering it fully, dimmed live display behind; the user draws a purple rectangle with corner handles and a size chip; above, the display chip and `zonePicker.tip`; `zonePicker.instruction`; thin bottom card with X / Y / W / H fields, *Show frame on screen* checkbox, *Cancel* / *Save zone*. Esc cancels. Saved with display ID, size and scale (§6).
+Separate window per display, covering it fully, dimmed live display behind; the user draws a purple rectangle with corner handles and a size chip; above, the display chip and `zonePicker.tip`; `zonePicker.instruction`; thin bottom card with X / Y / W / H fields, *Show frame on screen* checkbox, *Cancel* / *Save zone*. Esc cancels. Saved with display ID, size and scale (§6). The page draws in CSS pixels and the zone is in display coordinates (§4.2): the setup carries the ratio (1 on macOS, the display scale on Windows) and the page converts both ways, so a zone drawn on a 125 % display is the physical rectangle under the frame.
 
 ### 11.5 Countdown screen
 
