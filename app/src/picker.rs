@@ -167,10 +167,19 @@ impl Picker {
         let zone = current
             .filter(|z| z.display_id == window.display.id)
             .map(Zone::rect);
+        // The page draws in CSS pixels; the zone is in the backend's
+        // coordinates (spec §4.2): points on macOS, physical pixels on
+        // Windows, where a CSS pixel covers scale of them.
+        let units_per_css_pixel = if cfg!(target_os = "windows") && window.display.scale > 0.0 {
+            window.display.scale
+        } else {
+            1.0
+        };
         Ok(PickerSetup {
             display: window.display,
             display_index: window.index,
             zone,
+            units_per_css_pixel,
             appearance,
         })
     }
@@ -276,14 +285,7 @@ fn build_windows<R: Runtime>(
     for (i, (display, (x, y))) in displays.into_iter().enumerate() {
         let index = u32::try_from(i + 1).unwrap_or(u32::MAX);
         let label = format!("{LABEL_PREFIX}{index}");
-        // The builder takes logical coordinates; the backend reports points
-        // on macOS and physical pixels on Windows (spec §4.2).
-        let per_pixel = if cfg!(target_os = "windows") && display.scale > 0.0 {
-            1.0 / display.scale
-        } else {
-            1.0
-        };
-        let built = WebviewWindowBuilder::new(app, &label, WebviewUrl::App("picker.html".into()))
+        let builder = WebviewWindowBuilder::new(app, &label, WebviewUrl::App("picker.html".into()))
             .title("Capture zone")
             .decorations(false)
             .transparent(true)
@@ -291,16 +293,25 @@ fn build_windows<R: Runtime>(
             .resizable(false)
             .always_on_top(true)
             .skip_taskbar(true)
-            .position(x * per_pixel, y * per_pixel)
-            .inner_size(
-                f64::from(display.width) * per_pixel,
-                f64::from(display.height) * per_pixel,
-            )
             .focused(i == focus)
-            .initialization_script(format!("window.__PANOWWW_PICKER__ = {label:?};"))
-            .build();
+            .initialization_script(format!("window.__PANOWWW_PICKER__ = {label:?};"));
+        // macOS: the backend reports points, which the builder takes as is.
+        #[cfg(not(target_os = "windows"))]
+        let builder = builder
+            .position(x, y)
+            .inner_size(f64::from(display.width), f64::from(display.height));
+        // Windows: the backend reports physical pixels. The builder only
+        // takes logical values, and tao converts a logical position with
+        // the scale of the first monitor it falls into, which is the wrong
+        // one when the displays have different scales (issue 8). Build it
+        // hidden, then place it in physical pixels, as the overlay does.
+        #[cfg(target_os = "windows")]
+        let builder = builder.visible(false);
+        let built = builder.build();
         let window = match built {
             Ok(window) => {
+                #[cfg(target_os = "windows")]
+                place_physical(&window, &display, (x, y));
                 let size = d_name(&display);
                 tracing::info!(label, size, "picker window built");
                 window
@@ -329,6 +340,53 @@ fn build_windows<R: Runtime>(
         built_labels.push(label);
     }
     Ok(())
+}
+
+/// Windows: moves the hidden window onto its display, sizes it in physical
+/// pixels, then shows it. The move comes first: landing on a display of
+/// another scale resizes the window by the ratio, which the size then
+/// overrides. Logs a mismatch so a report shows it.
+#[cfg(target_os = "windows")]
+fn place_physical<R: Runtime>(
+    window: &tauri::WebviewWindow<R>,
+    display: &DisplayInfo,
+    origin: (f64, f64),
+) {
+    let label = window.label().to_owned();
+    let (x, y) = (pixel(origin.0), pixel(origin.1));
+    if let Err(error) = window.set_position(tauri::PhysicalPosition::new(x, y)) {
+        tracing::warn!(%error, label, "picker window not moved");
+    }
+    if let Err(error) = window.set_size(tauri::PhysicalSize::new(display.width, display.height)) {
+        tracing::warn!(%error, label, "picker window not sized");
+    }
+    if let Err(error) = window.show() {
+        tracing::warn!(%error, label, "picker window not shown");
+    }
+    match (window.outer_position(), window.inner_size()) {
+        (Ok(at), Ok(size))
+            if at.x == x
+                && at.y == y
+                && size.width == display.width
+                && size.height == display.height => {}
+        (at, size) => {
+            // Built outside the macro: inside it, `display` names tracing's
+            // own `display` helper, not this function's argument.
+            let want = format!("{}×{} at ({x}, {y})", display.width, display.height);
+            let got = format!("{size:?} at {at:?}");
+            tracing::warn!(label, want, got, "picker window does not cover its display");
+        }
+    }
+}
+
+/// Rounds a physical coordinate to whole pixels.
+#[cfg(target_os = "windows")]
+#[expect(
+    clippy::cast_possible_truncation,
+    reason = "display coordinates are far inside i32 once rounded"
+)]
+fn pixel(value: f64) -> i32 {
+    value.round() as i32
 }
 
 /// A display for the log: its size and scale.

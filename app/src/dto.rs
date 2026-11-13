@@ -202,6 +202,10 @@ pub struct PickerSetup {
     pub display_index: u32,
     /// The Game's zone when it sits on this display, in display points.
     pub zone: Option<Rect>,
+    /// Display coordinates per CSS pixel of the page, which draws in CSS
+    /// pixels: 1 on macOS, where the coordinates are points, the display
+    /// scale on Windows, where they are physical pixels (spec §4.2).
+    pub units_per_css_pixel: f64,
     /// The app's appearance, so the bottom card matches the main window.
     pub appearance: panowww_store::settings::Appearance,
 }
