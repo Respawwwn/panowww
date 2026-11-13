@@ -174,14 +174,7 @@ function dragEnd() {
     min-height: 0;
     overflow: hidden;
     background: var(--sidebar);
-    /* Room for the macOS traffic lights under the overlay title bar. */
-    padding-top: 52px;
     transition: opacity 0.15s ease-out;
-  }
-
-  /* Windows has its own caption bar above the window: no traffic lights. */
-  :global(.shell[data-platform="windows"]) .sidebar {
-    padding-top: 12px;
   }
 
   .sidebar.dim {
@@ -189,10 +182,18 @@ function dragEnd() {
     pointer-events: none;
   }
 
+  /* The header holds the room for the macOS traffic lights under the
+     overlay title bar, so that whole band drags the window: Tauri moves it
+     only when the pressed element itself is the drag region. */
   .brand {
     display: flex;
     align-items: center;
-    padding: 4px 16px 12px;
+    padding: 56px 16px 12px;
+  }
+
+  /* Windows has its own caption bar above the window: no traffic lights. */
+  :global(.shell[data-platform="windows"]) .brand {
+    padding-top: 16px;
   }
 
   /* The mark and the name go home; the rest of the header drags the window. */
