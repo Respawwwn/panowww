@@ -3,7 +3,9 @@
 // dimmed display behind, a purple rectangle drawn with the mouse, corner
 // handles, the size chip, the display chip and the instruction above, the
 // bottom card with X / Y / W / H, Show frame on screen, Cancel / Save zone.
-// Esc cancels. The zone is in display points: this window's CSS pixels.
+// Esc cancels. The zone is in display coordinates (points on macOS,
+// physical pixels on Windows); the page draws in CSS pixels and converts
+// with the setup's unitsPerCssPixel.
 import { onDestroy, onMount } from "svelte";
 import Button from "../components/Button.svelte";
 import Checkbox from "../components/Checkbox.svelte";
@@ -16,10 +18,12 @@ import {
   anchorOf,
   between,
   clampPoint,
+  fromCss,
   type Handle,
   isUsable,
   moved,
   type Point,
+  toCss,
   withField,
 } from "./geometry";
 
@@ -41,6 +45,9 @@ let showFrame = $state(true);
 let error = $state<string | null>(null);
 
 const display = $derived(setup ? { w: setup.display.width, h: setup.display.height } : null);
+const unitsPerCssPixel = $derived(setup?.unitsPerCssPixel ?? 1);
+/** The rectangle as the page draws it. */
+const cssRect = $derived(rect ? toCss(rect, unitsPerCssPixel) : null);
 const displayText = $derived(
   setup
     ? interpolate(strings.zonePicker.display, {
@@ -77,6 +84,7 @@ onMount(() => {
       display: { id: "mock", width: 1440, height: 900, scale: 2, hdr: false },
       displayIndex: 1,
       zone: { x: 240, y: 160, w: 960, h: 540 },
+      unitsPerCssPixel: 1,
       appearance: "auto",
     };
     rect = setup.zone;
@@ -95,7 +103,9 @@ onMount(() => {
 });
 
 function point(e: PointerEvent): Point {
-  return display ? clampPoint({ x: e.clientX, y: e.clientY }, display) : { x: 0, y: 0 };
+  return display
+    ? clampPoint(fromCss({ x: e.clientX, y: e.clientY }, unitsPerCssPixel), display)
+    : { x: 0, y: 0 };
 }
 
 function startDraw(e: PointerEvent) {
@@ -219,15 +229,15 @@ function onkeydown(e: KeyboardEvent) {
     <span class="chip instruction">{strings.zonePicker.instruction}</span>
   </div>
 
-  {#if rect && showFrame}
+  {#if rect && cssRect && showFrame}
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
       class="zone"
       class:dragging={drag !== null}
-      style:left="{rect.x}px"
-      style:top="{rect.y}px"
-      style:width="{rect.w}px"
-      style:height="{rect.h}px"
+      style:left="{cssRect.x}px"
+      style:top="{cssRect.y}px"
+      style:width="{cssRect.w}px"
+      style:height="{cssRect.h}px"
       onpointerdown={startMove}
     >
       <!-- svelte-ignore a11y_no_static_element_interactions -->

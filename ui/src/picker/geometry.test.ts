@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { anchorOf, between, clampPoint, clampRect, isUsable, moved, withField } from "./geometry";
+import {
+  anchorOf,
+  between,
+  clampPoint,
+  clampRect,
+  fromCss,
+  isUsable,
+  moved,
+  toCss,
+  withField,
+} from "./geometry";
 
 const display = { w: 2560, h: 1440 };
 
@@ -55,6 +65,25 @@ describe("picker geometry", () => {
     expect(isUsable({ x: 0, y: 0, w: 7, h: 100 })).toBe(false);
     expect(isUsable({ x: 0, y: 0, w: 8, h: 8 })).toBe(true);
     expect(isUsable(null)).toBe(false);
+  });
+
+  it("converts CSS pixels to display coordinates and back", () => {
+    // Windows at 125 %: a 1920 × 1080 display is 1536 × 864 CSS pixels.
+    expect(fromCss({ x: 1536, y: 864 }, 1.25)).toEqual({ x: 1920, y: 1080 });
+    expect(between(fromCss({ x: 80, y: 80 }, 1.25), fromCss({ x: 880, y: 528 }, 1.25))).toEqual({
+      x: 100,
+      y: 100,
+      w: 1000,
+      h: 560,
+    });
+    expect(toCss({ x: 100, y: 100, w: 1000, h: 560 }, 1.25)).toEqual({
+      x: 80,
+      y: 80,
+      w: 800,
+      h: 448,
+    });
+    // macOS: points are CSS pixels.
+    expect(fromCss({ x: 10, y: 20 }, 1)).toEqual({ x: 10, y: 20 });
   });
 
   it("applies one field at a time and ignores junk", () => {
