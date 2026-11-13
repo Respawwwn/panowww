@@ -10,7 +10,9 @@ use std::time::{Duration, Instant};
 use base64::Engine as _;
 use panowww_core::game::Game;
 use panowww_core::plan::{SampleSlot, plan};
-use panowww_core::ports::{CancelFlag, Frame, Jpeg, PreviewFrame, ShotSink, SystemClock, Zone};
+use panowww_core::ports::{
+    CancelFlag, Frame, Jpeg, PreviewFrame, Rect, ShotSink, SystemClock, Zone,
+};
 use panowww_core::runner::{Progress, RunOutcome, RunRequest, SessionStart, run};
 use panowww_store::local::{ZoneStatus, zone_status};
 use panowww_store::sink::{SessionSink, SessionSinkConfig, SystemWallClock};
@@ -257,9 +259,10 @@ impl Worker {
         self.overlay.show_frame(&spec.zone);
         let plan = plan(&spec.game, spec.kind.into());
         let expected = u32::try_from(plan.expected_shots()).unwrap_or(u32::MAX);
+        let origin = self.backend.display_origin(&spec.zone.display_id);
         let request = RunRequest {
             plan: &plan,
-            zone: spec.zone.rect(),
+            zone: global_rect(&spec.zone, origin),
             session: spec.kind.is_session().then(|| SessionStart {
                 game: spec.game.clone(),
                 zone: spec.zone.clone(),
@@ -475,6 +478,38 @@ impl ShotSink for NoSink {
     fn finish(&mut self, _: &RunOutcome) -> Result<(), panowww_core::ports::StoreError> {
         Ok(())
     }
+}
+
+/// The zone moved from its display's coordinates to global ones, where the
+/// cursor is parked (issue 10): a Zone is stored relative to its display,
+/// the cursor APIs take the whole desktop. A display without an origin
+/// (gone, or the Linux stub) leaves it as is; the preflight has already
+/// refused a gone display.
+fn global_rect(zone: &Zone, origin: Option<(f64, f64)>) -> Rect {
+    let rect = zone.rect();
+    let Some((ox, oy)) = origin else {
+        tracing::warn!(
+            display = zone.display_id.0,
+            "no display origin, drag parks display-local"
+        );
+        return rect;
+    };
+    let global = Rect {
+        x: rect.x.saturating_add(round(ox)),
+        y: rect.y.saturating_add(round(oy)),
+        ..rect
+    };
+    tracing::debug!(?rect, ?global, "Capture zone in global coordinates");
+    global
+}
+
+/// Rounds a display origin to whole units.
+#[expect(
+    clippy::cast_possible_truncation,
+    reason = "display origins are far inside i32 once rounded"
+)]
+fn round(value: f64) -> i32 {
+    value.round() as i32
 }
 
 #[cfg(test)]
@@ -802,5 +837,51 @@ mod tests {
             data_url("image/jpeg", b"\xFF\xD8"),
             "data:image/jpeg;base64,/9g="
         );
+    }
+
+    fn zone_at(x: i32, y: i32) -> Zone {
+        Zone {
+            display_id: DisplayId("second".to_owned()),
+            x,
+            y,
+            w: 1000,
+            h: 600,
+            display_w: 2560,
+            display_h: 1440,
+            scale: 1.25,
+        }
+    }
+
+    #[test]
+    fn global_rect_adds_the_display_origin() {
+        let zone = zone_at(100, 50);
+        assert_eq!(
+            global_rect(&zone, Some((-1920.0, 0.0))),
+            Rect {
+                x: -1820,
+                y: 50,
+                w: 1000,
+                h: 600
+            },
+            "secondary on the left"
+        );
+        assert_eq!(
+            global_rect(&zone, Some((1920.0, -180.0))),
+            Rect {
+                x: 2020,
+                y: -130,
+                w: 1000,
+                h: 600
+            },
+            "secondary on the right, higher up"
+        );
+        assert_eq!(global_rect(&zone, Some((0.0, 0.0))), zone.rect(), "primary");
+        assert_eq!(global_rect(&zone, None), zone.rect(), "no origin");
+    }
+
+    #[test]
+    fn the_drag_parks_on_the_zone_display() {
+        let centre = global_rect(&zone_at(780, 420), Some((1920.0, 0.0))).centre();
+        assert_eq!((centre.x, centre.y), (3200.0, 720.0));
     }
 }

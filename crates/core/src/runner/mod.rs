@@ -23,7 +23,9 @@ use crate::ports::{
 #[derive(Debug, Clone, PartialEq)]
 pub struct RunRequest<'a> {
     pub plan: &'a CapturePlan,
-    /// The Capture zone, where a drag Step parks the cursor.
+    /// The Capture zone in global coordinates (points on macOS, physical
+    /// pixels of the virtual screen on Windows, origin top-left of the
+    /// primary display), where a drag Step parks the cursor.
     pub zone: Rect,
     /// For a Session: what the store needs to create its folder. `None` for
     /// Tests, Step once and Check overlap, which write nothing.
