@@ -530,7 +530,7 @@ export const strings = {
     },
     done: {
       /** `{file}` is drawn as code. */
-      file: "{file} {w} × {h} · {size} · in the Session folder",
+      file: "{file} created",
     },
     unaligned: {
       chip: "{n} Shots placed from the grid",

@@ -486,7 +486,7 @@ async function openIn(stitcher: Stitcher) {
           <div class="okbox">
             <span class="grow">
               {#each doneSegments as segment, i (i)}
-                {#if segment.kind === "slot"}<code>{entry.file}</code>{:else}{interpolate(segment.text, { w: entry.width, h: entry.height, size: formatBytes(entry.bytes) })}{/if}
+                {#if segment.kind === "slot"}<code>{entry.file}</code>{:else}{segment.text}{/if}
               {/each}
             </span>
             <Button size="sm" onclick={revealPanorama}>
