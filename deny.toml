@@ -16,6 +16,7 @@ ignore = [
     { id = "RUSTSEC-2026-0370", reason = "zbus_names: Linux-only transitive dependency of tauri-plugin-opener; unmaintained, not a vulnerability" },
     { id = "RUSTSEC-2026-0371", reason = "zvariant: same as above" },
     { id = "RUSTSEC-2026-0372", reason = "zvariant_derive: same as above" },
+    { id = "RUSTSEC-2024-0436", reason = "paste: compile-time proc macro pulled in by nalgebra through simba; unmaintained, not a vulnerability" },
 ]
 
 [licenses]
