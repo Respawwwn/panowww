@@ -164,14 +164,24 @@ const subtitle = $derived.by(() => {
   if (!view || !game) {
     return "";
   }
+  const date = view.startedAt ? formatDate(view.startedAt) : "";
+  // Once a Panorama exists the line names its size, not the Shots'.
   const parts = [
-    interpolate(s.subtitle, {
-      date: view.startedAt ? formatDate(view.startedAt) : "",
-      rows: game.rows,
-      shotsPerRow: game.shotsPerRow,
-      w: view.shotSize?.w ?? "?",
-      h: view.shotSize?.h ?? "?",
-    }),
+    mode === "finished" && entry
+      ? interpolate(s.subtitleFinished, {
+          date,
+          rows: game.rows,
+          shotsPerRow: game.shotsPerRow,
+          w: entry.width,
+          h: entry.height,
+        })
+      : interpolate(s.subtitle, {
+          date,
+          rows: game.rows,
+          shotsPerRow: game.shotsPerRow,
+          w: view.shotSize?.w ?? "?",
+          h: view.shotSize?.h ?? "?",
+        }),
   ];
   if (mode === "idle" && view.shotSize) {
     const size = expectedSize(view.shotSize.w);
