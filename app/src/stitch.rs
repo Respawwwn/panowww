@@ -286,7 +286,8 @@ impl Worker {
 }
 
 /// Lets a progress report through when the stage changed, when a stage
-/// completes, or when [`PROGRESS_INTERVAL`] has passed since the last one.
+/// completes, when it carries a measurement, or when [`PROGRESS_INTERVAL`]
+/// has passed since the last one.
 struct Throttle {
     emit: StitchEventSink,
     last: Mutex<Option<(Stage, Instant)>>,
@@ -308,6 +309,7 @@ impl Throttle {
             Some((stage, at)) => {
                 stage != progress.stage
                     || progress.stage_fraction >= 1.0
+                    || progress.measured.is_some()
                     || now.duration_since(at) >= PROGRESS_INTERVAL
             }
         };

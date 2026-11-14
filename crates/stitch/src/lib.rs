@@ -36,7 +36,7 @@ use panowww_core::ports::{CancelFlag, Frame, StoreError};
 pub use error::StitchError;
 pub use grid::Grid;
 use render::Renderer as _;
-pub use report::{ShotRef, Stage, StageDurations, StitchProgress, StitchReport};
+pub use report::{ShotRef, Stage, StageDurations, StitchMeasured, StitchProgress, StitchReport};
 
 /// Where the Shots come from: a Session folder in `store`, a synthetic
 /// Session in tests. Indices run `0..count()`; positions are the Session's
@@ -126,6 +126,7 @@ pub fn stitch(
     if cancel.is_raised() {
         return Err(StitchError::Cancelled);
     }
+    progress(StitchProgress::new(Stage::Render, 0.0).with_measured(aligned.measured.into()));
     let rendered = render::CpuRenderer.render(
         &render::RenderInput {
             source,

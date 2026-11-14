@@ -6,6 +6,7 @@ import {
   cellState,
   expectedSize,
   gridCaption,
+  measuredOfEntry,
   measuredRows,
   nameList,
   panelMode,
@@ -36,6 +37,7 @@ const running = (stage: StitchRunning["progress"]): StitchRunning => ({
   progress: stage,
   startedAt: 0,
   stages: {},
+  measured: null,
 });
 
 const last = (closing: StitchLast["closing"]): StitchLast => ({
@@ -45,6 +47,7 @@ const last = (closing: StitchLast["closing"]): StitchLast => ({
   endedAt: 1,
   stages: {},
   progress: null,
+  measured: null,
 });
 
 describe("the panel's mode", () => {
@@ -126,7 +129,7 @@ describe("the grid caption", () => {
 
 describe("the measured card", () => {
   test("reads the entry in words, poles and closing turns signed", () => {
-    expect(measuredRows(entry, "nadir")).toEqual([
+    expect(measuredRows(measuredOfEntry(entry), "nadir")).toEqual([
       ["Field of view", "92.4° wide"],
       ["Turn Step", "25.6°"],
       ["Pitch Step", "29.4°"],
@@ -135,12 +138,28 @@ describe("the measured card", () => {
       ["Drift per Shot", "under 0.3°"],
     ]);
     const exact = measuredRows(
-      { ...entry, startPoleOffsetDeg: -2.5, closingTurnDeg: 0.0, driftDeg: 0 },
+      measuredOfEntry({ ...entry, startPoleOffsetDeg: -2.5, closingTurnDeg: 0.0, driftDeg: 0 }),
       "zenith",
     );
     expect(exact[3]).toEqual(["Start pole", "2.5° past the Zenith"]);
     expect(exact[4]).toEqual(["Closing turn", "closes"]);
     expect(exact[5]).toEqual(["Drift per Shot", "under 0.0°"]);
+  });
+
+  test("shows the field of view alone before the Rows are placed", () => {
+    const early = measuredRows(
+      {
+        fieldOfViewDeg: 92.4,
+        turnStepDeg: null,
+        pitchStepDeg: null,
+        startPoleOffsetDeg: null,
+        closingTurnDeg: null,
+        driftDeg: null,
+      },
+      "nadir",
+    );
+    expect(early[0]).toEqual(["Field of view", "92.4° wide"]);
+    expect(early.slice(1).map(([, v]) => v)).toEqual(["…", "…", "…", "…", "…"]);
   });
 });
 

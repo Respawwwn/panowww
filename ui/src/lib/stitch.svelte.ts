@@ -6,6 +6,7 @@ import { api } from "./api";
 import type { PanoramaEntry } from "./generated/PanoramaEntry";
 import type { Stage } from "./generated/Stage";
 import type { StitchEvent } from "./generated/StitchEvent";
+import type { StitchMeasured } from "./generated/StitchMeasured";
 import type { StitchProgress } from "./generated/StitchProgress";
 
 export type StageName = Stage["stage"];
@@ -45,6 +46,8 @@ export interface StitchRunning {
   startedAt: number;
   /** The stages seen so far, timed from this window's clock. */
   stages: Partial<Record<StageName, StageSpan>>;
+  /** What the Shots have told so far, from the last report that said. */
+  measured: StitchMeasured | null;
 }
 
 export interface StitchLast {
@@ -56,6 +59,8 @@ export interface StitchLast {
   stages: Partial<Record<StageName, StageSpan>>;
   /** The last progress seen: which stage failed, how far it got. */
   progress: StitchProgress | null;
+  /** The last measurements, kept for a failed panel. */
+  measured: StitchMeasured | null;
 }
 
 export interface StitchState {
@@ -110,10 +115,21 @@ export function reduceStitch(state: StitchState, event: StitchEvent, now: number
   if (event.event === "progress") {
     const { event: _tag, ...rest } = event;
     const progress = rest as StitchProgress;
-    const running = state.running ?? { folder: null, progress: null, startedAt: now, stages: {} };
+    const running = state.running ?? {
+      folder: null,
+      progress: null,
+      startedAt: now,
+      stages: {},
+      measured: null,
+    };
     return {
       ...state,
-      running: { ...running, progress, stages: timeStages(running.stages, progress, now) },
+      running: {
+        ...running,
+        progress,
+        stages: timeStages(running.stages, progress, now),
+        measured: progress.measured ?? running.measured,
+      },
     };
   }
   const folder = state.running?.folder ?? null;
@@ -130,6 +146,7 @@ export function reduceStitch(state: StitchState, event: StitchEvent, now: number
       endedAt: now,
       stages: closeStages(state.running?.stages ?? {}, now),
       progress: state.running?.progress ?? null,
+      measured: state.running?.measured ?? null,
     },
     entries,
   };
@@ -137,7 +154,10 @@ export function reduceStitch(state: StitchState, event: StitchEvent, now: number
 
 /** A Stitch starts: the folder is known before any event arrives. */
 export function startStitch(state: StitchState, folder: string, now: number): StitchState {
-  return { ...state, running: { folder, progress: null, startedAt: now, stages: {} } };
+  return {
+    ...state,
+    running: { folder, progress: null, startedAt: now, stages: {}, measured: null },
+  };
 }
 
 /**

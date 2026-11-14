@@ -31,7 +31,10 @@ const entry: PanoramaEntry = {
   antiGhost: true,
 };
 
-const progress = (overall: number, stage: "read" | "render" | "save" = "render"): StitchEvent => ({
+const progress = (
+  overall: number,
+  stage: "read" | "render" | "save" = "render",
+): StitchEvent & { event: "progress" } => ({
   event: "progress",
   stage: { stage },
   stageFraction: 0.5,
@@ -56,7 +59,23 @@ describe("the stitch reducer", () => {
       endedAt: 1002,
       stages: { render: { startedAt: 1000, endedAt: 1002 } },
       progress: { stage: { stage: "render" }, stageFraction: 0.5, overall: 0.6 },
+      measured: null,
     });
+  });
+
+  test("a report that measured something is kept until the next one that does", () => {
+    const measured = {
+      fieldOfViewDeg: 92.4,
+      turnStepDeg: null,
+      pitchStepDeg: null,
+      startPoleOffsetDeg: null,
+      closingTurnDeg: null,
+      driftDeg: null,
+    };
+    const state = play([{ ...progress(0.05, "read"), measured }, progress(0.1, "read")]);
+    expect(state.running?.measured).toEqual(measured);
+    const ended = reduceStitch(state, { event: "failed", error: { kind: "notCompleted" } }, 2000);
+    expect(ended.last?.measured).toEqual(measured);
   });
 
   test("stages are timed from their first report to the next stage's", () => {
@@ -79,6 +98,7 @@ describe("the stitch reducer", () => {
       startedAt: 999,
       progress: { stage: { stage: "render" }, stageFraction: 0.5, overall: 0.2 },
       stages: { render: { startedAt: 1000, endedAt: null } },
+      measured: null,
     });
     expect(percent(state.running?.progress ?? null)).toBe(20);
     expect(percent(null)).toBe(0);
@@ -106,6 +126,7 @@ describe("the stitch reducer", () => {
       startedAt: 1000,
       progress: { stage: { stage: "render" }, stageFraction: 0.5, overall: 0.4 },
       stages: { render: { startedAt: 1000, endedAt: null } },
+      measured: null,
     });
     const done = reduceStitch(state, { event: "finished", entry }, 2000);
     expect(done.entries, "no folder to file it under").toEqual({});

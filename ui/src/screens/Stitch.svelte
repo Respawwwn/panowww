@@ -40,12 +40,13 @@ import {
   expectedSize,
   fileStem,
   gridCaption,
+  measuredOfEntry,
   measuredRows,
   nameList,
   panelMode,
   refLabel,
 } from "../lib/stitchView";
-import { interpolate, strings } from "../lib/strings";
+import { interpolate, splitPlaceholders, strings } from "../lib/strings";
 import { windows } from "../lib/windows.svelte";
 
 type Props = { gameId: string; folder: string };
@@ -208,9 +209,23 @@ const stageRows = $derived(
   }),
 );
 
-const measured = $derived(
-  entry && game && mode === "finished" ? measuredRows(entry, game.startPole) : null,
-);
+/** The card's rows: live while running, the Panorama's once written. */
+const measured = $derived.by(() => {
+  if (!game) {
+    return null;
+  }
+  if (mode === "running" && running?.measured) {
+    return measuredRows(running.measured, game.startPole);
+  }
+  if (mode === "finished" && entry) {
+    return measuredRows(measuredOfEntry(entry), game.startPole);
+  }
+  return null;
+});
+const panoramaFile = $derived(entry?.file ?? "panorama.jpg");
+const doneSegments = $derived(splitPlaceholders(s.done.file, ["file"]));
+const unalignedSegments = $derived(splitPlaceholders(s.unaligned.box, ["list"]));
+const droppedSegments = $derived(splitPlaceholders(s.dropped.box, ["pairs"]));
 
 const unalignedRefs = $derived(
   (entry?.unaligned ?? []).map((file) => {
@@ -372,7 +387,7 @@ async function openIn(stitcher: Stitcher) {
       {:else if mode === "finished"}
         <InlineConfirm
           confirming={replacing}
-          question={s.actions.replace}
+          question={interpolate(s.actions.replace, { file: panoramaFile })}
           confirmLabel={strings.session.end.stitchAgain}
           cancelLabel={s.actions.cancel}
           onconfirm={start}
@@ -444,7 +459,11 @@ async function openIn(stitcher: Stitcher) {
 
         {#if mode === "finished" && entry}
           <div class="okbox">
-            <span class="grow">{interpolate(s.done.file, { w: entry.width, h: entry.height, size: formatBytes(entry.bytes) })}</span>
+            <span class="grow">
+              {#each doneSegments as segment, i (i)}
+                {#if segment.kind === "slot"}<code>{entry.file}</code>{:else}{interpolate(segment.text, { w: entry.width, h: entry.height, size: formatBytes(entry.bytes) })}{/if}
+              {/each}
+            </span>
             <Button size="sm" onclick={revealPanorama}>
               <Icon name="folder" size={13} />
               {strings.settings.reveal}
@@ -507,19 +526,17 @@ async function openIn(stitcher: Stitcher) {
         {:else if mode === "finished"}
           {#if unalignedRefs.length > 0}
             <div class="tipbox warn">
-              {interpolate(s.unaligned.box, { list: nameList(unalignedRefs.map(refLabel), s.shots.and) })}
+              {#each unalignedSegments as segment, i (i)}
+                {#if segment.kind === "slot"}{#each unalignedRefs as ref, j (refLabel(ref))}{#if j > 0}{j === unalignedRefs.length - 1 ? ` ${s.shots.and} ` : ", "}{/if}<code>{refLabel(ref)}</code>{/each}{:else}{segment.text}{/if}
+              {/each}
             </div>
             <Tip text={s.shots.legendUnaligned} />
           {/if}
           {#if droppedPairs.length > 0 && entry}
             <div class="tipbox warn">
-              {interpolate(s.dropped.box, {
-                pairs: nameList(
-                  droppedPairs.map(([a, b]) => `${fileStem(a)} ${s.shots.and} ${fileStem(b)}`),
-                  s.shots.and,
-                ),
-                deg: deg(entry.turnStepDeg),
-              })}
+              {#each droppedSegments as segment, i (i)}
+                {#if segment.kind === "slot"}{#each droppedPairs as [a, b], j (a)}{#if j > 0}{j === droppedPairs.length - 1 ? ` ${s.shots.and} ` : ", "}{/if}<code>{fileStem(a)}</code> {s.shots.and} <code>{fileStem(b)}</code>{/each}{:else}{interpolate(segment.text, { deg: deg(entry.turnStepDeg) })}{/if}
+              {/each}
             </div>
           {/if}
         {:else}
@@ -801,6 +818,18 @@ async function openIn(stitcher: Stitcher) {
   .tipbox.bad {
     background: var(--bad-soft);
     color: var(--bad-fg);
+  }
+
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11.5px;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: rgb(0 0 0 / 8%);
+  }
+
+  :global([data-theme="dark"]) code {
+    background: rgb(255 255 255 / 10%);
   }
 
   .shots {

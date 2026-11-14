@@ -7,6 +7,7 @@ import { shotLabel } from "./format";
 import type { PanoramaEntry } from "./generated/PanoramaEntry";
 import type { ShotRef } from "./generated/ShotRef";
 import type { StartPole } from "./generated/StartPole";
+import type { StitchMeasured } from "./generated/StitchMeasured";
 import type { StitchProgress } from "./generated/StitchProgress";
 import type { StitchLast, StitchRunning } from "./stitch.svelte";
 import { interpolate, strings } from "./strings";
@@ -106,27 +107,50 @@ export function deg(value: number): string {
   return Math.abs(value).toFixed(1);
 }
 
-/** The six rows of the *Measured from the Shots* card. */
-export function measuredRows(entry: PanoramaEntry, startPole: StartPole): [string, string][] {
-  const m = strings.stitch.measured;
+/** The measurements a written Panorama carries, in the running form. */
+export function measuredOfEntry(entry: PanoramaEntry): StitchMeasured {
+  return {
+    fieldOfViewDeg: entry.fieldOfViewDeg,
+    turnStepDeg: entry.turnStepDeg,
+    pitchStepDeg: entry.pitchStepDeg,
+    startPoleOffsetDeg: entry.startPoleOffsetDeg,
+    closingTurnDeg: entry.closingTurnDeg,
+    driftDeg: entry.driftDeg,
+  };
+}
+
+/** Shown in the card for a value the Shots have not told yet. */
+export const NOT_YET = "…";
+
+/**
+ * The six rows of the *Measured from the Shots* card: the field of view
+ * as soon as it is found, the rest once the Rows are placed.
+ */
+export function measuredRows(m: StitchMeasured, startPole: StartPole): [string, string][] {
+  const t = strings.stitch.measured;
   const pole = startPole === "nadir" ? strings.setup.grid.nadir : strings.setup.grid.zenith;
-  const offset = entry.startPoleOffsetDeg;
-  const poleText =
+  const poleText = (offset: number) =>
     Math.abs(offset) < 0.05
-      ? interpolate(m.poleOn, { pole })
-      : interpolate(offset > 0 ? m.poleShort : m.polePast, { deg: deg(offset), pole });
-  const closing = entry.closingTurnDeg;
-  const closingText =
+      ? interpolate(t.poleOn, { pole })
+      : interpolate(offset > 0 ? t.poleShort : t.polePast, { deg: deg(offset), pole });
+  const closingText = (closing: number) =>
     Math.abs(closing) < 0.05
-      ? m.closes
-      : interpolate(closing > 0 ? m.closingLong : m.closingShort, { deg: deg(closing) });
+      ? t.closes
+      : interpolate(closing > 0 ? t.closingLong : t.closingShort, { deg: deg(closing) });
+  const or = (value: number | null, text: (v: number) => string) =>
+    value === null ? NOT_YET : text(value);
   return [
-    [m.fov, interpolate(m.fovValue, { deg: deg(entry.fieldOfViewDeg) })],
-    [m.turnStep, `${deg(entry.turnStepDeg)}°`],
-    [m.pitchStep, `${deg(entry.pitchStepDeg)}°`],
-    [m.startPole, poleText],
-    [m.closing, closingText],
-    [m.drift, interpolate(m.driftValue, { deg: (Math.ceil(entry.driftDeg * 10) / 10).toFixed(1) })],
+    [t.fov, interpolate(t.fovValue, { deg: deg(m.fieldOfViewDeg) })],
+    [t.turnStep, or(m.turnStepDeg, (v) => `${deg(v)}°`)],
+    [t.pitchStep, or(m.pitchStepDeg, (v) => `${deg(v)}°`)],
+    [t.startPole, or(m.startPoleOffsetDeg, poleText)],
+    [t.closing, or(m.closingTurnDeg, closingText)],
+    [
+      t.drift,
+      or(m.driftDeg, (v) =>
+        interpolate(t.driftValue, { deg: (Math.ceil(v * 10) / 10).toFixed(1) }),
+      ),
+    ],
   ];
 }
 

@@ -22,7 +22,7 @@ use crate::grid::{Grid, GridParams};
 use crate::levels::Pyramids;
 use crate::matching::{Corr, Pass, correspondences, residual_px};
 use crate::place_rows::place_rows;
-use crate::report::{ShotRef, Stage, StitchProgress};
+use crate::report::{ShotRef, Stage, StitchMeasured, StitchProgress};
 
 /// Matching passes with the gimbal adjustment after each (spec §16.8).
 const GIMBAL_PASSES: [Pass; 4] = [
@@ -86,6 +86,19 @@ pub struct Measured {
     pub drift: f64,
 }
 
+impl From<Measured> for StitchMeasured {
+    fn from(m: Measured) -> Self {
+        Self {
+            field_of_view_deg: m.field_of_view,
+            turn_step_deg: Some(m.turn_step),
+            pitch_step_deg: Some(m.pitch_step),
+            start_pole_offset_deg: Some(m.start_pole_offset),
+            closing_turn_deg: Some(m.closing_turn),
+            drift_deg: Some(m.drift),
+        }
+    }
+}
+
 /// Aligns the Shots of `pyramids` laid out as `grid`, starting from the
 /// grid prior corrected for `dropped` Steps.
 pub fn align(
@@ -98,30 +111,7 @@ pub fn align(
     let started = Instant::now();
     let total = pyramids.count();
     let anchor = pyramids.index_of(grid.horizon_row(), 1).unwrap_or(0);
-    let mut params = GridParams::nominal(pyramids, grid, &dropped.drops, 1.0);
-    let found = focal::estimate(pyramids, grid, &params.poses());
-    params.f_px = found.f_px;
-    let rechained = focal::chain_rows(pyramids, grid, &mut params);
-    tracing::debug!(rechained, "Rows re-chained from their measured Steps");
-    tracing::debug!(
-        f_px = found.f_px,
-        ncc = found.ncc,
-        measured = found.measured,
-        "field of view"
-    );
-    progress(StitchProgress::new(Stage::Overlaps, 0.05));
-    let placed = place_rows(pyramids, grid, &mut params, &|f| {
-        progress(StitchProgress::new(Stage::Overlaps, 0.05 + 0.45 * f));
-    });
-    for p in &placed {
-        tracing::debug!(
-            row = p.row,
-            pitch = p.pitch_offset_deg,
-            heading = p.heading_offset_deg,
-            ncc = p.ncc,
-            "Row placed"
-        );
-    }
+    let mut params = place(pyramids, grid, dropped, progress);
     if cancel.is_raised() {
         return Err(StitchError::Cancelled);
     }
@@ -167,6 +157,19 @@ pub fn align(
     let align_started = Instant::now();
     let cam = Cam::new(params.f_px, pyramids.width, pyramids.height);
     let mut poses = params.poses();
+    {
+        let snapshot = measure(pyramids, grid, dropped, &poses, &cam);
+        progress(
+            StitchProgress::new(
+                Stage::Align {
+                    row: 1,
+                    rows: grid.rows,
+                },
+                0.0,
+            )
+            .with_measured(snapshot.into()),
+        );
+    }
     let corrs = free_passes(
         pyramids, grid, &pairs, &mut poses, &cam, anchor, progress, cancel,
     )?;
@@ -182,6 +185,56 @@ pub fn align(
         overlaps_ms,
         align_ms: u32::try_from(align_started.elapsed().as_millis()).unwrap_or(u32::MAX),
     })
+}
+
+/// Steps 2 and 3 (spec §16.6): the field of view, the Rows re-chained
+/// from their measured Steps, then every Row placed outward from the
+/// horizon, with the measurements reported as they become known.
+fn place(
+    pyramids: &Pyramids,
+    grid: &Grid,
+    dropped: &Dropped,
+    progress: &(dyn Fn(StitchProgress) + Sync),
+) -> GridParams {
+    let mut params = GridParams::nominal(pyramids, grid, &dropped.drops, 1.0);
+    let found = focal::estimate(pyramids, grid, &params.poses());
+    params.f_px = found.f_px;
+    let rechained = focal::chain_rows(pyramids, grid, &mut params);
+    tracing::debug!(rechained, "Rows re-chained from their measured Steps");
+    tracing::debug!(
+        f_px = found.f_px,
+        ncc = found.ncc,
+        measured = found.measured,
+        "field of view"
+    );
+    // The field of view is known: the card shows it while the Rows are
+    // placed; the Steps and poles follow once they are.
+    progress(
+        StitchProgress::new(Stage::Overlaps, 0.05).with_measured(StitchMeasured {
+            field_of_view_deg: Cam::new(params.f_px, pyramids.width, pyramids.height).hfov_deg(),
+            turn_step_deg: None,
+            pitch_step_deg: None,
+            start_pole_offset_deg: None,
+            closing_turn_deg: None,
+            drift_deg: None,
+        }),
+    );
+    let placed = place_rows(pyramids, grid, &mut params, &|f| {
+        progress(StitchProgress::new(Stage::Overlaps, 0.05 + 0.45 * f));
+    });
+    for p in &placed {
+        tracing::debug!(
+            row = p.row,
+            pitch = p.pitch_offset_deg,
+            heading = p.heading_offset_deg,
+            ncc = p.ncc,
+            "Row placed"
+        );
+    }
+    let cam = Cam::new(params.f_px, pyramids.width, pyramids.height);
+    let snapshot = measure(pyramids, grid, dropped, &params.poses(), &cam);
+    progress(StitchProgress::new(Stage::Overlaps, 0.5).with_measured(snapshot.into()));
+    params
 }
 
 /// The Align stage proper: matching rounds with a free small rotation per

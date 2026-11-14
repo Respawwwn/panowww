@@ -267,7 +267,8 @@ export const strings = {
       stitching: "Stitching… {pct} %",
       previewPanorama: "Preview Panorama",
       stitchAgain: "Stitch again",
-      panorama: "Panorama stitched {when} · panorama.jpg · {width} × {height} · {size}",
+      /** `{file}` is drawn as code. */
+      panorama: "Panorama stitched {when} · {file} · {width} × {height} · {size}",
       openIn: "Open in {stitcher}",
       zip: "Zip Session",
       backToGame: "Back to Game",
@@ -526,7 +527,8 @@ export const strings = {
         "Red: Shots without any control points. They look alike: sky, fog, a dark scene, or a camera that did not move.",
     },
     done: {
-      file: "panorama.jpg {w} × {h} · {size} · in the Session folder",
+      /** `{file}` is drawn as code. */
+      file: "{file} {w} × {h} · {size} · in the Session folder",
     },
     unaligned: {
       chip: "{n} Shots placed from the grid",
@@ -553,7 +555,8 @@ export const strings = {
     actions: {
       cancel: "Cancel",
       tryAgain: "Try again",
-      replace: "Replace panorama.jpg?",
+      /** `{file}` is drawn as code where the layout allows. */
+      replace: "Replace {file}?",
       backToSession: "Back to Session",
       done: "Done",
       fill: "Fill the window",

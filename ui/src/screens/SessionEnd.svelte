@@ -25,7 +25,7 @@ import type { SessionView } from "../lib/sessionView";
 import { settings } from "../lib/settings.svelte";
 import { detectPlatform } from "../lib/shortcut";
 import { percent, stitch } from "../lib/stitch.svelte";
-import { interpolate, splitPlaceholders, strings } from "../lib/strings";
+import { type InterpolationValues, interpolate, splitPlaceholders, strings } from "../lib/strings";
 
 type Props = { view: SessionView };
 
@@ -200,15 +200,17 @@ const nextSegments = $derived(
   ]),
 );
 
-const panoramaText = $derived(
-  panorama
-    ? interpolate(strings.session.end.panorama, {
-        when: formatWhen(panorama.stitchedAt, strings.sessions),
-        width: panorama.width,
-        height: panorama.height,
-        size: formatBytes(panorama.bytes),
-      })
-    : "",
+const panoramaSegments = $derived(splitPlaceholders(strings.session.end.panorama, ["file"]));
+const panoramaValues = $derived.by(
+  (): InterpolationValues =>
+    panorama
+      ? {
+          when: formatWhen(panorama.stitchedAt, strings.sessions),
+          width: panorama.width,
+          height: panorama.height,
+          size: formatBytes(panorama.bytes),
+        }
+      : {},
 );
 
 /** Opens the Stitch panel; when `start`, asks for the Stitch first. */
@@ -340,7 +342,14 @@ async function back() {
         <p class="sub bad">{failedText}</p>
       {/if}
       {#if view.status === "completed" && panorama && stitchOn}
-        <div class="tipbox done"><span class="dot"></span>{panoramaText}</div>
+        <div class="tipbox done">
+          <span class="dot"></span>
+          <span>
+            {#each panoramaSegments as segment, i (i)}
+              {#if segment.kind === "slot"}<code class="file">{panorama.file}</code>{:else}{interpolate(segment.text, panoramaValues)}{/if}
+            {/each}
+          </span>
+        </div>
       {:else if view.status === "completed"}
         <p class="tipbox next">
           {#each nextSegments as segment, i (i)}
@@ -538,6 +547,18 @@ async function back() {
     border-radius: 50%;
     flex: none;
     background: var(--ok);
+  }
+
+  code.file {
+    font-size: 11px;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: rgb(0 0 0 / 8%);
+    color: inherit;
+  }
+
+  :global([data-theme="dark"]) code.file {
+    background: rgb(255 255 255 / 10%);
   }
 
   .lnk {

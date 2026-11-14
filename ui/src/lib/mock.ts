@@ -295,12 +295,35 @@ function simulateStitch(folder: string): void {
       overall: 0.07 * (i / 3),
     });
   }
+  const measured = {
+    fieldOfViewDeg: 92.4,
+    turnStepDeg: 25.6,
+    pitchStepDeg: 29.4,
+    startPoleOffsetDeg: 1.8,
+    closingTurnDeg: 0.4,
+    driftDeg: 0.26,
+  };
   for (let i = 0; i <= 6; i += 1) {
     stage({
       event: "progress",
       stage: { stage: "overlaps" },
       stageFraction: i / 6,
       overall: 0.07 + 0.2 * (i / 6),
+      // The field of view comes first, the Steps once the Rows are placed.
+      ...(i === 0
+        ? {
+            measured: {
+              ...measured,
+              turnStepDeg: null,
+              pitchStepDeg: null,
+              startPoleOffsetDeg: null,
+              closingTurnDeg: null,
+              driftDeg: null,
+            },
+          }
+        : i === 3
+          ? { measured }
+          : {}),
     });
   }
   for (let row = 1; row <= rows; row += 1) {

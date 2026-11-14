@@ -47,7 +47,8 @@ impl Stage {
     }
 }
 
-/// One progress report: the stage, how far into it, how far overall.
+/// One progress report: the stage, how far into it, how far overall, and
+/// what has been measured so far when something new has.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
@@ -57,6 +58,12 @@ pub struct StitchProgress {
     pub stage_fraction: f32,
     /// 0–1 of the whole Stitch.
     pub overall: f32,
+    /// The measurements as they stand: the field of view once found, the
+    /// Steps and poles once the Rows are placed, refined after each
+    /// adjustment. Absent on the reports between.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub measured: Option<StitchMeasured>,
 }
 
 impl StitchProgress {
@@ -66,8 +73,33 @@ impl StitchProgress {
             stage,
             stage_fraction: f,
             overall: (stage.before() + stage.share() * f).clamp(0.0, 1.0),
+            measured: None,
         }
     }
+
+    /// The same report carrying `measured`.
+    #[must_use]
+    pub fn with_measured(self, measured: StitchMeasured) -> Self {
+        Self {
+            measured: Some(measured),
+            ..self
+        }
+    }
+}
+
+/// What the Shots have told so far (spec §16.3, the card *Measured from
+/// the Shots*): degrees; the Steps and poles are `None` until the Rows
+/// are placed.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct StitchMeasured {
+    pub field_of_view_deg: f64,
+    pub turn_step_deg: Option<f64>,
+    pub pitch_step_deg: Option<f64>,
+    pub start_pole_offset_deg: Option<f64>,
+    pub closing_turn_deg: Option<f64>,
+    pub drift_deg: Option<f64>,
 }
 
 /// A Shot named by its place in the grid.
