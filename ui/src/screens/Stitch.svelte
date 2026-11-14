@@ -17,7 +17,7 @@ import ProgressBar from "../components/ProgressBar.svelte";
 import Thumbnail from "../components/Thumbnail.svelte";
 import Tip from "../components/Tip.svelte";
 import { api, isAppError, type Stitcher } from "../lib/api";
-import { formatBytes, formatDate, formatSeconds, shotLabel } from "../lib/format";
+import { formatBytes, formatSeconds, formatWhen, shotLabel } from "../lib/format";
 import { nav } from "../lib/nav.svelte";
 import { run } from "../lib/run.svelte";
 import { stateTone } from "../lib/sessionText";
@@ -164,7 +164,7 @@ const subtitle = $derived.by(() => {
   if (!view || !game) {
     return "";
   }
-  const date = view.startedAt ? formatDate(view.startedAt) : "";
+  const date = view.startedAt ? formatWhen(view.startedAt, strings.sessions) : "";
   // Once a Panorama exists the line names its size, not the Shots'.
   const parts = [
     mode === "finished" && entry
@@ -434,7 +434,7 @@ async function openIn(stitcher: Stitcher) {
             <Chip tone="bad">{s.title.failedChip}</Chip>
           {/if}
         </div>
-        <p class="tipbox badge">{subtitle}</p>
+        <p class="sub">{subtitle}</p>
         {#if mode === "idle" && cancelledBy}
           <p class="sub">{cancelledBy === "sessionStarted" ? s.cancelled.session : s.cancelled.byYou}</p>
         {/if}
@@ -492,7 +492,7 @@ async function openIn(stitcher: Stitcher) {
           <div class="okbox">
             <span class="grow">
               {#each doneSegments as segment, i (i)}
-                {#if segment.kind === "slot"}<code>{entry.file}</code>{:else}{segment.text}{/if}
+                {#if segment.kind === "slot"}<code>{entry.file}</code>{:else}{interpolate(segment.text, { duration: formatSeconds(entry.durationMs) })}{/if}
               {/each}
             </span>
             <Button size="sm" onclick={revealPanorama}>
@@ -654,15 +654,6 @@ async function openIn(stitcher: Stitcher) {
     display: flex;
     flex-direction: column;
     gap: 3px;
-  }
-
-  .titles .badge {
-    align-self: flex-start;
-    margin-top: 4px;
-    padding: 6px 10px;
-    font-size: 12px;
-    color: var(--lav-fg);
-    background: var(--lav);
   }
 
   .facts {

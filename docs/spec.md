@@ -906,7 +906,7 @@ The known grid is the prior that says where to look; every value below is measur
 | `stitch.shots.legend` | under the grid, running | tip | Row 1 is the start pole of this Game, the {pole}. The framed Row is being aligned; dimmed Shots are waiting. |
 | `stitch.shots.legendUnaligned` | under the grid, finished | tip | Amber: Shots placed from the grid, not aligned. |
 | `stitch.shots.legendFailed` | under the grid, failed | tip | Red: Shots without any control points. They look alike: sky, fog, a dark scene, or a camera that did not move. |
-| `stitch.done.file` | green box | box green | {file} created (the file name as code; its size is in the card above) |
+| `stitch.done.file` | green box | box green | {file} created in {duration} (the file name as code; its size is in the card above) |
 | `stitch.unaligned.chip` | top card | chip amber | {n} Shots placed from the grid |
 | `stitch.unaligned.box` | under the grid | box amber | Panowww was unable to detect control points for some of the Shots. {list} do not have any control points linking them to the other Shots, so they were placed from the grid, not aligned. |
 | `stitch.dropped.chip` | top card | chip amber | {n} Steps did not move |
