@@ -46,7 +46,7 @@ New to game panoramas? Watch [How to Create a 360° Panorama in a Video Game](ht
 2. **Draw the Capture zone** over the game, in borderless windowed mode.
 3. **Calibrate** with a Turn test and a Pitch test, then Check overlap.
 4. **Start a Session** with the shortcut (`Ctrl+Shift+8`) while the game has the focus.
-5. **Zip the Session** and stitch it in PTGui or Autopano Giga.
+5. **Zip the Session** and stitch it in PTGui or Autopano Giga. *Experimental*: turn on **Stitch in Panowww** in Settings and a completed Session gets a **Stitch** button that assembles the Panorama itself, in a few seconds.
 
 ## Requirements
 
