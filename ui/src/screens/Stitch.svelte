@@ -358,11 +358,7 @@ async function openIn(stitcher: Stitcher) {
         </Button>
       </div>
     {:else if mode === "running"}
-      <div class="progress">
-        <div class="bar"><ProgressBar value={progress?.overall ?? 0} /></div>
-        <span class="pct">{pct} %</span>
-        <Button onclick={cancel}>{s.actions.cancel}</Button>
-      </div>
+      <!-- The progress stays in the card; the row is for the buttons. -->
     {:else if mode === "finished"}
       <InlineConfirm
         confirming={replacing}
@@ -429,6 +425,13 @@ async function openIn(stitcher: Stitcher) {
           <p class="sub" class:bad={Boolean(actionError)}>{actionError ?? zipped}</p>
         {/if}
       </div>
+      {#if mode === "running"}
+        <div class="progress">
+          <div class="bar"><ProgressBar value={progress?.overall ?? 0} /></div>
+          <span class="pct">{pct} %</span>
+          <Button onclick={cancel}>{s.actions.cancel}</Button>
+        </div>
+      {/if}
     </section>
 
     <div class="columns">
@@ -604,6 +607,10 @@ async function openIn(stitcher: Stitcher) {
     justify-content: flex-end;
     align-items: center;
     gap: 8px;
+  }
+
+  .actions:empty {
+    display: none;
   }
 
   .top {
