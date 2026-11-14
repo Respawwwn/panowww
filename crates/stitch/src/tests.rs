@@ -6,7 +6,8 @@ use panowww_core::ports::{CancelFlag, Frame, StoreError};
 use crate::geom::Cam;
 use crate::synthetic::{MemorySource, Perturbation, session};
 use crate::{
-    Grid, Limits, ShotSource, StitchError, StitchProgress, dropped, focal, grid, levels, stitch,
+    Grid, Limits, ShotSource, StitchError, StitchProgress, align, dropped, focal, grid, levels,
+    stitch,
 };
 
 fn small_grid() -> Grid {
@@ -202,9 +203,9 @@ fn a_budget_too_small_is_refused_before_reading() {
 }
 
 #[test]
-fn the_stages_after_the_field_of_view_are_not_there_yet() {
+fn the_render_is_not_there_yet() {
     let grid = small_grid();
-    let (source, _) = session(160, 80, 90.0, &grid, &Perturbation::none(&grid));
+    let (source, _) = session(320, 160, 90.0, &grid, &Perturbation::none(&grid));
     let err = stitch(
         &source,
         &grid,
@@ -213,7 +214,224 @@ fn the_stages_after_the_field_of_view_are_not_there_yet() {
         &CancelFlag::new(),
     )
     .unwrap_err();
-    assert!(matches!(err, StitchError::Internal(_)));
+    assert!(matches!(err, StitchError::Internal(_)), "{err:?}");
+}
+
+fn aligned(
+    width: u32,
+    height: u32,
+    perturbation: &Perturbation,
+) -> (align::Alignment, crate::synthetic::Truth, levels::Pyramids) {
+    let grid = small_grid();
+    let (source, truth) = session(width, height, 90.0, &grid, perturbation);
+    let pyramids = levels::Pyramids::build(
+        &source,
+        &grid,
+        Limits::default(),
+        &no_progress,
+        &CancelFlag::new(),
+    )
+    .unwrap();
+    let drops = dropped::detect(&pyramids);
+    let a = align::align(&pyramids, &grid, &drops, &no_progress, &CancelFlag::new()).unwrap();
+    (a, truth, pyramids)
+}
+
+/// The rotation that best maps our optical axes onto the truth's (Kabsch),
+/// over the Shots `keep` marks: the heading the anchor fixes is arbitrary.
+fn best_fix(
+    ours: &[crate::geom::Rot],
+    truth: &[crate::geom::Rot],
+    keep: &[bool],
+) -> crate::geom::Rot {
+    let mut h = nalgebra::Matrix3::<f64>::zeros();
+    for (i, (o, t)) in ours.iter().zip(truth).enumerate() {
+        if keep[i] {
+            h += crate::geom::axis(t) * crate::geom::axis(o).transpose();
+        }
+    }
+    let svd = h.svd(true, true);
+    let (u, v_t) = (svd.u.unwrap(), svd.v_t.unwrap());
+    let mut d = nalgebra::Matrix3::<f64>::identity();
+    if (u * v_t).determinant() < 0.0 {
+        d[(2, 2)] = -1.0;
+    }
+    crate::geom::Rot::from_matrix_unchecked(u * d * v_t)
+}
+
+/// Angle between two poses' optical axes, degrees. A pole Shot's roll is
+/// not in it: flat sky cannot pin a roll, and the pole hides it.
+fn apart(a: &crate::geom::Rot, b: &crate::geom::Rot) -> f64 {
+    let (za, zb) = (crate::geom::axis(a), crate::geom::axis(b));
+    za.dot(&zb).clamp(-1.0, 1.0).acos().to_degrees()
+}
+
+/// Full rotation between two poses, degrees: roll included.
+fn apart_with_roll(a: &crate::geom::Rot, b: &crate::geom::Rot) -> f64 {
+    (a * b.inverse()).angle().to_degrees()
+}
+
+#[test]
+fn a_capture_on_its_grid_aligns_to_the_truth() {
+    let started = std::time::Instant::now();
+    let (a, truth, _) = aligned(640, 320, &Perturbation::none(&small_grid()));
+    eprintln!(
+        "aligned 98 Shots of 640 × 320 in {:.2} s",
+        started.elapsed().as_secs_f64()
+    );
+    assert!(a.unaligned.is_empty(), "{:?}", a.unaligned);
+    // The synthetic world is point-sampled, so its edges alias: three
+    // pixels is the noise floor of the patch correlation on it.
+    assert!(a.residual_px < 3.0, "residual {}", a.residual_px);
+    assert!(
+        (a.measured.field_of_view - 90.0).abs() < 1.0,
+        "{:?}",
+        a.measured
+    );
+    assert!(
+        (a.measured.turn_step - 360.0 / 14.0).abs() < 0.3,
+        "{:?}",
+        a.measured
+    );
+    assert!(
+        (a.measured.pitch_step - 30.0).abs() < 0.3,
+        "{:?}",
+        a.measured
+    );
+    assert!(a.measured.start_pole_offset.abs() < 0.5, "{:?}", a.measured);
+    // Every pose within half a degree of the truth, up to the global heading
+    // the anchor fixes.
+    let fix = best_fix(&a.poses, &truth.poses, &vec![true; a.poses.len()]);
+    let worst = a
+        .poses
+        .iter()
+        .zip(&truth.poses)
+        .map(|(p, t)| apart(&(fix * p), t))
+        .fold(0.0, f64::max);
+    assert!(worst < 0.5, "worst axis error {worst:.2}°");
+    // Away from the poles the roll is pinned too.
+    let worst_roll = a
+        .poses
+        .iter()
+        .zip(&truth.poses)
+        .filter(|(_, t)| crate::geom::yaw_pitch(t).1.to_degrees().abs() < 75.0)
+        .map(|(p, t)| apart_with_roll(&(fix * p), t))
+        .fold(0.0, f64::max);
+    assert!(
+        worst_roll < 0.7,
+        "worst pose error with roll {worst_roll:.2}°"
+    );
+}
+
+#[test]
+fn the_hard_capture_is_measured_not_trusted() {
+    let grid = small_grid();
+    let (a, truth, pyramids) = aligned(640, 320, &Perturbation::hard(&grid));
+    // The two flat sky Shots have no control points; everything else links.
+    let mut unaligned = align::shot_refs(&pyramids, &a.unaligned);
+    unaligned.sort_by_key(|s| (s.row, s.col));
+    assert_eq!(
+        unaligned.iter().map(|s| (s.row, s.col)).collect::<Vec<_>>(),
+        vec![(7, 2), (7, 5)]
+    );
+    assert!(a.residual_px < 3.0, "residual {}", a.residual_px);
+    assert!(
+        (a.measured.turn_step - 26.7).abs() < 0.3,
+        "{:?}",
+        a.measured
+    );
+    assert!(
+        (a.measured.pitch_step - 29.0).abs() < 0.3,
+        "{:?}",
+        a.measured
+    );
+    assert!(
+        (a.measured.start_pole_offset - 4.0).abs() < 0.5,
+        "{:?}",
+        a.measured
+    );
+    // Row 5 starts 40° further round than the grid says: recovered.
+    let keep: Vec<bool> = (0..a.poses.len())
+        .map(|i| !a.unaligned.contains(&i))
+        .collect();
+    let fix = best_fix(&a.poses, &truth.poses, &keep);
+    let worst_linked = a
+        .poses
+        .iter()
+        .zip(&truth.poses)
+        .enumerate()
+        .filter(|(i, _)| !a.unaligned.contains(i))
+        .map(|(_, (p, t))| apart(&(fix * p), t))
+        .fold(0.0, f64::max);
+    for (i, (p, t)) in a.poses.iter().zip(&truth.poses).enumerate() {
+        let e = apart(&(fix * p), t);
+        let (row, col) = pyramids.position(i);
+        if e > 2.0 {
+            let (y, pt) = crate::geom::yaw_pitch(&(fix * p));
+            let (ty, tp) = crate::geom::yaw_pitch(t);
+            eprintln!(
+                "r{row:02}_c{col:02}: axis off by {e:.1}° (yaw {:.1} vs {:.1}, pitch {:.1} vs {:.1}){}",
+                y.to_degrees(),
+                ty.to_degrees(),
+                pt.to_degrees(),
+                tp.to_degrees(),
+                if a.unaligned.contains(&i) {
+                    " unaligned"
+                } else {
+                    ""
+                }
+            );
+        }
+    }
+    // The zenith Shots look at flat sky and are pinned by their bottom edge
+    // alone: one degree there is the pole's noise floor.
+    assert!(
+        worst_linked < 1.0,
+        "worst linked axis error {worst_linked:.2}°"
+    );
+    let worst_roll = a
+        .poses
+        .iter()
+        .zip(&truth.poses)
+        .filter(|(_, t)| crate::geom::yaw_pitch(t).1.to_degrees().abs() < 75.0)
+        .map(|(p, t)| apart_with_roll(&(fix * p), t))
+        .fold(0.0, f64::max);
+    assert!(
+        worst_roll < 1.0,
+        "worst pose error with roll {worst_roll:.2}°"
+    );
+    insta::assert_debug_snapshot!(
+        "hard_capture_measured",
+        (
+            (a.measured.field_of_view * 10.0).round() / 10.0,
+            (a.measured.turn_step * 10.0).round() / 10.0,
+            (a.measured.pitch_step * 10.0).round() / 10.0,
+            (a.measured.start_pole_offset * 10.0).round() / 10.0,
+            unaligned.len(),
+        )
+    );
+}
+
+#[test]
+fn an_all_flat_capture_has_too_few_links() {
+    let grid = small_grid();
+    let mut p = Perturbation::none(&grid);
+    p.flat_shots = (1..=grid.rows)
+        .flat_map(|r| (1..=grid.shots_per_row).map(move |c| (r, c)))
+        .collect();
+    let (source, _) = session(160, 80, 90.0, &grid, &p);
+    let err = stitch(
+        &source,
+        &grid,
+        &Limits::default(),
+        &no_progress,
+        &CancelFlag::new(),
+    )
+    .unwrap_err();
+    assert!(
+        matches!(err, StitchError::TooFewLinked { total: 98, .. }),
+        "{err:?}"
+    );
 }
 
 #[test]

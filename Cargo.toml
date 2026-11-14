@@ -10,6 +10,13 @@ rust-version = "1.99"
 license = "MIT"
 publish = false
 
+# The Stitch's tests align a synthetic Session; unoptimised they take minutes.
+[profile.dev.package.panowww-stitch]
+opt-level = 2
+
+[profile.test.package.panowww-stitch]
+opt-level = 2
+
 [workspace.lints.rust]
 unsafe_op_in_unsafe_fn = "deny"
 

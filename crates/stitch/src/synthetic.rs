@@ -98,20 +98,46 @@ impl ShotSource for MemorySource {
     }
 }
 
-/// The colour of the procedural world in a direction: 10° checkerboard
-/// cells with hashed colours and a gradient, discs, and a flat sky above
-/// 70° so the zenith Row has nothing to match.
+/// A hashed value in 0..1 for an integer cell.
+fn hash01(cell_x: i64, cell_y: i64, seed: i64) -> f64 {
+    let mut h = (cell_x as u64).wrapping_mul(0x9E37_79B9_7F4A_7C15)
+        ^ (cell_y as u64).wrapping_mul(0xC2B2_AE3D_27D4_EB4F)
+        ^ (seed as u64).wrapping_mul(0x1656_67B1_9E37_79F9);
+    h ^= h >> 29;
+    h = h.wrapping_mul(0xBF58_476D_1CE4_E5B9);
+    h ^= h >> 32;
+    (h & 0xff_ffff) as f64 / f64::from(0xff_ffffu32)
+}
+
+/// Smooth value noise at one scale, degrees per cell.
+fn noise(lon_deg: f64, lat_deg: f64, cell_deg: f64, seed: i64) -> f64 {
+    let (x, y) = ((lon_deg + 180.0) / cell_deg, (lat_deg + 90.0) / cell_deg);
+    let (cell_x, cell_y) = (x.floor(), y.floor());
+    let (fx, fy) = (x - cell_x, y - cell_y);
+    let (sx, sy) = (fx * fx * (3.0 - 2.0 * fx), fy * fy * (3.0 - 2.0 * fy));
+    let (cell_x, cell_y) = (cell_x as i64, cell_y as i64);
+    let top = hash01(cell_x, cell_y, seed) * (1.0 - sx) + hash01(cell_x + 1, cell_y, seed) * sx;
+    let bot =
+        hash01(cell_x, cell_y + 1, seed) * (1.0 - sx) + hash01(cell_x + 1, cell_y + 1, seed) * sx;
+    top * (1.0 - sy) + bot * sy
+}
+
+/// The colour of the procedural world in a direction: value noise at four
+/// scales that share no period, so nothing repeats; a few discs; a flat
+/// sky above 70° so the zenith Row has nothing to match.
 pub fn world(lon_deg: f64, lat_deg: f64) -> [u8; 3] {
     if lat_deg > 70.0 {
         return [150, 180, 230];
     }
-    let cell = ((lon_deg + 180.0) / 10.0).floor() as i64 * 73
-        + ((lat_deg + 90.0) / 10.0).floor() as i64 * 151;
-    let h = (cell.wrapping_mul(2_654_435_761) & 0xffff) as f64 / 65535.0;
-    let base = 40.0 + 150.0 * h;
-    let mut r = base;
-    let mut g = 255.0 - base;
-    let mut b = 90.0 + 100.0 * ((lon_deg * 3.0).to_radians().sin() * 0.5 + 0.5);
+    let n = |seed: i64| {
+        0.45 * noise(lon_deg, lat_deg, 29.0, seed)
+            + 0.30 * noise(lon_deg, lat_deg, 11.0, seed + 7)
+            + 0.17 * noise(lon_deg, lat_deg, 3.7, seed + 13)
+            + 0.08 * noise(lon_deg, lat_deg, 1.3, seed + 31)
+    };
+    let mut r = 30.0 + 200.0 * n(1);
+    let mut g = 30.0 + 200.0 * n(2);
+    let mut b = 30.0 + 200.0 * n(3);
     for (dlon, dlat, radius) in [
         (30.0, 10.0, 6.0),
         (-100.0, -20.0, 9.0),

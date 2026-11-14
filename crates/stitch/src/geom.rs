@@ -50,6 +50,14 @@ impl Cam {
         Some((self.cx + self.f * l.x / l.z, self.cy - self.f * l.y / l.z))
     }
 
+    /// Whether a pixel lies at least `margin` inside the image.
+    pub fn inside(&self, uv: (f64, f64), margin: f64) -> bool {
+        uv.0 >= margin
+            && uv.1 >= margin
+            && uv.0 <= self.w - 1.0 - margin
+            && uv.1 <= self.h - 1.0 - margin
+    }
+
     pub fn hfov_deg(&self) -> f64 {
         2.0 * (self.w / (2.0 * self.f)).atan().to_degrees()
     }
@@ -63,6 +71,24 @@ impl Cam {
 /// The optical axis of a pose.
 pub fn axis(r: &Rot) -> V3 {
     r * V3::z()
+}
+
+/// Yaw and pitch of a pose, in radians.
+pub fn yaw_pitch(r: &Rot) -> (f64, f64) {
+    let z = axis(r);
+    (z.x.atan2(z.z), z.y.clamp(-1.0, 1.0).asin())
+}
+
+/// Wraps an angle in degrees to (−180, 180].
+pub fn wrap_deg(x: f64) -> f64 {
+    let mut x = x % 360.0;
+    if x > 180.0 {
+        x -= 360.0;
+    }
+    if x <= -180.0 {
+        x += 360.0;
+    }
+    x
 }
 
 #[cfg(test)]
@@ -83,6 +109,13 @@ mod tests {
         let d = cam.ray(&r, 123.0, 456.0);
         let (u, v) = cam.project(&r, &d).unwrap();
         assert!((u - 123.0).abs() < 1e-6 && (v - 456.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn wrap_keeps_angles_in_a_turn() {
+        assert!((wrap_deg(370.0) - 10.0).abs() < 1e-9);
+        assert!((wrap_deg(-190.0) - 170.0).abs() < 1e-9);
+        assert!((wrap_deg(180.0) - 180.0).abs() < 1e-9);
     }
 
     #[test]

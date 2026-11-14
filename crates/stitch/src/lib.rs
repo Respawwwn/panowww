@@ -11,6 +11,8 @@
 //! Session of the `synthetic` module lives behind the `test-support` feature.
 #![forbid(unsafe_code)]
 
+mod adjust;
+mod align;
 mod correlate;
 mod dropped;
 mod error;
@@ -18,6 +20,8 @@ mod focal;
 mod geom;
 mod grid;
 mod levels;
+mod matching;
+mod place_rows;
 mod report;
 #[cfg(any(test, feature = "test-support"))]
 pub mod synthetic;
@@ -73,8 +77,8 @@ pub struct Stitched {
 /// Stages: Read (grey pyramids, dropped Steps), field of view, Row
 /// placement, Overlaps, Align, Render, Blend. `progress` is called from the
 /// stitching threads, hence `Sync`; `cancel` is checked between stages and inside the long
-/// ones. This issue delivers Read, the dropped-Step detection and the field
-/// of view; the stages after them arrive with the next issues and end in
+/// ones. Read, the dropped-Step detection and the whole alignment are in;
+/// the render arrives with the next issue and ends in
 /// [`StitchError::Internal`] until then.
 ///
 /// # Errors
@@ -104,19 +108,22 @@ pub fn stitch(
     if cancel.is_raised() {
         return Err(StitchError::Cancelled);
     }
-    let params = grid::GridParams::nominal(&pyramids, grid, &dropped.drops, 1.0);
-    let focal = focal::estimate(&pyramids, grid, &params.poses());
+    let read_ms = started.elapsed().as_millis();
+    let aligned = align::align(&pyramids, grid, &dropped, progress, cancel)?;
     tracing::info!(
-        f_px = focal.f_px,
-        hfov_deg = geom::Cam::new(focal.f_px, pyramids.width, pyramids.height).hfov_deg(),
-        ncc = focal.ncc,
-        read_ms = started.elapsed().as_millis(),
-        "field of view found"
+        hfov_deg = aligned.measured.field_of_view,
+        turn_step_deg = aligned.measured.turn_step,
+        pitch_step_deg = aligned.measured.pitch_step,
+        residual_px = aligned.residual_px,
+        f_px = aligned.f_px,
+        matches = aligned.corrs.len(),
+        unaligned = ?align::shot_refs(&pyramids, &aligned.unaligned),
+        read_ms,
+        overlaps_ms = aligned.overlaps_ms,
+        align_ms = aligned.align_ms,
+        "aligned"
     );
-    if cancel.is_raised() {
-        return Err(StitchError::Cancelled);
-    }
     Err(StitchError::Internal(
-        "the alignment and the render arrive with the next issues",
+        "the render arrives with the next issue",
     ))
 }
