@@ -3138,6 +3138,7 @@ dependencies = [
  "panowww-capture",
  "panowww-core",
  "panowww-input",
+ "panowww-stitch",
  "panowww-store",
  "semver",
  "serde",

@@ -216,6 +216,14 @@ export function installMock(): void {
         return null;
       case "runner_phase":
         return "idle";
+      case "stitch_session":
+        return true;
+      case "stitch_cancel":
+        return null;
+      case "stitch_phase":
+        return "idle";
+      case "panorama_preview":
+        return sample(42);
       case "check_for_updates":
         return { version: "0.2.0", url: "https://github.com/Respawwwn/panowww/releases" };
       case "session_size":

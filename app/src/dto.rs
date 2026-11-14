@@ -4,6 +4,8 @@
 use panowww_core::plan::{Axis, RunKind};
 use panowww_core::ports::{DisplayInfo, Rect, Zone};
 use panowww_core::runner::RunOutcome;
+use panowww_stitch::StitchProgress;
+use panowww_store::panorama::PanoramaEntry;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
@@ -282,4 +284,58 @@ pub enum RunnerPhase {
     Countdown,
     Running,
     Stopping,
+}
+
+/// What a Stitch streams to the UI as the `stitch` event (spec §16.5):
+/// progress, then exactly one closing event.
+#[derive(Debug, Clone, PartialEq, Serialize, TS)]
+#[serde(tag = "event", rename_all = "camelCase")]
+#[ts(export)]
+pub enum StitchEvent {
+    /// The stage, how far into it, how far overall.
+    Progress(StitchProgress),
+    /// The Panorama is in the Session folder; `entry` is its `session.json`
+    /// block.
+    Finished { entry: PanoramaEntry },
+    /// Nothing was saved.
+    Failed { error: StitchFailure },
+    /// Nothing was saved.
+    Cancelled { reason: StitchCancelReason },
+}
+
+/// Why a Stitch failed, in the UI's terms (spec §16.7 `stitch.failed.*`).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(tag = "kind", rename_all = "camelCase")]
+#[ts(export)]
+pub enum StitchFailure {
+    /// `stitch.failed.tooFew`: `linked` of `total` Shots found control points.
+    TooFewLinked { linked: u32, total: u32 },
+    /// The Session is not `completed`: the UI never offers it, a guard.
+    NotCompleted,
+    /// Every other cause, with its message: a Shot that could not be read,
+    /// a grid the Shots do not form, the memory budget, a file that could
+    /// not be written.
+    Other { message: String },
+}
+
+/// Who stopped a Stitch (spec §16.7 `stitch.cancelled.*`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub enum StitchCancelReason {
+    /// The Cancel button.
+    Button,
+    /// A Session started (spec §16.5): the Runner takes every core.
+    SessionStarted,
+    /// The app is quitting.
+    Quit,
+}
+
+/// The Stitch owner's phase, for the UI and the tests (spec §16.5).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub enum StitchPhase {
+    Idle,
+    Running,
 }

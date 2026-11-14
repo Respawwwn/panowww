@@ -21,8 +21,10 @@ import type { RunKindDto } from "./generated/RunKindDto";
 import type { RunnerPhase } from "./generated/RunnerPhase";
 import type { SessionSummary } from "./generated/SessionSummary";
 import type { Settings } from "./generated/Settings";
+import type { StitchEvent } from "./generated/StitchEvent";
 import type { Stitcher } from "./generated/Stitcher";
 import type { StitcherCheck } from "./generated/StitcherCheck";
+import type { StitchPhase } from "./generated/StitchPhase";
 import type { UpdateInfo } from "./generated/UpdateInfo";
 import type { Zone } from "./generated/Zone";
 import type { ZoneState } from "./generated/ZoneState";
@@ -36,14 +38,18 @@ export type {
   RunEvent,
   RunKindDto,
   RunnerPhase,
+  StitchEvent,
   Stitcher,
   StitcherCheck,
+  StitchPhase,
   UpdateInfo,
   ZoneState,
 };
 
 /** The window event every `RunEvent` arrives on. */
 export const RUN_EVENT = "run";
+/** The window event every `StitchEvent` arrives on. */
+export const STITCH_EVENT = "stitch";
 
 /** Whether a rejected command carried an `AppError`. */
 export function isAppError(error: unknown): error is AppError {
@@ -128,6 +134,24 @@ export const api = {
     /** data: URL of the history thumbnail, generated on demand. */
     thumbnail: (folder: string, file: string) =>
       invoke<string>("session_thumbnail", { folder, file }),
+  },
+
+  /** The Stitch (spec §16): a completed Session assembled into a Panorama. */
+  stitch: {
+    /**
+     * Starts the Stitch of the Session in `folder`. Resolves to false when a
+     * run is in progress or a Stitch already runs (the request is ignored).
+     * Everything after arrives on `onEvent`.
+     */
+    start: (folder: string) => invoke<boolean>("stitch_session", { folder }),
+    /** Stops the Stitch; nothing is written. A no-op while idle. */
+    cancel: () => invoke<void>("stitch_cancel"),
+    phase: () => invoke<StitchPhase>("stitch_phase"),
+    /** data: URL of `panorama-preview.jpg`, for the preview window. */
+    preview: (folder: string) => invoke<string>("panorama_preview", { folder }),
+    /** Every `StitchEvent`, progress and the closing one. */
+    onEvent: (handler: (event: StitchEvent) => void): Promise<UnlistenFn> =>
+      listen<StitchEvent>(STITCH_EVENT, (e) => handler(e.payload)),
   },
 
   settings: {
