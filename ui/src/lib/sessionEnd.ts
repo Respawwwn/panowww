@@ -20,7 +20,8 @@ export type SessionAction =
   | { id: "stitch"; primary: true }
   | { id: "stitching"; primary: true }
   | { id: "previewPanorama"; primary: true }
-  | { id: "stitchAgain"; primary: false }
+  /** Opens the Stitch panel in its finished state; Stitch again lives there. */
+  | { id: "stitchPanel"; primary: false }
   | { id: "openIn"; stitcher: Stitcher; primary: boolean }
   | { id: "zip"; primary: boolean }
   | { id: "reveal"; primary: false };
@@ -41,7 +42,9 @@ export interface SessionEndState {
  * The actions row, left to right. The Stitch (or Preview Panorama) is
  * primary when the switch is on; otherwise the first Stitcher, or Zip
  * Session when none is set, as before the Stitch existed. Only a completed
- * Session gets the Stitch and the *Open in…* buttons.
+ * Session gets the Stitch and the *Open in…* buttons. Once a Panorama
+ * exists, the Stitch button opens the panel instead of stitching: the
+ * panel owns *Stitch again* and its question.
  */
 export function sessionActions(state: SessionEndState): SessionAction[] {
   const completed = state.status === "completed";
@@ -52,7 +55,7 @@ export function sessionActions(state: SessionEndState): SessionAction[] {
       actions.push({ id: "stitching", primary: true });
     } else if (state.hasPanorama) {
       actions.push({ id: "previewPanorama", primary: true });
-      actions.push({ id: "stitchAgain", primary: false });
+      actions.push({ id: "stitchPanel", primary: false });
     } else {
       actions.push({ id: "stitch", primary: true });
     }

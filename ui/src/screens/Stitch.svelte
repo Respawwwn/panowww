@@ -61,6 +61,8 @@ let loadError = $state<string | null>(null);
 let actionError = $state<string | null>(null);
 let zipped = $state<string | null>(null);
 let replacing = $state(false);
+/** Bytes of the Session folder, as the Session end shows them. */
+let size = $state<number | null>(null);
 /** History thumbnails, generated on demand by file name. */
 let thumbs = $state<Record<string, string>>({});
 /** The clock, ticking while the Stitch runs, for the elapsed times. */
@@ -81,6 +83,19 @@ $effect(() => {
     })
     .catch((e) => {
       loadError = isAppError(e) ? e.message : String(e);
+    });
+});
+
+$effect(() => {
+  const f = folder;
+  size = null;
+  api.sessions
+    .size(f)
+    .then((bytes) => {
+      size = bytes;
+    })
+    .catch(() => {
+      size = null;
     });
 });
 
@@ -417,7 +432,7 @@ async function openIn(stitcher: Stitcher) {
             <Chip tone="bad">{s.title.failedChip}</Chip>
           {/if}
         </div>
-        <p class="sub">{subtitle}</p>
+        <p class="tipbox badge">{subtitle}</p>
         {#if mode === "idle" && cancelledBy}
           <p class="sub">{cancelledBy === "sessionStarted" ? s.cancelled.session : s.cancelled.byYou}</p>
         {/if}
@@ -425,6 +440,14 @@ async function openIn(stitcher: Stitcher) {
           <p class="sub" class:bad={Boolean(actionError)}>{actionError ?? zipped}</p>
         {/if}
       </div>
+      {#if mode !== "running"}
+        <div class="facts">
+          <div class="fact">
+            <div class="big">{size === null ? "…" : formatBytes(size)}</div>
+            <div class="sub">{strings.session.end.onDisk}</div>
+          </div>
+        </div>
+      {/if}
       {#if mode === "running"}
         <div class="progress">
           <div class="bar"><ProgressBar value={progress?.overall ?? 0} /></div>
@@ -626,6 +649,30 @@ async function openIn(stitcher: Stitcher) {
     display: flex;
     flex-direction: column;
     gap: 3px;
+  }
+
+  .titles .badge {
+    align-self: flex-start;
+    margin-top: 4px;
+    padding: 6px 10px;
+    font-size: 12px;
+    color: var(--lav-fg);
+    background: var(--lav);
+  }
+
+  .facts {
+    display: flex;
+    gap: 16px;
+  }
+
+  .fact {
+    text-align: center;
+  }
+
+  .big {
+    font-size: 22px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
   }
 
   .titleRow {

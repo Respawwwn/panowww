@@ -1,8 +1,9 @@
 <script lang="ts">
 // Session end (spec §11.7, §16.2, boards B-SessionEnd and Main): the state
 // chip and the Game's name in the toolbar with *Back to Game*; the actions
-// row (`sessionActions`: *Stitch*, or *Preview Panorama* and *Stitch
-// again* once a Panorama exists, when the Experimental switch is on;
+// row (`sessionActions`: *Stitch*, or *Preview Panorama* and a *Stitch*
+// that opens the panel once a Panorama exists, when the Experimental
+// switch is on;
 // *Open in…* per Stitcher set in Settings, completed Sessions only; *Zip
 // Session*; *Reveal*), sized like the Game header's Duplicate and Share;
 // the summary card with the title, the date line, the *Next* line with
@@ -13,7 +14,6 @@
 import Button from "../components/Button.svelte";
 import Chip from "../components/Chip.svelte";
 import Icon from "../components/Icon.svelte";
-import InlineConfirm from "../components/InlineConfirm.svelte";
 import Thumbnail from "../components/Thumbnail.svelte";
 import { api, isAppError, type Stitcher } from "../lib/api";
 import { formatBytes, formatDuration, formatWhen, shotLabel } from "../lib/format";
@@ -191,7 +191,6 @@ const actions = $derived(
 );
 /** *Stitch* waits for the Runner (spec §16.2) and for a Stitch elsewhere. */
 const stitchDisabled = $derived(!folder || run.busy || (stitch.running !== null && !stitching));
-let replacing = $state(false);
 
 const nextSegments = $derived(
   splitPlaceholders(strings.session.end.next[nextVariant(stitchOn, stitchers)], [
@@ -218,7 +217,6 @@ async function openStitch(start: boolean) {
   if (!folder) {
     return;
   }
-  replacing = false;
   actionError = null;
   if (start) {
     const started = await stitch.start(folder).catch((error: unknown) => {
@@ -281,14 +279,7 @@ async function back() {
 </div>
 
 <div class="end">
-  <InlineConfirm
-    confirming={replacing}
-    question={interpolate(strings.stitch.actions.replace, { file: panorama?.file ?? "panorama.jpg" })}
-    confirmLabel={strings.session.end.stitchAgain}
-    cancelLabel={strings.stitch.actions.cancel}
-    onconfirm={() => openStitch(true)}
-    oncancel={() => (replacing = false)}
-  >
+  <div class="actions">
     {#each actions as action (action.id === "openIn" ? `openIn-${action.stitcher}` : action.id)}
       {#if action.id === "stitch"}
         <Button variant="primary" disabled={stitchDisabled} onclick={() => openStitch(true)}>
@@ -305,10 +296,10 @@ async function back() {
           <Icon name="pano" size={14} />
           {strings.session.end.previewPanorama}
         </Button>
-      {:else if action.id === "stitchAgain"}
-        <Button disabled={stitchDisabled} onclick={() => (replacing = true)}>
+      {:else if action.id === "stitchPanel"}
+        <Button disabled={!folder} onclick={() => openStitch(false)}>
           <Icon name="stitch" size={14} />
-          {strings.session.end.stitchAgain}
+          {strings.session.end.stitch}
         </Button>
       {:else if action.id === "openIn"}
         <Button variant={action.primary ? "primary" : "secondary"} disabled={!folder} onclick={() => openIn(action.stitcher)}>
@@ -327,7 +318,7 @@ async function back() {
         </Button>
       {/if}
     {/each}
-  </InlineConfirm>
+  </div>
   {#if zipped || actionError}
     <p class="note" class:error={Boolean(actionError)}>{actionError ?? zipped}</p>
   {/if}
@@ -478,6 +469,12 @@ async function back() {
     font-size: 22px;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
+  }
+
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
   }
 
   .note {

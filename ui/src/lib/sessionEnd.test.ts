@@ -46,10 +46,10 @@ describe("the actions row", () => {
     ]);
   });
 
-  test("a Panorama turns the primary into Preview, with Stitch again beside it", () => {
+  test("a Panorama turns the primary into Preview, with the panel's Stitch beside it", () => {
     expect(ids({ stitchOn: true, hasPanorama: true, stitchers: ["ptgui"] })).toEqual([
       "previewPanorama*",
-      "stitchAgain",
+      "stitchPanel",
       "openIn:ptgui*".replace("*", ""),
       "zip",
       "reveal",
