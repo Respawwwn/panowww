@@ -18,6 +18,7 @@ import Thumbnail from "../components/Thumbnail.svelte";
 import { api, isAppError, type Stitcher } from "../lib/api";
 import { formatBytes, formatDuration, formatWhen, shotLabel } from "../lib/format";
 import { nav } from "../lib/nav.svelte";
+import { preview } from "../lib/preview.svelte";
 import { run } from "../lib/run.svelte";
 import { nextVariant, sessionActions } from "../lib/sessionEnd";
 import { reasonFragment, stateTone } from "../lib/sessionText";
@@ -26,6 +27,7 @@ import { settings } from "../lib/settings.svelte";
 import { detectPlatform } from "../lib/shortcut";
 import { percent, stitch } from "../lib/stitch.svelte";
 import { type InterpolationValues, interpolate, splitPlaceholders, strings } from "../lib/strings";
+import { windows } from "../lib/windows.svelte";
 
 type Props = { view: SessionView };
 
@@ -230,9 +232,18 @@ async function openStitch(start: boolean) {
   nav.showStitch(game.id, folder);
 }
 
-/** The preview window comes with the Stitch panel: the panel opens it. */
+/** The preview window over the app (spec §16.4). */
 function previewPanorama() {
-  openStitch(false);
+  if (folder && panorama) {
+    preview.show({
+      folder,
+      entry: panorama,
+      gameName: game.name,
+      startedAt: view.startedAt,
+      startPole: game.startPole,
+    });
+    windows.show("panorama");
+  }
 }
 
 const cells = $derived.by(() => {

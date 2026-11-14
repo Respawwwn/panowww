@@ -19,6 +19,7 @@ import Tip from "../components/Tip.svelte";
 import { api, isAppError, type Stitcher } from "../lib/api";
 import { formatBytes, formatSeconds, formatWhen, shotLabel } from "../lib/format";
 import { nav } from "../lib/nav.svelte";
+import { preview } from "../lib/preview.svelte";
 import { run } from "../lib/run.svelte";
 import { stateTone } from "../lib/sessionText";
 import { fetchSessionView, type SessionView } from "../lib/sessionView";
@@ -317,9 +318,18 @@ function revealPanorama() {
   void api.sessions.reveal(`${folder}${sep}${entry?.file ?? "panorama.jpg"}`).catch(() => {});
 }
 
-/** The preview window comes with the next issue; the file is a click away. */
+/** The preview window over the app (spec §16.4). */
 function previewPanorama() {
-  revealPanorama();
+  if (entry && view && game) {
+    preview.show({
+      folder,
+      entry,
+      gameName: game.name,
+      startedAt: view.startedAt,
+      startPole: game.startPole,
+    });
+    windows.show("panorama");
+  }
 }
 
 async function zip() {

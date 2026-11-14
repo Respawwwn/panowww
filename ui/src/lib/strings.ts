@@ -566,6 +566,8 @@ export const strings = {
     },
     preview: {
       title: "Panorama",
+      /** Chip in the title bar. */
+      chip: "Stitched in {duration}",
       hint: "Drag to look around · scroll to zoom",
       meta: "{w} × {h} · 360° × 180°",
       metaSize: "{w} × {h} · {size} · 360° × 180°",

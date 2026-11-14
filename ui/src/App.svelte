@@ -26,6 +26,7 @@ import EmptyDetail from "./screens/EmptyDetail.svelte";
 import Gallery from "./screens/Gallery.svelte";
 import GameDetail from "./screens/GameDetail.svelte";
 import Onboarding from "./screens/Onboarding.svelte";
+import PanoramaPreview from "./screens/PanoramaPreview.svelte";
 import SessionEnd from "./screens/SessionEnd.svelte";
 import SessionHistory from "./screens/SessionHistory.svelte";
 import SessionRunning from "./screens/SessionRunning.svelte";
@@ -167,6 +168,8 @@ function onKeyDown(event: KeyboardEvent) {
       <About />
     {:else if windows.open === "onboarding"}
       <Onboarding />
+    {:else if windows.open === "panorama"}
+      <PanoramaPreview />
     {/if}
   </div>
 {/if}

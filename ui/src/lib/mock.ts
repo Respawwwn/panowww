@@ -226,7 +226,7 @@ export function installMock(): void {
       case "stitch_phase":
         return { phase: "idle" };
       case "panorama_preview":
-        return sample(42);
+        return samplePanorama();
       case "check_for_updates":
         return { version: "0.2.0", url: "https://github.com/Respawwwn/panowww/releases" };
       case "session_size":
@@ -401,6 +401,51 @@ function simulateStitch(folder: string): void {
   for (const [i, step] of all.entries()) {
     setTimeout(() => stitch.apply(step), 250 * (i + 1));
   }
+}
+
+/**
+ * A 2:1 equirectangular JPEG drawn on a canvas: sky and ground, a
+ * meridian every 30° with its heading, so the viewer has something to
+ * turn around.
+ */
+function samplePanorama(): string {
+  const w = 2048;
+  const h = 1024;
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    return sample(42);
+  }
+  const sky = ctx.createLinearGradient(0, 0, 0, h / 2);
+  sky.addColorStop(0, "#2a2550");
+  sky.addColorStop(1, "#a596ea");
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, w, h / 2);
+  const ground = ctx.createLinearGradient(0, h / 2, 0, h);
+  ground.addColorStop(0, "#7a9a4a");
+  ground.addColorStop(1, "#2e3a1a");
+  ctx.fillStyle = ground;
+  ctx.fillRect(0, h / 2, w, h / 2);
+  ctx.strokeStyle = "rgba(255,255,255,0.35)";
+  ctx.lineWidth = 3;
+  ctx.font = "bold 48px Inter, sans-serif";
+  ctx.fillStyle = "#fff";
+  ctx.textAlign = "center";
+  for (let deg = -180; deg < 180; deg += 30) {
+    const x = ((deg + 180) / 360) * w;
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, h);
+    ctx.stroke();
+    ctx.fillText(`${deg}°`, x, h / 2 - 20);
+  }
+  ctx.beginPath();
+  ctx.moveTo(0, h / 2);
+  ctx.lineTo(w, h / 2);
+  ctx.stroke();
+  return canvas.toDataURL("image/jpeg", 0.8);
 }
 
 /** Plays the events of a run through the store, a few hundred ms apart. */

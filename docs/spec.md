@@ -921,6 +921,7 @@ The known grid is the prior that says where to look; every value below is measur
 | `stitch.cancelled.session` | under the Stitch button | line | Stopped: a Session started. Nothing was saved. |
 | `stitch.actions.cancel` / `.tryAgain` / `.replace` / `.backToSession` / `.done` / `.fill` / `.resetView` | buttons | button | Cancel / Try again / Replace panorama.jpg? / Back to Session / Done / Fill the window / Look at the start heading |
 | `stitch.preview.title` | preview window | window title | Panorama |
+| `stitch.preview.chip` | preview window, title bar | chip green | Stitched in {duration} |
 | `stitch.preview.hint` | over the viewer | pill | Drag to look around · scroll to zoom |
 | `stitch.preview.meta` | under the viewer | line | {w} × {h} · {size} · 360° × 180° |
 | `stitch.preview.fov` | under the viewer | line | field of view {deg}° |
