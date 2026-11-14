@@ -283,7 +283,7 @@ async function back() {
 <div class="end">
   <InlineConfirm
     confirming={replacing}
-    question={strings.stitch.actions.replace}
+    question={interpolate(strings.stitch.actions.replace, { file: panorama?.file ?? "panorama.jpg" })}
     confirmLabel={strings.session.end.stitchAgain}
     cancelLabel={strings.stitch.actions.cancel}
     onconfirm={() => openStitch(true)}
