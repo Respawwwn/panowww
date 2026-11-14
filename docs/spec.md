@@ -826,7 +826,7 @@ The panel's remaining time is estimated in the UI from the stage ratios measured
 
 ### 16.4 The preview window and the files
 
-**Preview**: a window over the dimmed app (1040 × 680 like Settings): Photo Sphere Viewer (MIT, the viewer Respawwwn's site uses, bundled by Vite, no CDN) filling it, fed by `panorama_preview` as a data URL; drag to look around, scroll to zoom, arrow keys, a button back to the start heading (`stitch.actions.resetView`), *Fill the window* (the app window, not the OS full screen), the path in code with `stitch.preview.meta` and `stitch.preview.fov`, *Reveal* and *Done*. Without WebGL (WebView2 on a machine with no GPU) the flat preview image and `stitch.preview.noWebgl`.
+**Preview**: a window over the dimmed app (1040 × 680 like Settings): Photo Sphere Viewer (MIT, the viewer Respawwwn's site uses, bundled by Vite, no CDN) filling it, fed by `panorama_preview` as a data URL; drag to look around, scroll to zoom, arrow keys, *Fill the window* (the app window, not the OS full screen), the path in code with `stitch.preview.fov`, *Reveal* and *Done*; the title bar names the Game, with a green chip `stitch.preview.chip` saying when the Panorama was stitched. Without WebGL (WebView2 on a machine with no GPU) the flat preview image and `stitch.preview.noWebgl`.
 
 **Files**, written by `store` atomically into the Session folder: `panorama.jpg`, JPEG quality 100, 2:1, width = 2π × measured focal length rounded down to a multiple of 64, height = half, no cap, centre = the Session's start heading, horizon straightened; a GPano XMP packet in the APP1 segment (`ProjectionType=equirectangular`, `UsePanoramaViewer`, the four `CroppedArea*` and two `FullPano*`, `InitialViewHeadingDegrees=0`, `InitialViewPitchDegrees=0`, `StitchingSoftware` "Panowww {version}", `SourcePhotosCount`, `FirstPhotoDate`, `LastPhotoDate`; no `PoseHeadingDegrees`) written with `img-parts`; `panorama-preview.jpg`, the same image at most 8192 px wide, quality 90, for the viewer. `session.json` gains:
 
@@ -919,12 +919,11 @@ The known grid is the prior that says where to look; every value below is measur
 | `stitch.failed.fixGame` | under the card | tip | To fix the Game itself, run Check overlap, then capture a new Session. |
 | `stitch.cancelled.byYou` | under the Stitch button | line | Stopped. Nothing was saved. |
 | `stitch.cancelled.session` | under the Stitch button | line | Stopped: a Session started. Nothing was saved. |
-| `stitch.actions.cancel` / `.tryAgain` / `.replace` / `.backToSession` / `.done` / `.fill` / `.resetView` | buttons | button | Cancel / Try again / Replace panorama.jpg? / Back to Session / Done / Fill the window / Look at the start heading |
+| `stitch.actions.cancel` / `.tryAgain` / `.replace` / `.backToSession` / `.done` / `.fill` | buttons | button | Cancel / Try again / Replace {file}? / Back to Session / Done / Fill the window |
 | `stitch.preview.title` | preview window | window title | Panorama |
-| `stitch.preview.chip` | preview window, title bar | chip green | Stitched in {duration} |
+| `stitch.preview.chip` | preview window, title bar | chip green | Stitched {when} |
 | `stitch.preview.hint` | over the viewer | pill | Drag to look around · scroll to zoom |
-| `stitch.preview.meta` | under the viewer | line | {w} × {h} · {size} · 360° × 180° |
-| `stitch.preview.fov` | under the viewer | line | field of view {deg}° |
+| `stitch.preview.fov` | under the viewer | line | FOV {deg}° |
 | `stitch.preview.noWebgl` | over the flat image | line | This window cannot show the 360° view. The Panorama is saved: open it in a viewer. |
 
 ### 16.8 Constants and measurements

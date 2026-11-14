@@ -562,16 +562,13 @@ export const strings = {
       backToSession: "Back to Session",
       done: "Done",
       fill: "Fill the window",
-      resetView: "Look at the start heading",
     },
     preview: {
       title: "Panorama",
-      /** Chip in the title bar. */
-      chip: "Stitched in {duration}",
+      /** Chip in the title bar: when the Panorama was stitched. */
+      chip: "Stitched {when}",
       hint: "Drag to look around · scroll to zoom",
-      meta: "{w} × {h} · 360° × 180°",
-      metaSize: "{w} × {h} · {size} · 360° × 180°",
-      fov: "field of view {deg}°",
+      fov: "FOV {deg}°",
       noWebgl: "This window cannot show the 360° view. The Panorama is saved: open it in a viewer.",
     },
   },

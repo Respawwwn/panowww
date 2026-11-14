@@ -2,8 +2,8 @@
 // The Panorama preview window (spec §16.4, board StitchDone): Photo
 // Sphere Viewer over the dimmed app, fed by `panorama_preview` as a data
 // URL; drag to look around, scroll to zoom, arrow keys, a button back to
-// the start heading, *Fill the window*; under the viewer the path in code,
-// the size and the field of view; *Reveal* and *Done* in the footer.
+// *Fill the window*; under the viewer the path in code and the field of
+// view; *Reveal* and *Done* in the footer.
 // Without WebGL 2 the viewer throws at start: the flat preview image is
 // shown with a line saying so.
 import { Viewer } from "@photo-sphere-viewer/core";
@@ -13,7 +13,7 @@ import Chip from "../components/Chip.svelte";
 import Icon from "../components/Icon.svelte";
 import WindowFrame from "../components/WindowFrame.svelte";
 import { api, isAppError } from "../lib/api";
-import { formatBytes, formatSeconds, formatWhen } from "../lib/format";
+import { formatWhen } from "../lib/format";
 import { preview } from "../lib/preview.svelte";
 import { detectPlatform } from "../lib/shortcut";
 import { interpolate, strings } from "../lib/strings";
@@ -94,11 +94,6 @@ $effect(() => {
   };
 });
 
-/** Back to the start heading, level, at the default zoom. */
-function resetView() {
-  viewer?.animate({ yaw: 0, pitch: 0, zoom: 50, speed: "3rpm" });
-}
-
 function close() {
   preview.close();
   windows.close();
@@ -111,15 +106,6 @@ function reveal() {
 }
 
 const path = $derived(subject ? `${subject.folder}${sep}${subject.entry.file}` : "");
-const meta = $derived(
-  subject
-    ? interpolate(s.preview.metaSize, {
-        w: subject.entry.width,
-        h: subject.entry.height,
-        size: formatBytes(subject.entry.bytes),
-      })
-    : "",
-);
 const fov = $derived(
   subject ? interpolate(s.preview.fov, { deg: subject.entry.fieldOfViewDeg.toFixed(1) }) : "",
 );
@@ -129,8 +115,8 @@ const when = $derived(subject?.startedAt ? formatWhen(subject.startedAt, strings
 {#if subject}
   <WindowFrame title={s.preview.title} width={1040} height={680} fill={preview.fill} onclose={close}>
     {#snippet aside()}
-      <span class="who">{subject.gameName}{when ? ` · ${when}` : ""}</span>
-      <Chip tone="ok"><Icon name="check" size={13} />{interpolate(s.preview.chip, { duration: formatSeconds(subject.entry.durationMs) })}</Chip>
+      <span class="who">{subject.gameName}</span>
+      <Chip tone="ok"><Icon name="check" size={13} />{interpolate(s.preview.chip, { when: formatWhen(subject.entry.stitchedAt, strings.sessions) })}</Chip>
     {/snippet}
     <div class="viewer" class:flat={preview.fallback}>
       {#if preview.fallback && image}
@@ -142,11 +128,6 @@ const when = $derived(subject?.startedAt ? formatWhen(subject.startedAt, strings
         <div class="psv" bind:this={container}></div>
       {/if}
       <div class="hud">
-        {#if !preview.fallback}
-          <button type="button" class="hudbtn ico" title={s.actions.resetView} aria-label={s.actions.resetView} onclick={resetView}>
-            <Icon name="refresh" size={14} />
-          </button>
-        {/if}
         <button type="button" class="hudbtn" onclick={() => preview.toggleFill()}>
           <Icon name="crop" size={14} />
           {s.actions.fill}
@@ -158,7 +139,6 @@ const when = $derived(subject?.startedAt ? formatWhen(subject.startedAt, strings
     </div>
     <div class="meta">
       <code title={path}>{path}</code>
-      <span class="sub">{meta}</span>
       <span class="sub fov">{fov}</span>
     </div>
     {#snippet footer()}
@@ -247,11 +227,6 @@ const when = $derived(subject?.startedAt ? formatWhen(subject.startedAt, strings
     line-height: 1;
     backdrop-filter: blur(6px);
     cursor: pointer;
-  }
-
-  .hudbtn.ico {
-    width: 28px;
-    padding: 0;
   }
 
   .hudbtn:hover {
