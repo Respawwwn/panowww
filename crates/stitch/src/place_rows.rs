@@ -30,6 +30,10 @@ const HEADING_STEP: f64 = 3.0;
 const POLE_DEG: f64 = 85.0;
 /// How many distinct candidates the fine matcher verifies.
 const CANDIDATES: usize = 6;
+/// Matches the winning candidate must gather over the Row's columns, at
+/// least this many and two thirds of the pairs: plain sky yields a few
+/// false ones at any heading.
+const MIN_SUPPORT: usize = 3;
 
 /// What one Row's placement found, degrees relative to the grid.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -158,10 +162,31 @@ pub fn place_rows(
             let mut g = params.clone();
             apply(&mut g, dp.to_radians(), dy.to_radians());
             let count = correspondences(pyramids, &g.poses(), params.f_px, verify, &pairs).len();
+            tracing::trace!(
+                row = moving,
+                dp,
+                dy,
+                score = sc,
+                matches = count,
+                "Row candidate"
+            );
             if count > best_count || (count == best_count && sc > best.2) {
                 best_count = count;
                 best = (dp, dy, sc);
             }
+        }
+        // No candidate gathers real support: the Row is unobservable from
+        // here (plain sky, fog), and its best coarse score is noise. It
+        // keeps the grid's pitch and heading relative to its neighbour.
+        if best_count < MIN_SUPPORT.max(pairs.len() * 2 / 3) {
+            tracing::debug!(row = moving, "Row unobservable, kept on the grid");
+            placed.push(Placed {
+                row: moving,
+                pitch_offset_deg: 0.0,
+                heading_offset_deg: 0.0,
+                ncc: -1.0,
+            });
+            continue;
         }
         let (cp, cy) = (best.0, best.1);
         let mut dp = cp - PITCH_STEP;

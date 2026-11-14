@@ -29,3 +29,4 @@ zip = { version = "9", default-features = false }
 panowww-core = { path = "../core", features = ["test-support"] }
 panowww-stitch = { path = "../stitch", features = ["test-support"] }
 tempfile = "3"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }

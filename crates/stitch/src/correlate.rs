@@ -19,6 +19,12 @@ use crate::levels::Level;
 
 /// Variance below which a patch is flat.
 const FLAT_VARIANCE: f32 = 2.0;
+/// How far the best correlation must stand above the window's outer ring
+/// in a window of at least [`DISTINCT_SEARCH`] shifts: a smooth gradient
+/// (sky, fog) correlates near 1.0 at every shift and says nothing about
+/// where the Shots meet.
+const PEAK_MARGIN: f32 = 0.1;
+const DISTINCT_SEARCH: i32 = 6;
 
 /// A match found by [`correlate`]: the shift of B's warp that best overlays
 /// A's patch, in A's level pixels, and how well.
@@ -126,20 +132,15 @@ pub fn correlate(
     if best.2 < -1.0 {
         return None;
     }
+    if !distinct(&scores, search, best.2) {
+        return None;
+    }
     let at = |sx: i32, sy: i32| -> Option<f64> {
         if sx.abs() > search || sy.abs() > search {
             return None;
         }
         let v = scores[((sy + search) as usize) * span + (sx + search) as usize];
         (v > -1.5).then_some(f64::from(v))
-    };
-    let refine = |m: f64, l: Option<f64>, r: Option<f64>| -> f64 {
-        match (l, r) {
-            (Some(l), Some(r)) if (l - 2.0 * m + r).abs() > 1e-9 => {
-                (0.5 * (l - r) / (l - 2.0 * m + r)).clamp(-0.5, 0.5)
-            }
-            _ => 0.0,
-        }
     };
     let m = f64::from(best.2);
     let dx = refine(m, at(best.0 - 1, best.1), at(best.0 + 1, best.1));
@@ -148,6 +149,34 @@ pub fn correlate(
         shift: (f64::from(best.0) + dx, f64::from(best.1) + dy),
         ncc: m,
     })
+}
+
+/// Sub-pixel offset of a peak from the parabola through it and its two
+/// neighbours; zero at the window's edge or on a flat top.
+fn refine(m: f64, l: Option<f64>, r: Option<f64>) -> f64 {
+    match (l, r) {
+        (Some(l), Some(r)) if (l - 2.0 * m + r).abs() > 1e-9 => {
+            (0.5 * (l - r) / (l - 2.0 * m + r)).clamp(-0.5, 0.5)
+        }
+        _ => 0.0,
+    }
+}
+
+/// In a wide window, a peak no better than the window's outer ring is a
+/// gradient, not a match. A narrow window sits inside a real peak's lobe,
+/// so it cannot tell and is not asked.
+fn distinct(scores: &[f32], search: i32, best: f32) -> bool {
+    if search < DISTINCT_SEARCH {
+        return true;
+    }
+    let span = (2 * search + 1) as usize;
+    let (sum, n) = (-search..=search)
+        .flat_map(|sy| (-search..=search).map(move |sx| (sx, sy)))
+        .filter(|&(sx, sy)| sx.abs() == search || sy.abs() == search)
+        .map(|(sx, sy)| scores[((sy + search) as usize) * span + (sx + search) as usize])
+        .filter(|&v| v > -1.5)
+        .fold((0f32, 0usize), |(s, n), v| (s + v, n + 1));
+    n == 0 || (best - sum / n as f32) >= PEAK_MARGIN
 }
 
 #[cfg(test)]
