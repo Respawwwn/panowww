@@ -221,7 +221,7 @@ export function installMock(): void {
       case "stitch_cancel":
         return null;
       case "stitch_phase":
-        return "idle";
+        return { phase: "idle" };
       case "panorama_preview":
         return sample(42);
       case "check_for_updates":
@@ -354,7 +354,31 @@ function sampleSessions(entries: GameEntry[]): SessionSummary[] {
     startedAt: string,
     status: "completed" | "interrupted" | "failed",
     taken: number,
+    stitched = false,
   ): SessionSummary => ({
+    ...(stitched
+      ? {
+          panorama: {
+            file: "panorama.jpg",
+            preview: "panorama-preview.jpg",
+            width: 5184,
+            height: 2592,
+            bytes: 5_100_000,
+            stitchedAt: startedAt,
+            durationMs: 5200,
+            appVersion: "0.0.1-mock",
+            fieldOfViewDeg: 90.2,
+            turnStepDeg: 25.7,
+            pitchStepDeg: 30.1,
+            startPoleOffsetDeg: 19.0,
+            closingTurnDeg: 0.4,
+            driftDeg: 0.3,
+            unaligned: [],
+            droppedSteps: [],
+            antiGhost: true,
+          },
+        }
+      : {}),
     folder: `/Users/me/Pictures/Panowww/${game.name}/${startedAt.slice(0, 19).replace("T", "_").replaceAll(":", "-")}`,
     record: {
       format: "panowww-session",
@@ -387,6 +411,6 @@ function sampleSessions(entries: GameEntry[]): SessionSummary[] {
     make(a, "2026-10-30T14:32:00+01:00", "completed", 78),
     make(a, "2026-10-30T14:10:00+01:00", "interrupted", 31),
     make(b, "2026-10-29T22:05:00+01:00", "failed", 52),
-    make(a, "2026-10-27T19:48:00+01:00", "completed", 78),
+    make(a, "2026-10-27T19:48:00+01:00", "completed", 78, true),
   ];
 }

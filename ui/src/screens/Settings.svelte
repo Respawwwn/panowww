@@ -1,11 +1,12 @@
 <script lang="ts">
-// Settings (spec §11.12): Sessions folder, the two shortcuts with their
-// recorders, New Game defaults, the Stitchers' programs, the Display
-// preview switch, General.
+// Settings (spec §11.12, §16.1): Sessions folder, the two shortcuts with
+// their recorders, New Game defaults, the Stitchers' programs, the Display
+// preview switch, General, the Experimental card with the Stitch switch.
 // Every change is saved at once; a shortcut the OS refuses shows its
 // error next to the recorder.
 import { onMount } from "svelte";
 import Button from "../components/Button.svelte";
+import Chip from "../components/Chip.svelte";
 import Field from "../components/Field.svelte";
 import Icon from "../components/Icon.svelte";
 import Segmented from "../components/Segmented.svelte";
@@ -231,7 +232,7 @@ function number(value: string): number {
   <section class="card">
     <h3>{strings.settings.stitchersTitle}</h3>
     <Tip text={strings.settings.stitchers} />
-    <Tip text={strings.settings.stitchersNote} />
+    <Tip text={s.experimental.stitch ? strings.settings.stitchersNoteExperimental : strings.settings.stitchersNote} />
     {#each stitcherRows as stitcher (stitcher)}
       {@const program = s.stitchers[stitcher]}
       {@const name = strings.settings.stitcher[stitcher]}
@@ -269,6 +270,20 @@ function number(value: string): number {
       </Field>
     {/each}
     <Tip text={platform === "macos" ? strings.settings.stitcherHint.macos : strings.settings.stitcherHint.windows} />
+  </section>
+
+  <section class="card experimental" class:on={s.experimental.stitch}>
+    <div class="titled">
+      <h3>{strings.settings.experimental.title}</h3>
+      <Chip>{strings.settings.experimental.chip}</Chip>
+    </div>
+    <Tip text={strings.settings.experimental.intro} />
+    <Switch
+      checked={s.experimental.stitch}
+      label={strings.settings.experimental.stitch.label}
+      onchange={(on) => save({ experimental: { ...s.experimental, stitch: on } })}
+    />
+    <Tip text={strings.settings.experimental.stitch.hint} />
   </section>
 
   <section class="card">
@@ -368,6 +383,18 @@ function number(value: string): number {
     margin: 0;
     font-size: 14px;
     font-weight: 600;
+  }
+
+  .titled {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* The card's border takes the accent while a feature is on (board
+     Settings, switch on). */
+  .experimental.on {
+    border-color: var(--accent);
   }
 
   .actions {

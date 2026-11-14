@@ -2,6 +2,7 @@
 // run that just ended (live thumbnails in memory) or from a Session folder
 // on disk (history, thumbnails generated on demand).
 import type { Game } from "./generated/Game";
+import type { PanoramaEntry } from "./generated/PanoramaEntry";
 import type { RunError } from "./generated/RunError";
 import type { SessionRecord } from "./generated/SessionRecord";
 import type { SessionStatus } from "./generated/SessionStatus";
@@ -29,6 +30,8 @@ export interface SessionView {
   error: RunError | null;
   /** The display the zone was on, for the failed reason. */
   displayId: string | null;
+  /** The Panorama in the folder, when a Stitch left one (spec §16.4). */
+  panorama: PanoramaEntry | null;
 }
 
 function file(row: number, col: number): string {
@@ -57,11 +60,20 @@ export function viewFromLast(last: LastRun, game: Game, folder: string | null): 
     })),
     error: outcome.status === "failed" ? outcome.error : null,
     displayId: null,
+    panorama: null,
   };
 }
 
-/** A Session folder's record, opened from a table. */
-export function viewFromRecord(record: SessionRecord, folder: string): SessionView {
+/**
+ * A Session folder's record, opened from a table. `panorama` is the
+ * summary's entry: the record's block only while `panorama.jpg` is still
+ * in the folder.
+ */
+export function viewFromRecord(
+  record: SessionRecord,
+  folder: string,
+  panorama: PanoramaEntry | null = null,
+): SessionView {
   const at = (s: string | undefined): number | null => {
     if (!s) {
       return null;
@@ -80,5 +92,6 @@ export function viewFromRecord(record: SessionRecord, folder: string): SessionVi
     shots: record.shots.map((s) => ({ row: s.row, col: s.col, file: s.file, src: null })),
     error: record.error ?? null,
     displayId: record.zone.displayId,
+    panorama,
   };
 }

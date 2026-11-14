@@ -39,3 +39,30 @@ test("commands pass their arguments in camelCase", async () => {
     { cmd: "set_preview", args: { on: false } },
   ]);
 });
+
+test("the Stitch commands and the Experimental switch go through as the Rust side expects", async () => {
+  const seen: { cmd: string; args: unknown }[] = [];
+  mockIPC((cmd, args) => {
+    seen.push({ cmd, args });
+    return cmd === "stitch_phase" ? { phase: "idle" } : cmd === "stitch_session" ? true : null;
+  });
+
+  expect(await api.stitch.start("/S/a")).toBe(true);
+  await api.stitch.cancel();
+  expect(await api.stitch.phase()).toEqual({ phase: "idle" });
+  await api.stitch.preview("/S/a");
+  const settings = await import("./settings.svelte").then((m) => m.defaultSettings);
+  await api.settings.save({ ...settings, experimental: { stitch: true } });
+
+  expect(seen.map((s) => s.cmd)).toEqual([
+    "stitch_session",
+    "stitch_cancel",
+    "stitch_phase",
+    "panorama_preview",
+    "save_settings",
+  ]);
+  expect(seen[0]?.args).toEqual({ folder: "/S/a" });
+  expect(seen[3]?.args).toEqual({ folder: "/S/a" });
+  const saved = seen[4]?.args as { settings: { experimental: { stitch: boolean } } } | undefined;
+  expect(saved?.settings.experimental).toEqual({ stitch: true });
+});

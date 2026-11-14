@@ -50,6 +50,8 @@ pub struct StitchOwner {
     runner_idle: IdleProbe,
     backend: SharedBackend,
     running: Arc<AtomicBool>,
+    /// The Session being stitched, while one is.
+    folder: Mutex<Option<PathBuf>>,
     /// The flag of the Stitch in progress and why it was raised.
     cancel: Arc<Mutex<Option<Cancellation>>>,
     thread: Mutex<Option<JoinHandle<()>>>,
@@ -76,14 +78,19 @@ impl StitchOwner {
             runner_idle,
             backend,
             running: Arc::new(AtomicBool::new(false)),
+            folder: Mutex::new(None),
             cancel: Arc::new(Mutex::new(None)),
             thread: Mutex::new(None),
         }
     }
 
     pub fn phase(&self) -> StitchPhase {
-        if self.running.load(Ordering::SeqCst) {
-            StitchPhase::Running
+        if self.running.load(Ordering::SeqCst)
+            && let Some(folder) = lock(&self.folder).as_ref()
+        {
+            StitchPhase::Running {
+                folder: folder.display().to_string(),
+            }
         } else {
             StitchPhase::Idle
         }
@@ -105,6 +112,7 @@ impl StitchOwner {
             return false;
         }
         self.join_finished();
+        *lock(&self.folder) = Some(spec.folder.clone());
         let cancellation = Cancellation {
             flag: CancelFlag::new(),
             reason: Arc::new(Mutex::new(None)),
@@ -440,7 +448,12 @@ mod tests {
         let folder = write_session(dir.path(), 8, SessionStatus::Completed);
         let (owner, rx) = owner(true);
         assert!(owner.start(spec(&folder)));
-        assert_eq!(owner.phase(), StitchPhase::Running);
+        assert_eq!(
+            owner.phase(),
+            StitchPhase::Running {
+                folder: folder.display().to_string()
+            }
+        );
         assert!(!owner.start(spec(&folder)), "a second Stitch is refused");
         owner.wait();
         assert_eq!(owner.phase(), StitchPhase::Idle);
@@ -478,7 +491,7 @@ mod tests {
         let (owner, rx) = owner(true);
         assert!(owner.start(spec(&folder)));
         std::thread::sleep(Duration::from_millis(300));
-        assert_eq!(owner.phase(), StitchPhase::Running);
+        assert!(matches!(owner.phase(), StitchPhase::Running { .. }));
         // As Runner::start does through its hook; a later Cancel button
         // does not change the reason.
         owner.cancel(StitchCancelReason::SessionStarted);

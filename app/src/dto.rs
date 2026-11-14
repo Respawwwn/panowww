@@ -331,11 +331,12 @@ pub enum StitchCancelReason {
     Quit,
 }
 
-/// The Stitch owner's phase, for the UI and the tests (spec §16.5).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
-#[serde(rename_all = "camelCase")]
+/// The Stitch owner's phase, for the UI and the tests (spec §16.5): the
+/// Session being stitched, so a window that opens mid-Stitch knows which.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(tag = "phase", rename_all = "camelCase")]
 #[ts(export)]
 pub enum StitchPhase {
     Idle,
-    Running,
+    Running { folder: String },
 }

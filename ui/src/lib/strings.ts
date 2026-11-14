@@ -254,7 +254,20 @@ export const strings = {
         note: "The Shots taken are kept. An interrupted Session cannot be resumed: start a new one from the same pole.",
       },
       failed: { title: "Failed at Shot {n}" },
-      next: "Next: open the Session in a Stitcher, or drop the folder or the zip into one.",
+      next: {
+        stitchAndOpen: "Next: {stitchHere}, or open it in {stitchers}.",
+        stitchOrDrop: "Next: {stitchHere}, or drop the folder or the zip into a Stitcher.",
+        openIn: "Next: open the Session in {stitchers}, or drop the folder or the zip into one.",
+        drop: "Next: open the Session in a Stitcher, or drop the folder or the zip into one.",
+        stitchHere: "stitch the Session here",
+        /** Between two Stitchers in `{stitchers}`. */
+        or: " or ",
+      },
+      stitch: "Stitch",
+      stitching: "Stitching… {pct} %",
+      previewPanorama: "Preview Panorama",
+      stitchAgain: "Stitch again",
+      panorama: "Panorama stitched {when} · panorama.jpg · {width} × {height} · {size}",
       openIn: "Open in {stitcher}",
       zip: "Zip Session",
       backToGame: "Back to Game",
@@ -408,6 +421,8 @@ export const strings = {
     stitchers:
       "A Stitcher assembles a Session's Shots into a panorama. Set one and a completed Session gets an Open in… button.",
     stitchersNote: "Panowww never stitches itself.",
+    stitchersNoteExperimental:
+      "Panowww stitches itself only with Stitch in Panowww, under Experimental.",
     stitcher: { ptgui: "PTGui", autopanoGiga: "Autopano Giga" },
     stitcherNotSet: "Not set",
     stitcherVersion: "{stitcher} version: {version}",
@@ -440,6 +455,110 @@ export const strings = {
     },
     reviewPermissions: "Review permissions…",
     revealLogs: "Reveal logs",
+    experimental: {
+      title: "Experimental",
+      chip: "Beta",
+      intro: "Features still in the making. They may be slow, change, or go away.",
+      stitch: {
+        label: "Stitch in Panowww",
+        hint: "A completed Session gets a Stitch button. Panowww assembles the Shots itself, on every core, and saves the Panorama in the Session folder. No editing: if the result is off, adjust the Game's Steps and capture again.",
+      },
+    },
+  },
+  /** The Stitch panel and the Panorama preview (spec §16.3, §16.4, §16.7). */
+  stitch: {
+    title: {
+      idle: "Stitch the {n} Shots",
+      running: "Stitching the {n} Shots…",
+      finished: "Panorama stitched in {duration}",
+      failed: "Could not stitch this Session",
+    },
+    subtitle: "{date} · {rows} Rows × {shotsPerRow} · {w} × {h} Shots",
+    willWrite: "Writes panorama.jpg in the Session folder, about {w} × {h}.",
+    stage: {
+      read: "Read the Shots",
+      overlaps: "Find the Overlaps",
+      align: "Align",
+      alignRow: "Align · Row {row} of {rows}",
+      render: "Render the sphere",
+      blend: "Blend the seams",
+      save: "Save panorama.jpg",
+    },
+    progress: {
+      time: "{elapsed} elapsed · about {left} left",
+      cores: "Uses every core. The game can keep running: nothing is captured.",
+    },
+    measured: {
+      title: "Measured from the Shots",
+      pending:
+        "Field of view, Steps and drift, once the Stitch runs. Nothing is taken from the Game's numbers.",
+      fov: "Field of view",
+      turnStep: "Turn Step",
+      pitchStep: "Pitch Step",
+      startPole: "Start pole",
+      closing: "Closing turn",
+      drift: "Drift per Shot",
+      fovValue: "{deg}° wide",
+      poleShort: "{deg}° short of the {pole}",
+      polePast: "{deg}° past the {pole}",
+      poleOn: "on the {pole}",
+      closingShort: "{deg}° short",
+      closingLong: "{deg}° long",
+      closes: "closes",
+      driftValue: "under {deg}°",
+    },
+    shots: {
+      reading: "reading and comparing…",
+      aligning: "Row {row} of {rows} · {k} / {n} Shots aligned",
+      aligned: "{n} / {n} Shots aligned",
+      legend:
+        "Row 1 is the start pole of this Game, the {pole}. The framed Row is being aligned; dimmed Shots are waiting.",
+      legendUnaligned: "Amber: Shots placed from the grid, not aligned.",
+      legendFailed:
+        "Red: Shots without any control points. They look alike: sky, fog, a dark scene, or a camera that did not move.",
+    },
+    done: {
+      file: "panorama.jpg {w} × {h} · {size} · in the Session folder",
+    },
+    unaligned: {
+      chip: "{n} Shots placed from the grid",
+      box: "Panowww was unable to detect control points for some of the Shots. {list} do not have any control points linking them to the other Shots, so they were placed from the grid, not aligned.",
+    },
+    dropped: {
+      chip: "{n} Steps did not move",
+      box: "The camera did not move for some Steps. {pairs} are the same image, so that Row turned {deg}° short and its last Shots were placed by their neighbours.",
+    },
+    failed: {
+      tooFew:
+        "Too few Shots could be linked. Panowww was unable to detect control points for {k} of the {n} Shots, so the field of view cannot be measured and the sphere cannot be placed.",
+      other: "{message} Nothing was saved.",
+      stitcherHint: "A Stitcher may still manage it. It searches the whole image for matches.",
+      noStitcher:
+        "Try a Stitcher. PTGui and Autopano Giga let you add control points by hand, so they may still stitch this Session.",
+      setOne: "Set one in Settings",
+      fixGame: "To fix the Game itself, run Check overlap, then capture a new Session.",
+    },
+    cancelled: {
+      byYou: "Stopped. Nothing was saved.",
+      session: "Stopped: a Session started. Nothing was saved.",
+    },
+    actions: {
+      cancel: "Cancel",
+      tryAgain: "Try again",
+      replace: "Replace panorama.jpg?",
+      backToSession: "Back to Session",
+      done: "Done",
+      fill: "Fill the window",
+      resetView: "Look at the start heading",
+    },
+    preview: {
+      title: "Panorama",
+      hint: "Drag to look around · scroll to zoom",
+      meta: "{w} × {h} · 360° × 180°",
+      metaSize: "{w} × {h} · {size} · 360° × 180°",
+      fov: "field of view {deg}°",
+      noWebgl: "This window cannot show the 360° view. The Panorama is saved: open it in a viewer.",
+    },
   },
   about: {
     links: {
@@ -528,6 +647,37 @@ export function splitKeyCaps(text: string): LineSegment[] {
   }
   if (last < text.length) {
     segments.push({ kind: "text", text: text.slice(last) });
+  }
+  return segments;
+}
+
+export type PlaceholderSegment = { kind: "text"; text: string } | { kind: "slot"; name: string };
+
+/**
+ * Splits a template around the `{name}` placeholders listed in `slots`, so a
+ * renderer can put a link or a component there; every other placeholder
+ * stays text for `interpolate`.
+ */
+export function splitPlaceholders(
+  template: string,
+  slots: readonly string[],
+): PlaceholderSegment[] {
+  const segments: PlaceholderSegment[] = [];
+  let last = 0;
+  for (const match of template.matchAll(/\{(\w+)\}/g)) {
+    const name = match[1] ?? "";
+    if (!slots.includes(name)) {
+      continue;
+    }
+    const index = match.index ?? 0;
+    if (index > last) {
+      segments.push({ kind: "text", text: template.slice(last, index) });
+    }
+    segments.push({ kind: "slot", name });
+    last = index + match[0].length;
+  }
+  if (last < template.length) {
+    segments.push({ kind: "text", text: template.slice(last) });
   }
   return segments;
 }

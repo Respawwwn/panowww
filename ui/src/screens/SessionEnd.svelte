@@ -1,27 +1,31 @@
 <script lang="ts">
-// Session end (spec §11.7, board B-SessionEnd): the state chip and the
-// Game's name in the toolbar with *Back to Game*; the summary card with
-// the actions row (*Open in…* per Stitcher set in Settings, completed
-// Sessions only, the first one primary; *Zip Session*, primary when no
-// Stitcher is set; *Reveal*), sized like the Game header's Duplicate and
-// Share; the summary card with the title, the date line and the counts;
-// the Shots card with the folder and the full grid, which fills the
-// window when there is room and never shrinks below its grid. Shown for
-// the run that just ended and for any Session opened from a table; no
-// preview.
+// Session end (spec §11.7, §16.2, boards B-SessionEnd and Main): the state
+// chip and the Game's name in the toolbar with *Back to Game*; the actions
+// row (`sessionActions`: *Stitch*, or *Preview Panorama* and *Stitch
+// again* once a Panorama exists, when the Experimental switch is on;
+// *Open in…* per Stitcher set in Settings, completed Sessions only; *Zip
+// Session*; *Reveal*), sized like the Game header's Duplicate and Share;
+// the summary card with the title, the date line, the *Next* line with
+// its links or the Panorama box, and the counts; the Shots card with the
+// folder and the full grid, which fills the window when there is room and
+// never shrinks below its grid. Shown for the run that just ended and for
+// any Session opened from a table; no preview.
 import Button from "../components/Button.svelte";
 import Chip from "../components/Chip.svelte";
 import Icon from "../components/Icon.svelte";
+import InlineConfirm from "../components/InlineConfirm.svelte";
 import Thumbnail from "../components/Thumbnail.svelte";
-import Tip from "../components/Tip.svelte";
 import { api, isAppError, type Stitcher } from "../lib/api";
 import { formatBytes, formatDuration, formatWhen, shotLabel } from "../lib/format";
 import { nav } from "../lib/nav.svelte";
+import { run } from "../lib/run.svelte";
+import { nextVariant, sessionActions } from "../lib/sessionEnd";
 import { reasonFragment, stateTone } from "../lib/sessionText";
 import type { SessionView } from "../lib/sessionView";
 import { settings } from "../lib/settings.svelte";
 import { detectPlatform } from "../lib/shortcut";
-import { interpolate, strings } from "../lib/strings";
+import { percent, stitch } from "../lib/stitch.svelte";
+import { interpolate, splitPlaceholders, strings } from "../lib/strings";
 
 type Props = { view: SessionView };
 
@@ -172,6 +176,65 @@ async function openIn(stitcher: Stitcher) {
   }
 }
 
+/** The Panorama in the folder: written during this window, or found on disk. */
+const panorama = $derived(stitch.entryFor(folder) ?? view.panorama);
+const stitching = $derived(stitch.isStitching(folder));
+const stitchOn = $derived(settings.value.experimental.stitch);
+const actions = $derived(
+  sessionActions({
+    status: view.status,
+    stitchOn,
+    stitchers,
+    hasPanorama: panorama !== null,
+    stitching,
+  }),
+);
+/** *Stitch* waits for the Runner (spec §16.2) and for a Stitch elsewhere. */
+const stitchDisabled = $derived(!folder || run.busy || (stitch.running !== null && !stitching));
+let replacing = $state(false);
+
+const nextSegments = $derived(
+  splitPlaceholders(strings.session.end.next[nextVariant(stitchOn, stitchers)], [
+    "stitchHere",
+    "stitchers",
+  ]),
+);
+
+const panoramaText = $derived(
+  panorama
+    ? interpolate(strings.session.end.panorama, {
+        when: formatWhen(panorama.stitchedAt, strings.sessions),
+        width: panorama.width,
+        height: panorama.height,
+        size: formatBytes(panorama.bytes),
+      })
+    : "",
+);
+
+/** Opens the Stitch panel; when `start`, asks for the Stitch first. */
+async function openStitch(start: boolean) {
+  if (!folder) {
+    return;
+  }
+  replacing = false;
+  actionError = null;
+  if (start) {
+    const started = await stitch.start(folder).catch((error: unknown) => {
+      actionError = isAppError(error) ? error.message : String(error);
+      return false;
+    });
+    if (!started) {
+      return;
+    }
+  }
+  nav.showStitch(game.id, folder);
+}
+
+/** The preview window comes with the Stitch panel: the panel opens it. */
+function previewPanorama() {
+  openStitch(false);
+}
+
 const cells = $derived.by(() => {
   const byKey = new Map(
     view.shots.map((s) => [`${s.row}-${s.col}`, s.src ?? thumbs[s.file] ?? null]),
@@ -216,22 +279,53 @@ async function back() {
 </div>
 
 <div class="end">
-  <div class="actions">
-    {#each stitchers as stitcher, i (stitcher)}
-      <Button variant={i === 0 ? "primary" : "secondary"} disabled={!folder} onclick={() => openIn(stitcher)}>
-        <Icon name={stitcher === "ptgui" ? "ptgui" : "autopano"} size={14} />
-        {interpolate(strings.session.end.openIn, { stitcher: strings.settings.stitcher[stitcher] })}
-      </Button>
+  <InlineConfirm
+    confirming={replacing}
+    question={strings.stitch.actions.replace}
+    confirmLabel={strings.session.end.stitchAgain}
+    cancelLabel={strings.stitch.actions.cancel}
+    onconfirm={() => openStitch(true)}
+    oncancel={() => (replacing = false)}
+  >
+    {#each actions as action (action.id === "openIn" ? `openIn-${action.stitcher}` : action.id)}
+      {#if action.id === "stitch"}
+        <Button variant="primary" disabled={stitchDisabled} onclick={() => openStitch(true)}>
+          <Icon name="stitch" size={14} />
+          {strings.session.end.stitch}
+        </Button>
+      {:else if action.id === "stitching"}
+        <Button variant="primary" onclick={() => openStitch(false)}>
+          <Icon name="stitch" size={14} />
+          {interpolate(strings.session.end.stitching, { pct: percent(stitch.running?.progress ?? null) })}
+        </Button>
+      {:else if action.id === "previewPanorama"}
+        <Button variant="primary" disabled={!folder} onclick={previewPanorama}>
+          <Icon name="pano" size={14} />
+          {strings.session.end.previewPanorama}
+        </Button>
+      {:else if action.id === "stitchAgain"}
+        <Button disabled={stitchDisabled} onclick={() => (replacing = true)}>
+          <Icon name="stitch" size={14} />
+          {strings.session.end.stitchAgain}
+        </Button>
+      {:else if action.id === "openIn"}
+        <Button variant={action.primary ? "primary" : "secondary"} disabled={!folder} onclick={() => openIn(action.stitcher)}>
+          <Icon name={action.stitcher === "ptgui" ? "ptgui" : "autopano"} size={14} />
+          {interpolate(strings.session.end.openIn, { stitcher: strings.settings.stitcher[action.stitcher] })}
+        </Button>
+      {:else if action.id === "zip"}
+        <Button variant={action.primary ? "primary" : "secondary"} disabled={!folder} onclick={zip}>
+          <Icon name="zip" size={14} />
+          {strings.session.end.zip}
+        </Button>
+      {:else}
+        <Button disabled={!folder} onclick={reveal}>
+          <Icon name="folder" size={14} />
+          {platform === "macos" ? strings.detail.revealInFinder : strings.detail.revealInExplorer}
+        </Button>
+      {/if}
     {/each}
-    <Button variant={stitchers.length === 0 ? "primary" : "secondary"} disabled={!folder} onclick={zip}>
-      <Icon name="zip" size={14} />
-      {strings.session.end.zip}
-    </Button>
-    <Button disabled={!folder} onclick={reveal}>
-      <Icon name="folder" size={14} />
-      {platform === "macos" ? strings.detail.revealInFinder : strings.detail.revealInExplorer}
-    </Button>
-  </div>
+  </InlineConfirm>
   {#if zipped || actionError}
     <p class="note" class:error={Boolean(actionError)}>{actionError ?? zipped}</p>
   {/if}
@@ -244,6 +338,25 @@ async function back() {
         <p class="sub">{strings.session.end.interrupted.note}</p>
       {:else if failedText}
         <p class="sub bad">{failedText}</p>
+      {/if}
+      {#if view.status === "completed" && panorama && stitchOn}
+        <div class="tipbox done"><span class="dot"></span>{panoramaText}</div>
+      {:else if view.status === "completed"}
+        <p class="tipbox next">
+          {#each nextSegments as segment, i (i)}
+            {#if segment.kind === "text"}{segment.text}{:else if segment.name === "stitchHere"}<button
+                type="button"
+                class="lnk"
+                disabled={stitchDisabled}
+                onclick={() => openStitch(true)}>{strings.session.end.next.stitchHere}</button
+              >{:else}{#each stitchers as stitcher, j (stitcher)}{#if j > 0}{strings.session.end.next.or}{/if}<button
+                  type="button"
+                  class="lnk"
+                  disabled={!folder}
+                  onclick={() => openIn(stitcher)}>{strings.settings.stitcher[stitcher]}</button
+                >{/each}{/if}
+          {/each}
+        </p>
       {/if}
     </div>
     <div class="facts">
@@ -262,9 +375,6 @@ async function back() {
     <div class="head">
       <b>{strings.session.end.shotsLabel}</b>
       {#if folderText}<code>{folderText}</code>{/if}
-      {#if view.status === "completed"}
-        <span class="t-tip next">{strings.session.end.next}</span>
-      {/if}
     </div>
     <div class="thumbs" style:grid-template-columns="repeat({game.shotsPerRow}, minmax(0, 1fr))">
       {#each cells as cell (cell.label)}
@@ -362,12 +472,6 @@ async function back() {
     font-variant-numeric: tabular-nums;
   }
 
-  .actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-  }
-
   .note {
     margin: -8px 0 0;
     font-size: 11.5px;
@@ -412,9 +516,45 @@ async function back() {
     text-overflow: ellipsis;
   }
 
-  .next {
-    margin-left: auto;
-    white-space: nowrap;
+  .tipbox {
+    align-self: flex-start;
+    margin-top: 6px;
+    font-size: 11.5px;
+    padding: 8px 10px;
+    border-radius: var(--rs);
+    background: var(--lav);
+    color: var(--lav-fg);
+  }
+
+  .tipbox.done {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex: none;
+    background: var(--ok);
+  }
+
+  .lnk {
+    display: inline;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+  }
+
+  .lnk:disabled {
+    opacity: 0.6;
+    cursor: default;
   }
 
   .thumbs {

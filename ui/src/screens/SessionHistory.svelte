@@ -24,7 +24,7 @@ $effect(() => {
     .then((rows) => {
       const row = rows.find((r) => r.folder === f);
       if (row) {
-        view = viewFromRecord(row.record, row.folder);
+        view = viewFromRecord(row.record, row.folder, row.panorama ?? null);
       } else {
         error = strings.sessions.gone;
       }

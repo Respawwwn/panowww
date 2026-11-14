@@ -18,6 +18,11 @@ test("navigation is state", () => {
   expect(nav.busy).toBe(false);
   expect(nav.gameId).toBe("g1");
 
+  nav.showStitch("g1", "/Sessions/x");
+  expect(nav.screen).toEqual({ kind: "stitch", gameId: "g1", folder: "/Sessions/x" });
+  expect(nav.busy).toBe(false);
+  expect(nav.gameId).toBe("g1");
+
   nav.showDamaged("/games/broken.panowww.json");
   expect(nav.gameId).toBeNull();
 });

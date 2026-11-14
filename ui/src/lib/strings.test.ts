@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { interpolate, splitKeyCaps, strings } from "./strings";
+import { interpolate, splitKeyCaps, splitPlaceholders, strings } from "./strings";
 
 describe("interpolate", () => {
   test("fills every placeholder", () => {
@@ -41,6 +41,27 @@ describe("splitKeyCaps", () => {
       { kind: "keys", shortcut: "start" },
     ]);
     expect(splitKeyCaps("No caps [here]")).toEqual([{ kind: "text", text: "No caps [here]" }]);
+  });
+});
+
+describe("splitPlaceholders", () => {
+  test("cuts around the named slots and leaves the others as text", () => {
+    expect(
+      splitPlaceholders(strings.session.end.next.stitchAndOpen, ["stitchHere", "stitchers"]),
+    ).toEqual([
+      { kind: "text", text: "Next: " },
+      { kind: "slot", name: "stitchHere" },
+      { kind: "text", text: ", or open it in " },
+      { kind: "slot", name: "stitchers" },
+      { kind: "text", text: "." },
+    ]);
+    expect(splitPlaceholders("Display {n} · {w}", ["w"])).toEqual([
+      { kind: "text", text: "Display {n} · " },
+      { kind: "slot", name: "w" },
+    ]);
+    expect(splitPlaceholders(strings.session.end.next.drop, ["stitchHere"])).toEqual([
+      { kind: "text", text: strings.session.end.next.drop },
+    ]);
   });
 });
 

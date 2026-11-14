@@ -21,7 +21,9 @@ type Props = {
     | "warn"
     | "refresh"
     | "ptgui"
-    | "autopano";
+    | "autopano"
+    | "stitch"
+    | "pano";
   size?: number;
 };
 
@@ -79,6 +81,13 @@ let { name, size = 16 }: Props = $props();
     <!-- Detection: a lens with its points. -->
     <circle cx="12" cy="12" r="8" />
     <path d="M12 4v3M12 17v3M4 12h3M17 12h3M12 12h.01" />
+  {:else if name === "stitch"}
+    <!-- The sphere with its seams: the Stitch. -->
+    <circle cx="12" cy="12" r="9" />
+    <path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
+  {:else if name === "pano"}
+    <!-- A curved strip: the Panorama. -->
+    <path d="M3 7.5c3-1.3 6-2 9-2s6 .7 9 2v9c-3-1.3-6-2-9-2s-6 .7-9 2v-9z" />
   {/if}
 </svg>
 
