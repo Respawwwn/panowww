@@ -621,11 +621,14 @@ async function openIn(stitcher: Stitcher) {
   }
 
   /* The actions row sits above the card, as on the Session end. */
+  /* As tall as its buttons, so the inline question of Stitch again, drawn
+     with smaller buttons, does not move the cards below. */
   .actions {
     display: flex;
     justify-content: flex-end;
     align-items: center;
     gap: 8px;
+    min-height: 28px;
   }
 
   .actions:empty {
