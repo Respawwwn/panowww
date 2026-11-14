@@ -9,6 +9,7 @@ use ts_rs::TS;
 use uuid::Uuid;
 
 use crate::StoreError;
+use crate::panorama::{self, PanoramaEntry};
 use crate::session::{SessionRecord, SessionStatus, ShotEntry, TIMESTAMP};
 use crate::sink::WallClock;
 
@@ -19,6 +20,24 @@ use crate::sink::WallClock;
 pub struct SessionSummary {
     pub folder: PathBuf,
     pub record: SessionRecord,
+    /// The record's Panorama block, when `panorama.jpg` is still in the
+    /// folder: what the Session end screen offers to preview.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub panorama: Option<PanoramaEntry>,
+}
+
+impl SessionSummary {
+    /// Reads the Session of `folder`.
+    pub fn read(folder: PathBuf) -> Result<Self, StoreError> {
+        let record = SessionRecord::read(&folder)?;
+        let panorama = panorama::existing(&folder, &record);
+        Ok(Self {
+            folder,
+            record,
+            panorama,
+        })
+    }
 }
 
 /// Every readable Session under `sessions_folder`, newest first. Folders
@@ -26,8 +45,8 @@ pub struct SessionSummary {
 pub fn list_all(sessions_folder: &Path) -> Result<Vec<SessionSummary>, StoreError> {
     let mut sessions = Vec::new();
     for folder in session_folders(sessions_folder)? {
-        match SessionRecord::read(&folder) {
-            Ok(record) => sessions.push(SessionSummary { folder, record }),
+        match SessionSummary::read(folder) {
+            Ok(summary) => sessions.push(summary),
             Err(error) => tracing::warn!(%error, "Session folder skipped"),
         }
     }
@@ -135,7 +154,9 @@ pub fn zip_path(folder: &Path) -> PathBuf {
 }
 
 /// Writes the Session folder's files into [`zip_path`], stored without
-/// further compression (PNG already is). Replaces an existing zip.
+/// further compression (PNG and JPEG already are): the Shots,
+/// `session.json` and the Panorama when there is one. Replaces an existing
+/// zip.
 pub fn zip_session(folder: &Path) -> Result<PathBuf, StoreError> {
     let target = zip_path(folder);
     let temp = target.with_extension("zip.tmp");

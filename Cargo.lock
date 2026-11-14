@@ -2004,6 +2004,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "img-parts"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "93567ea8788640e566a8992a28f4ff64a89b88a369ad05c4198ea6dc8a42ce2b"
+dependencies = [
+ "bytes",
+ "crc32fast",
+ "miniz_oxide 0.9.1",
+]
+
+[[package]]
 name = "indexmap"
 version = "1.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2458,6 +2469,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b63fbc4a50860e98e7b2aa7804ded1db5cbc3aff9193adaff57a6931bf7c4b4c"
 dependencies = [
  "adler2",
+ "serde",
  "simd-adler32",
 ]
 
@@ -3213,9 +3225,11 @@ name = "panowww-store"
 version = "1.0.0-beta.2"
 dependencies = [
  "image",
+ "img-parts",
  "jiff",
  "notify",
  "panowww-core",
+ "panowww-stitch",
  "png",
  "serde",
  "serde_json",

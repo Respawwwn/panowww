@@ -45,6 +45,9 @@ pub enum StoreError {
     /// A Shot could not be encoded, written or read back as PNG.
     #[error("PNG {}: {message}", path.display())]
     Png { path: PathBuf, message: String },
+    /// The Panorama or its preview could not be encoded or tagged.
+    #[error("JPEG {}: {message}", path.display())]
+    Jpeg { path: PathBuf, message: String },
     #[error("Could not zip {}: {message}", path.display())]
     Zip { path: PathBuf, message: String },
     /// A Stitcher's program is no longer where Settings says.
