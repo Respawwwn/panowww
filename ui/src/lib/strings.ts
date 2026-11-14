@@ -478,7 +478,7 @@ export const strings = {
     },
     subtitle: "{date} · {rows} Rows × {shotsPerRow} · {w} × {h} Shots",
     /** Once a Panorama exists: its size instead of the Shots'. */
-    subtitleFinished: "{date} · {rows} Rows × {shotsPerRow} · {w} × {h}",
+    subtitleFinished: "{date} · {rows} Rows × {shotsPerRow} · {w} × {h} px",
     willWrite: "Writes panorama.jpg in the Session folder, about {w} × {h}.",
     stage: {
       read: "Read the Shots",

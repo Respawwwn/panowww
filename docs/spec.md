@@ -888,7 +888,7 @@ The known grid is the prior that says where to look; every value below is measur
 | `stitch.title.finished` | top card | title | Panorama stitched in {duration} |
 | `stitch.title.failed` | top card | title | Could not stitch this Session |
 | `stitch.subtitle` | top card | line | {date} · {rows} Rows × {shotsPerRow} · {w} × {h} Shots |
-| `stitch.subtitleFinished` | top card, Panorama exists | line | {date} · {rows} Rows × {shotsPerRow} · {w} × {h} (the Panorama's size) |
+| `stitch.subtitleFinished` | top card, Panorama exists | line | {date} · {rows} Rows × {shotsPerRow} · {w} × {h} px (the Panorama's size) |
 | `stitch.willWrite` | top card, not started | line | Writes panorama.jpg in the Session folder, about {w} × {h}. |
 | `stitch.stage.read` / `.overlaps` / `.align` / `.alignRow` / `.render` / `.blend` / `.save` | stages card | line | Read the Shots / Find the Overlaps / Align / Align · Row {row} of {rows} / Render the sphere / Blend the seams / Save 360° panorama |
 | `stitch.progress.time` | under the stages | tip | {elapsed} elapsed · about {left} left |
