@@ -202,19 +202,157 @@ fn a_budget_too_small_is_refused_before_reading() {
     assert!(matches!(err, StitchError::Memory { .. }));
 }
 
+/// Peak signal-to-noise ratio of the Panorama against the world it was
+/// rendered from, in dB, over the latitudes `lat_min..lat_max`.
+fn psnr_against_world(panorama: &Frame, lat_min: f64, lat_max: f64) -> f64 {
+    let (w, h) = (panorama.width as usize, panorama.height as usize);
+    let (wf, hf) = (f64::from(panorama.width), f64::from(panorama.height));
+    let mut se = 0f64;
+    let mut n = 0f64;
+    for y in 0..h {
+        let lat = (0.5 - (f64::from(u32::try_from(y).unwrap()) + 0.5) / hf) * 180.0;
+        if lat < lat_min || lat > lat_max {
+            continue;
+        }
+        for x in 0..w {
+            let lon = ((f64::from(u32::try_from(x).unwrap()) + 0.5) / wf - 0.5) * 360.0;
+            let truth = crate::synthetic::world(lon, lat);
+            let px = &panorama.rgb[(y * w + x) * 3..(y * w + x) * 3 + 3];
+            for (p, t) in px.iter().zip(truth) {
+                let d = f64::from(*p) - f64::from(t);
+                se += d * d;
+                n += 1.0;
+            }
+        }
+    }
+    10.0 * (255.0f64 * 255.0 / (se / n).max(1e-9)).log10()
+}
+
 #[test]
-fn the_render_is_not_there_yet() {
+fn a_capture_on_its_grid_renders_its_world() {
     let grid = small_grid();
-    let (source, _) = session(320, 160, 90.0, &grid, &Perturbation::none(&grid));
-    let err = stitch(
+    let (source, truth) = session(640, 320, 90.0, &grid, &Perturbation::none(&grid));
+    let started = std::time::Instant::now();
+    let reports = std::sync::Mutex::new(Vec::new());
+    let stitched = stitch(
+        &source,
+        &grid,
+        &Limits::default(),
+        &|p| reports.lock().unwrap().push(p),
+        &CancelFlag::new(),
+    )
+    .unwrap();
+    eprintln!(
+        "stitched 98 Shots of 640 × 320 into {} × {} in {:.2} s",
+        stitched.panorama.width,
+        stitched.panorama.height,
+        started.elapsed().as_secs_f64()
+    );
+    let (w, h) = crate::render::canvas_size(truth.f_px);
+    assert_eq!(
+        (
+            stitched.panorama.width as usize,
+            stitched.panorama.height as usize
+        ),
+        (w, h)
+    );
+    assert!(w.is_multiple_of(64) && h * 2 == w);
+    assert!(stitched.panorama.is_well_formed());
+    // The world comes back: the alignment is sub-pixel and the seams land on
+    // agreeing pixels, so the only loss is resampling.
+    let psnr = psnr_against_world(&stitched.panorama, -60.0, 60.0);
+    eprintln!("PSNR against the world: {psnr:.1} dB");
+    assert!(psnr > 30.0, "PSNR {psnr:.1} dB");
+    // The preview is the Panorama itself under 8192 px.
+    assert_eq!(stitched.preview.width, stitched.panorama.width);
+    let r = &stitched.report;
+    assert_eq!(
+        (r.width, r.height),
+        (stitched.panorama.width, stitched.panorama.height)
+    );
+    assert!(r.unaligned.is_empty() && r.dropped_steps.is_empty() && r.anti_ghost);
+    assert!(
+        r.durations.read_ms
+            + r.durations.overlaps_ms
+            + r.durations.align_ms
+            + r.durations.render_ms
+            > 0
+    );
+    // Progress never goes backwards and ends on the Blend stage; the Save
+    // stage is the store's.
+    let reports = reports.into_inner().unwrap();
+    let overall: Vec<f32> = reports.iter().map(|p| p.overall).collect();
+    assert!(
+        overall.windows(2).all(|w| w[1] >= w[0] - 1e-6),
+        "progress went backwards: {overall:?}"
+    );
+    assert!(
+        overall.last().copied().unwrap_or(0.0) >= 0.96,
+        "{overall:?}"
+    );
+    assert!(
+        reports
+            .iter()
+            .any(|p| matches!(p.stage, crate::Stage::Render))
+    );
+}
+
+#[test]
+fn the_hard_capture_renders_and_reports_its_defects() {
+    let grid = small_grid();
+    let (source, _) = session(640, 320, 90.0, &grid, &Perturbation::hard(&grid));
+    let stitched = stitch(
         &source,
         &grid,
         &Limits::default(),
         &no_progress,
         &CancelFlag::new(),
     )
-    .unwrap_err();
-    assert!(matches!(err, StitchError::Internal(_)), "{err:?}");
+    .unwrap();
+    let psnr = psnr_against_world(&stitched.panorama, -60.0, 60.0);
+    eprintln!("hard capture PSNR against the world: {psnr:.1} dB");
+    assert!(psnr > 28.0, "PSNR {psnr:.1} dB");
+    let r = &stitched.report;
+    assert_eq!(
+        r.unaligned
+            .iter()
+            .map(|s| (s.row, s.col))
+            .collect::<Vec<_>>(),
+        vec![(7, 2), (7, 5)]
+    );
+    assert_eq!(r.dropped_steps.len(), 1);
+    assert_eq!(
+        (
+            r.dropped_steps[0][0].row,
+            r.dropped_steps[0][0].col,
+            r.dropped_steps[0][1].col
+        ),
+        (4, 7, 8)
+    );
+}
+
+#[test]
+fn a_tight_budget_renders_by_narrow_bands() {
+    let grid = small_grid();
+    let (source, _) = session(320, 160, 90.0, &grid, &Perturbation::none(&grid));
+    // Enough for the pyramids and a few frames, not for a tall band.
+    let limits = Limits {
+        memory_bytes: 24 * 1024 * 1024,
+    };
+    let stitched = stitch(&source, &grid, &limits, &no_progress, &CancelFlag::new()).unwrap();
+    assert!(stitched.panorama.is_well_formed());
+    let psnr = psnr_against_world(&stitched.panorama, -60.0, 60.0);
+    eprintln!("narrow bands PSNR against the world: {psnr:.1} dB");
+    assert!(psnr > 28.0, "PSNR {psnr:.1} dB");
+}
+
+#[test]
+fn the_preview_is_reduced_to_at_most_8192_wide() {
+    let big = Frame::solid(9000, 4500, [10, 20, 30]);
+    let p = crate::render::preview_of(&big);
+    assert!(p.width <= 8192 && p.width == p.height * 2 && p.rgb[..3] == [10, 20, 30]);
+    let small = Frame::solid(640, 320, [1, 2, 3]);
+    assert_eq!(crate::render::preview_of(&small), small);
 }
 
 fn aligned(

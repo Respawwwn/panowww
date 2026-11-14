@@ -65,10 +65,6 @@ const FREE_PASSES: [Pass; 2] = [
 #[derive(Debug, Clone)]
 pub struct Alignment {
     pub f_px: f64,
-    #[cfg_attr(
-        not(test),
-        expect(dead_code, reason = "the render of the next issue reads it")
-    )]
     pub poses: Vec<Rot>,
     pub corrs: Vec<Corr>,
     /// Shots without a single accepted match, kept at their grid pose.

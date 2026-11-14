@@ -22,6 +22,7 @@ mod grid;
 mod levels;
 mod matching;
 mod place_rows;
+mod render;
 mod report;
 #[cfg(any(test, feature = "test-support"))]
 pub mod synthetic;
@@ -34,6 +35,7 @@ use panowww_core::ports::{CancelFlag, Frame, StoreError};
 
 pub use error::StitchError;
 pub use grid::Grid;
+use render::Renderer as _;
 pub use report::{ShotRef, Stage, StageDurations, StitchProgress, StitchReport};
 
 /// Where the Shots come from: a Session folder in `store`, a synthetic
@@ -77,9 +79,7 @@ pub struct Stitched {
 /// Stages: Read (grey pyramids, dropped Steps), field of view, Row
 /// placement, Overlaps, Align, Render, Blend. `progress` is called from the
 /// stitching threads, hence `Sync`; `cancel` is checked between stages and inside the long
-/// ones. Read, the dropped-Step detection and the whole alignment are in;
-/// the render arrives with the next issue and ends in
-/// [`StitchError::Internal`] until then.
+/// ones.
 ///
 /// # Errors
 ///
@@ -108,7 +108,7 @@ pub fn stitch(
     if cancel.is_raised() {
         return Err(StitchError::Cancelled);
     }
-    let read_ms = started.elapsed().as_millis();
+    let read_ms = u32::try_from(started.elapsed().as_millis()).unwrap_or(u32::MAX);
     let aligned = align::align(&pyramids, grid, &dropped, progress, cancel)?;
     tracing::info!(
         hfov_deg = aligned.measured.field_of_view,
@@ -123,7 +123,60 @@ pub fn stitch(
         align_ms = aligned.align_ms,
         "aligned"
     );
-    Err(StitchError::Internal(
-        "the render arrives with the next issue",
-    ))
+    if cancel.is_raised() {
+        return Err(StitchError::Cancelled);
+    }
+    let rendered = render::CpuRenderer.render(
+        &render::RenderInput {
+            source,
+            shot_width: pyramids.width,
+            shot_height: pyramids.height,
+            poses: &aligned.poses,
+            f_px: aligned.f_px,
+            limits: *limits,
+        },
+        progress,
+        cancel,
+    )?;
+    tracing::info!(
+        width = rendered.panorama.width,
+        height = rendered.panorama.height,
+        render_ms = rendered.render_ms,
+        blend_ms = rendered.blend_ms,
+        peak_estimate_mb = rendered.peak_estimate_bytes / (1024 * 1024),
+        "rendered"
+    );
+    let report = StitchReport {
+        width: rendered.panorama.width,
+        height: rendered.panorama.height,
+        field_of_view_deg: aligned.measured.field_of_view,
+        turn_step_deg: aligned.measured.turn_step,
+        pitch_step_deg: aligned.measured.pitch_step,
+        start_pole_offset_deg: aligned.measured.start_pole_offset,
+        closing_turn_deg: aligned.measured.closing_turn,
+        drift_deg: aligned.measured.drift,
+        residual_px: aligned.residual_px,
+        unaligned: align::shot_refs(&pyramids, &aligned.unaligned),
+        dropped_steps: dropped
+            .pairs
+            .iter()
+            .map(|&(twin, duplicate)| {
+                let refs = align::shot_refs(&pyramids, &[twin, duplicate]);
+                [refs[0], refs[1]]
+            })
+            .collect(),
+        anti_ghost: true,
+        durations: StageDurations {
+            read_ms,
+            overlaps_ms: aligned.overlaps_ms,
+            align_ms: aligned.align_ms,
+            render_ms: rendered.render_ms,
+            blend_ms: rendered.blend_ms,
+        },
+    };
+    Ok(Stitched {
+        panorama: rendered.panorama,
+        preview: rendered.preview,
+        report,
+    })
 }
