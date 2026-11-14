@@ -343,7 +343,6 @@ async function back() {
       {/if}
       {#if view.status === "completed" && panorama && stitchOn}
         <div class="tipbox done">
-          <span class="dot"></span>
           <span>
             {#each panoramaSegments as segment, i (i)}
               {#if segment.kind === "slot"}<code class="file">{panorama.file}</code>{:else}{interpolate(segment.text, panoramaValues)}{/if}
@@ -533,20 +532,6 @@ async function back() {
     border-radius: var(--rs);
     background: var(--lav);
     color: var(--lav-fg);
-  }
-
-  .tipbox.done {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    flex: none;
-    background: var(--ok);
   }
 
   code.file {
