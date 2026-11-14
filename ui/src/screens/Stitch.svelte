@@ -349,6 +349,64 @@ async function openIn(stitcher: Stitcher) {
   <div class="pane"><p class="error">{loadError}</p></div>
 {:else if view && game}
   <div class="panel">
+    <div class="actions">
+    {#if mode === "idle"}
+      <div class="acts">
+        <Button variant="primary" disabled={stitchDisabled} onclick={start}>
+          <Icon name="stitch" size={14} />
+          {strings.session.end.stitch}
+        </Button>
+      </div>
+    {:else if mode === "running"}
+      <div class="progress">
+        <div class="bar"><ProgressBar value={progress?.overall ?? 0} /></div>
+        <span class="pct">{pct} %</span>
+        <Button onclick={cancel}>{s.actions.cancel}</Button>
+      </div>
+    {:else if mode === "finished"}
+      <InlineConfirm
+        confirming={replacing}
+        question={interpolate(s.actions.replace, { file: panoramaFile })}
+        confirmLabel={strings.session.end.stitchAgain}
+        cancelLabel={s.actions.cancel}
+        onconfirm={start}
+        oncancel={() => (replacing = false)}
+      >
+        <Button variant="primary" onclick={previewPanorama}>
+          <Icon name="pano" size={14} />
+          {strings.session.end.previewPanorama}
+        </Button>
+        <Button onclick={revealPanorama}>
+          <Icon name="folder" size={14} />
+          {platform === "macos" ? strings.detail.revealInFinder : strings.detail.revealInExplorer}
+        </Button>
+        <Button disabled={stitchDisabled} onclick={askAgain}>
+          <Icon name="stitch" size={14} />
+          {strings.session.end.stitchAgain}
+        </Button>
+      </InlineConfirm>
+    {:else}
+      <div class="acts">
+        {#each stitchers as stitcher, i (stitcher)}
+          <Button variant={i === 0 ? "primary" : "secondary"} onclick={() => openIn(stitcher)}>
+            <Icon name={stitcher === "ptgui" ? "ptgui" : "autopano"} size={14} />
+            {interpolate(strings.session.end.openIn, { stitcher: strings.settings.stitcher[stitcher] })}
+          </Button>
+        {/each}
+        {#if stitchers.length === 0}
+          <Button variant="primary" onclick={zip}>
+            <Icon name="zip" size={14} />
+            {strings.session.end.zip}
+          </Button>
+        {/if}
+        <Button disabled={stitchDisabled} onclick={start}>
+          <Icon name="stitch" size={14} />
+          {s.actions.tryAgain}
+        </Button>
+      </div>
+    {/if}
+    </div>
+
     <section class="card top">
       <div class="titles">
         <div class="titleRow">
@@ -371,61 +429,6 @@ async function openIn(stitcher: Stitcher) {
           <p class="sub" class:bad={Boolean(actionError)}>{actionError ?? zipped}</p>
         {/if}
       </div>
-      {#if mode === "idle"}
-        <div class="acts">
-          <Button variant="primary" disabled={stitchDisabled} onclick={start}>
-            <Icon name="stitch" size={14} />
-            {strings.session.end.stitch}
-          </Button>
-        </div>
-      {:else if mode === "running"}
-        <div class="progress">
-          <div class="bar"><ProgressBar value={progress?.overall ?? 0} /></div>
-          <span class="pct">{pct} %</span>
-          <Button onclick={cancel}>{s.actions.cancel}</Button>
-        </div>
-      {:else if mode === "finished"}
-        <InlineConfirm
-          confirming={replacing}
-          question={interpolate(s.actions.replace, { file: panoramaFile })}
-          confirmLabel={strings.session.end.stitchAgain}
-          cancelLabel={s.actions.cancel}
-          onconfirm={start}
-          oncancel={() => (replacing = false)}
-        >
-          <Button variant="primary" onclick={previewPanorama}>
-            <Icon name="pano" size={14} />
-            {strings.session.end.previewPanorama}
-          </Button>
-          <Button onclick={revealPanorama}>
-            <Icon name="folder" size={14} />
-            {platform === "macos" ? strings.detail.revealInFinder : strings.detail.revealInExplorer}
-          </Button>
-          <Button disabled={stitchDisabled} onclick={askAgain}>
-            <Icon name="stitch" size={14} />
-            {strings.session.end.stitchAgain}
-          </Button>
-        </InlineConfirm>
-      {:else}
-        <div class="acts">
-          {#each stitchers as stitcher, i (stitcher)}
-            <Button variant={i === 0 ? "primary" : "secondary"} onclick={() => openIn(stitcher)}>
-              <Icon name={stitcher === "ptgui" ? "ptgui" : "autopano"} size={14} />
-              {interpolate(strings.session.end.openIn, { stitcher: strings.settings.stitcher[stitcher] })}
-            </Button>
-          {/each}
-          {#if stitchers.length === 0}
-            <Button variant="primary" onclick={zip}>
-              <Icon name="zip" size={14} />
-              {strings.session.end.zip}
-            </Button>
-          {/if}
-          <Button disabled={stitchDisabled} onclick={start}>
-            <Icon name="stitch" size={14} />
-            {s.actions.tryAgain}
-          </Button>
-        </div>
-      {/if}
     </section>
 
     <div class="columns">
@@ -595,6 +598,14 @@ async function openIn(stitcher: Stitcher) {
     overflow: auto;
   }
 
+  /* The actions row sits above the card, as on the Session end. */
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+  }
+
   .top {
     display: flex;
     align-items: center;
@@ -647,7 +658,7 @@ async function openIn(stitcher: Stitcher) {
     display: flex;
     align-items: center;
     gap: 14px;
-    min-width: 300px;
+    min-width: 340px;
   }
 
   .bar {

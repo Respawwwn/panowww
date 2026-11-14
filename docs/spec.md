@@ -889,7 +889,7 @@ The known grid is the prior that says where to look; every value below is measur
 | `stitch.title.failed` | top card | title | Could not stitch this Session |
 | `stitch.subtitle` | top card | line | {date} · {rows} Rows × {shotsPerRow} · {w} × {h} Shots |
 | `stitch.willWrite` | top card, not started | line | Writes panorama.jpg in the Session folder, about {w} × {h}. |
-| `stitch.stage.read` / `.overlaps` / `.align` / `.alignRow` / `.render` / `.blend` / `.save` | stages card | line | Read the Shots / Find the Overlaps / Align / Align · Row {row} of {rows} / Render the sphere / Blend the seams / Save panorama.jpg |
+| `stitch.stage.read` / `.overlaps` / `.align` / `.alignRow` / `.render` / `.blend` / `.save` | stages card | line | Read the Shots / Find the Overlaps / Align / Align · Row {row} of {rows} / Render the sphere / Blend the seams / Save 360° panorama |
 | `stitch.progress.time` | under the stages | tip | {elapsed} elapsed · about {left} left |
 | `stitch.progress.cores` | under the stages | tip | Uses every core. The game can keep running: nothing is captured. |
 | `stitch.measured.title` | measured card | section | Measured from the Shots |

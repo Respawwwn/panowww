@@ -485,7 +485,7 @@ export const strings = {
       alignRow: "Align · Row {row} of {rows}",
       render: "Render the sphere",
       blend: "Blend the seams",
-      save: "Save panorama.jpg",
+      save: "Save 360° panorama",
     },
     progress: {
       time: "{elapsed} elapsed · about {left} left",
