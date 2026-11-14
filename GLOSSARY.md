@@ -52,5 +52,13 @@ The Shots taken at one camera pitch during a full horizontal turn.
 The share of image two neighbouring Shots have in common. Stitching needs enough of it, but not too much.
 
 **Stitcher**
-A program that assembles a Session's Shots into a panorama: PTGui, Autopano Giga. Panowww opens a completed Session in it and never stitches itself.
+A program that assembles a Session's Shots into a panorama: PTGui, Autopano Giga. Panowww opens a completed Session in it. With the experimental Stitch on, Panowww can also stitch a Session itself.
 _Avoid_: stitching software, editor, external tool.
+
+**Stitch**
+The operation that assembles a completed Session's Shots into a Panorama inside Panowww. Experimental, off by default. The grid of the Session is its starting guess; everything else is measured from the Shots.
+_Avoid_: stitching, render, export.
+
+**Panorama**
+The 360° × 180° equirectangular image a Stitch writes into the Session folder, next to the Shots.
+_Avoid_: image, photo, output, pano, equirect.
