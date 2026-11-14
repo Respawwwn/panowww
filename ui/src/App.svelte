@@ -30,6 +30,7 @@ import SessionEnd from "./screens/SessionEnd.svelte";
 import SessionHistory from "./screens/SessionHistory.svelte";
 import SessionRunning from "./screens/SessionRunning.svelte";
 import Settings from "./screens/Settings.svelte";
+import Stitch from "./screens/Stitch.svelte";
 
 onMount(() => {
   if (nav.screen.kind === "gallery") {
@@ -148,6 +149,8 @@ function onKeyDown(event: KeyboardEvent) {
         <SessionEnd view={endedView} />
       {:else if nav.screen.kind === "session"}
         <SessionHistory gameId={nav.screen.gameId} folder={nav.screen.folder} />
+      {:else if nav.screen.kind === "stitch"}
+        <Stitch gameId={nav.screen.gameId} folder={nav.screen.folder} />
       {:else if nav.screen.kind === "allSessions"}
         <AllSessions />
       {:else}

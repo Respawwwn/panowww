@@ -9,8 +9,10 @@ import type { RunEvent } from "./generated/RunEvent";
 import type { RunKindDto } from "./generated/RunKindDto";
 import type { SessionSummary } from "./generated/SessionSummary";
 import type { Settings } from "./generated/Settings";
+import type { StitchEvent } from "./generated/StitchEvent";
 import { applyRunEvent } from "./run.svelte";
 import { defaultSettings } from "./settings.svelte";
+import { stitch } from "./stitch.svelte";
 
 function game(id: string, name: string, input: Game["input"], notes?: string): Game {
   return {
@@ -217,6 +219,7 @@ export function installMock(): void {
       case "runner_phase":
         return "idle";
       case "stitch_session":
+        simulateStitch(String(args.folder));
         return true;
       case "stitch_cancel":
         return null;
@@ -273,6 +276,108 @@ export function installMock(): void {
 function sample(x: number): string {
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='640' height='360'><rect width='640' height='360' fill='%236454b5'/><rect x='${x}%' y='40' width='40' height='280' fill='%23fff'/><circle cx='${x + 20}%' cy='180' r='30' fill='%23ffb0c2'/></svg>`;
   return `data:image/svg+xml,${svg}`;
+}
+
+/**
+ * Plays a Stitch through the store over about eight seconds: the six
+ * stages at the spike's shares, then Finished with two Shots placed from
+ * the grid; a folder ending in `_19-48-00` fails with too few links.
+ */
+function simulateStitch(folder: string): void {
+  const rows = 6;
+  const steps: StitchEvent[] = [];
+  const stage = (s: StitchEvent & { event: "progress" }) => steps.push(s);
+  for (let i = 0; i <= 3; i += 1) {
+    stage({
+      event: "progress",
+      stage: { stage: "read" },
+      stageFraction: i / 3,
+      overall: 0.07 * (i / 3),
+    });
+  }
+  for (let i = 0; i <= 6; i += 1) {
+    stage({
+      event: "progress",
+      stage: { stage: "overlaps" },
+      stageFraction: i / 6,
+      overall: 0.07 + 0.2 * (i / 6),
+    });
+  }
+  for (let row = 1; row <= rows; row += 1) {
+    stage({
+      event: "progress",
+      stage: { stage: "align", row, rows },
+      stageFraction: (row - 1) / rows,
+      overall: 0.27 + 0.3 * ((row - 1) / rows),
+    });
+  }
+  for (let i = 0; i <= 6; i += 1) {
+    stage({
+      event: "progress",
+      stage: { stage: "render" },
+      stageFraction: i / 6,
+      overall: 0.57 + 0.25 * (i / 6),
+    });
+  }
+  for (let i = 0; i <= 4; i += 1) {
+    stage({
+      event: "progress",
+      stage: { stage: "blend" },
+      stageFraction: i / 4,
+      overall: 0.82 + 0.15 * (i / 4),
+    });
+  }
+  const failing = folder.endsWith("_19-48-00");
+  const closing: StitchEvent = failing
+    ? {
+        event: "failed",
+        error: {
+          kind: "tooFewLinked",
+          linked: 37,
+          total: rows * 13,
+          unlinked: Array.from({ length: 41 }, (_, i) => ({
+            row: 4 + Math.floor(i / 13),
+            col: (i % 13) + 1,
+          })),
+        },
+      }
+    : {
+        event: "finished",
+        entry: {
+          file: "panorama.jpg",
+          preview: "panorama-preview.jpg",
+          width: 5184,
+          height: 2592,
+          bytes: 5_100_000,
+          stitchedAt: new Date().toISOString(),
+          durationMs: 9800,
+          appVersion: "0.0.1-mock",
+          fieldOfViewDeg: 92.4,
+          turnStepDeg: 25.6,
+          pitchStepDeg: 29.4,
+          startPoleOffsetDeg: 1.8,
+          closingTurnDeg: 0.4,
+          driftDeg: 0.26,
+          unaligned: ["r06_c03.png", "r06_c09.png"],
+          droppedSteps: [["r04_c07.png", "r04_c08.png"]],
+          antiGhost: true,
+        },
+      };
+  const all = failing
+    ? steps.slice(0, 14)
+    : [
+        ...steps,
+        {
+          event: "progress",
+          stage: { stage: "save" },
+          stageFraction: 1,
+          overall: 1,
+        } as StitchEvent,
+      ];
+  all.push(closing);
+  for (const [i, step] of all.entries()) {
+    setTimeout(() => stitch.apply(step), 250 * (i + 1));
+  }
 }
 
 /** Plays the events of a run through the store, a few hundred ms apart. */

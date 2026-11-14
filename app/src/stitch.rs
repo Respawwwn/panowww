@@ -230,11 +230,16 @@ impl Worker {
         ) {
             Ok(stitched) => stitched,
             Err(StitchError::Cancelled) => return self.cancelled(),
-            Err(StitchError::TooFewLinked { linked, total }) => {
+            Err(StitchError::TooFewLinked {
+                linked,
+                total,
+                unlinked,
+            }) => {
                 return StitchEvent::Failed {
                     error: StitchFailure::TooFewLinked {
                         linked: u32::try_from(linked).unwrap_or(u32::MAX),
                         total: u32::try_from(total).unwrap_or(u32::MAX),
+                        unlinked,
                     },
                 };
             }

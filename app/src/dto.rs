@@ -4,7 +4,7 @@
 use panowww_core::plan::{Axis, RunKind};
 use panowww_core::ports::{DisplayInfo, Rect, Zone};
 use panowww_core::runner::RunOutcome;
-use panowww_stitch::StitchProgress;
+use panowww_stitch::{ShotRef, StitchProgress};
 use panowww_store::panorama::PanoramaEntry;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
@@ -308,8 +308,13 @@ pub enum StitchEvent {
 #[serde(tag = "kind", rename_all = "camelCase")]
 #[ts(export)]
 pub enum StitchFailure {
-    /// `stitch.failed.tooFew`: `linked` of `total` Shots found control points.
-    TooFewLinked { linked: u32, total: u32 },
+    /// `stitch.failed.tooFew`: `linked` of `total` Shots found control
+    /// points; `unlinked` are drawn red in the grid.
+    TooFewLinked {
+        linked: u32,
+        total: u32,
+        unlinked: Vec<ShotRef>,
+    },
     /// The Session is not `completed`: the UI never offers it, a guard.
     NotCompleted,
     /// Every other cause, with its message: a Shot that could not be read,

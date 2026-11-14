@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { formatBytes, formatDuration, formatWhen, shotLabel } from "./format";
+import { formatBytes, formatDuration, formatSeconds, formatWhen, shotLabel } from "./format";
 
 test("durations match the Rust format", () => {
   expect(formatDuration(0)).toBe("≈ 0 s");
@@ -9,6 +9,14 @@ test("durations match the Rust format", () => {
   expect(formatDuration(259_600)).toBe("≈ 4 min 20 s");
   expect(formatDuration(3_600_000)).toBe("≈ 1 h");
   expect(formatDuration(4_320_000)).toBe("≈ 1 h 12 min");
+});
+
+test("measured seconds keep tenths under ten", () => {
+  expect(formatSeconds(640)).toBe("0.6 s");
+  expect(formatSeconds(9_840)).toBe("9.8 s");
+  expect(formatSeconds(48_400)).toBe("48 s");
+  expect(formatSeconds(72_000)).toBe("1 min 12 s");
+  expect(formatSeconds(120_000)).toBe("2 min");
 });
 
 test("bytes pick a unit", () => {

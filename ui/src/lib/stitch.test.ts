@@ -1,7 +1,15 @@
 import { describe, expect, test } from "vitest";
 import type { PanoramaEntry } from "./generated/PanoramaEntry";
 import type { StitchEvent } from "./generated/StitchEvent";
-import { initialStitchState, percent, reduceStitch, startStitch } from "./stitch.svelte";
+import {
+  initialStitchState,
+  percent,
+  reduceStitch,
+  remainingMs,
+  stageMs,
+  stageState,
+  startStitch,
+} from "./stitch.svelte";
 
 const entry: PanoramaEntry = {
   file: "panorama.jpg",
@@ -23,9 +31,9 @@ const entry: PanoramaEntry = {
   antiGhost: true,
 };
 
-const progress = (overall: number): StitchEvent => ({
+const progress = (overall: number, stage: "read" | "render" | "save" = "render"): StitchEvent => ({
   event: "progress",
-  stage: { stage: "render" },
+  stage: { stage },
   stageFraction: 0.5,
   overall,
 });
@@ -44,8 +52,24 @@ describe("the stitch reducer", () => {
     expect(state.last).toEqual({
       folder: "/S/a",
       closing: { event: "finished", entry },
+      startedAt: 999,
       endedAt: 1002,
+      stages: { render: { startedAt: 1000, endedAt: 1002 } },
+      progress: { stage: { stage: "render" }, stageFraction: 0.5, overall: 0.6 },
     });
+  });
+
+  test("stages are timed from their first report to the next stage's", () => {
+    const state = play([progress(0.02, "read"), progress(0.05, "read"), progress(0.7, "render")]);
+    expect(state.running?.stages).toEqual({
+      read: { startedAt: 1000, endedAt: 1002 },
+      render: { startedAt: 1002, endedAt: null },
+    });
+    expect(stageMs(state.running?.stages.read, 5000)).toBe(2);
+    expect(stageMs(state.running?.stages.render, 5000)).toBe(3998);
+    expect(stageMs(undefined, 5000)).toBeNull();
+    const ended = reduceStitch(state, { event: "cancelled", reason: "button" }, 1010);
+    expect(ended.last?.stages.render).toEqual({ startedAt: 1002, endedAt: 1010 });
   });
 
   test("progress keeps the folder and the start time", () => {
@@ -54,6 +78,7 @@ describe("the stitch reducer", () => {
       folder: "/S/a",
       startedAt: 999,
       progress: { stage: { stage: "render" }, stageFraction: 0.5, overall: 0.2 },
+      stages: { render: { startedAt: 1000, endedAt: null } },
     });
     expect(percent(state.running?.progress ?? null)).toBe(20);
     expect(percent(null)).toBe(0);
@@ -66,11 +91,11 @@ describe("the stitch reducer", () => {
     expect(cancelled.last?.closing).toEqual({ event: "cancelled", reason: "sessionStarted" });
 
     const failed = play([
-      { event: "failed", error: { kind: "tooFewLinked", linked: 3, total: 98 } },
+      { event: "failed", error: { kind: "tooFewLinked", linked: 3, total: 98, unlinked: [] } },
     ]);
     expect(failed.last?.closing).toEqual({
       event: "failed",
-      error: { kind: "tooFewLinked", linked: 3, total: 98 },
+      error: { kind: "tooFewLinked", linked: 3, total: 98, unlinked: [] },
     });
   });
 
@@ -80,6 +105,7 @@ describe("the stitch reducer", () => {
       folder: null,
       startedAt: 1000,
       progress: { stage: { stage: "render" }, stageFraction: 0.5, overall: 0.4 },
+      stages: { render: { startedAt: 1000, endedAt: null } },
     });
     const done = reduceStitch(state, { event: "finished", entry }, 2000);
     expect(done.entries, "no folder to file it under").toEqual({});
@@ -95,5 +121,25 @@ describe("the stitch reducer", () => {
     );
     expect(Object.keys(second.entries)).toEqual(["/S/a", "/S/b"]);
     expect(second.entries["/S/b"]?.width).toBe(4096);
+  });
+});
+
+describe("the remaining time", () => {
+  test("says nothing at the very start, then follows the Stitch's own pace", () => {
+    expect(remainingMs(500, 0.01)).toBeNull();
+    expect(remainingMs(0, 0.5)).toBeNull();
+    expect(remainingMs(2000, 0.25)).toBe(6000);
+    expect(remainingMs(9000, 0.9)).toBe(1000);
+    expect(remainingMs(12000, 1)).toBe(0);
+  });
+});
+
+describe("the stage list", () => {
+  test("marks the stages before the current one done, after it to do", () => {
+    expect(stageState("read", "align", false)).toBe("done");
+    expect(stageState("align", "align", false)).toBe("now");
+    expect(stageState("render", "align", false)).toBe("todo");
+    expect(stageState("align", "align", true)).toBe("bad");
+    expect(stageState("read", null, false)).toBe("todo");
   });
 });

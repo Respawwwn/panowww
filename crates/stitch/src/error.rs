@@ -3,12 +3,18 @@
 use panowww_core::ports::StoreError;
 use thiserror::Error;
 
+use crate::report::ShotRef;
+
 #[derive(Debug, Clone, PartialEq, Eq, Error)]
 pub enum StitchError {
     /// Too few Shots could be linked to measure the field of view and
-    /// place the sphere.
+    /// place the sphere; `unlinked` names the ones without a match.
     #[error("Too few Shots could be linked: {linked} of {total}.")]
-    TooFewLinked { linked: usize, total: usize },
+    TooFewLinked {
+        linked: usize,
+        total: usize,
+        unlinked: Vec<ShotRef>,
+    },
     /// The cancel flag was raised; nothing was produced.
     #[error("Stopped.")]
     Cancelled,

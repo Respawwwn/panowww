@@ -1,6 +1,6 @@
 //! What a Stitch tells while it runs and once it is done (spec §16.5).
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 /// The stages of a Stitch, in order.
@@ -71,7 +71,7 @@ impl StitchProgress {
 }
 
 /// A Shot named by its place in the grid.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, TS)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub struct ShotRef {
     pub row: u32,

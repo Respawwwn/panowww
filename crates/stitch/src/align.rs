@@ -144,7 +144,7 @@ pub fn align(
         // Too few links is judged on the first pass at a quarter resolution
         // or finer: the eighth may be too coarse for small Shots.
         if !checked && pass.level <= 4 {
-            check_linked(&corrs, total)?;
+            check_linked(pyramids, &corrs, total)?;
             checked = true;
         }
         let fit = bundle_adjust(&mut params, &corrs, anchor, pyramids.width, pyramids.height);
@@ -157,7 +157,11 @@ pub fn align(
         );
     }
     if !checked {
-        return Err(StitchError::TooFewLinked { linked: 0, total });
+        return Err(StitchError::TooFewLinked {
+            linked: 0,
+            total,
+            unlinked: shot_refs(pyramids, &(0..total).collect::<Vec<_>>()),
+        });
     }
     let overlaps_ms = u32::try_from(started.elapsed().as_millis()).unwrap_or(u32::MAX);
     let align_started = Instant::now();
@@ -232,10 +236,15 @@ fn unlinked(corrs: &[Corr], total: usize) -> Vec<usize> {
 
 /// Fails when fewer than half the Shots (and fewer than three) are linked:
 /// the field of view cannot be held and the sphere cannot be placed.
-fn check_linked(corrs: &[Corr], total: usize) -> Result<(), StitchError> {
-    let linked = total - unlinked(corrs, total).len();
+fn check_linked(pyramids: &Pyramids, corrs: &[Corr], total: usize) -> Result<(), StitchError> {
+    let unlinked = unlinked(corrs, total);
+    let linked = total - unlinked.len();
     if linked < 3 || linked * 2 < total {
-        return Err(StitchError::TooFewLinked { linked, total });
+        return Err(StitchError::TooFewLinked {
+            linked,
+            total,
+            unlinked: shot_refs(pyramids, &unlinked),
+        });
     }
     Ok(())
 }

@@ -472,6 +472,8 @@ export const strings = {
       running: "Stitching the {n} Shots…",
       finished: "Panorama stitched in {duration}",
       failed: "Could not stitch this Session",
+      /** The red chip beside the failed title (board StitchFailed). */
+      failedChip: "Stitch failed",
     },
     subtitle: "{date} · {rows} Rows × {shotsPerRow} · {w} × {h} Shots",
     willWrite: "Writes panorama.jpg in the Session folder, about {w} × {h}.",
@@ -511,6 +513,12 @@ export const strings = {
       reading: "reading and comparing…",
       aligning: "Row {row} of {rows} · {k} / {n} Shots aligned",
       aligned: "{n} / {n} Shots aligned",
+      /** Caption of the failed grid (board StitchFailed). */
+      linked: "{k} / {n} Shots linked",
+      /** Caption before a Stitch. */
+      count: "{n} Shots",
+      /** Between the last two names of a list of Shots. */
+      and: "and",
       legend:
         "Row 1 is the start pole of this Game, the {pole}. The framed Row is being aligned; dimmed Shots are waiting.",
       legendUnaligned: "Amber: Shots placed from the grid, not aligned.",
