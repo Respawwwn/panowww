@@ -235,6 +235,7 @@ const measured = $derived.by(() => {
 });
 const panoramaFile = $derived(entry?.file ?? "panorama.jpg");
 const doneSegments = $derived(splitPlaceholders(s.done.file, ["file"]));
+const replaceSegments = $derived(splitPlaceholders(s.actions.replace, ["file"]));
 const unalignedSegments = $derived(splitPlaceholders(s.unaligned.box, ["list"]));
 const droppedSegments = $derived(splitPlaceholders(s.dropped.box, ["pairs"]));
 
@@ -360,6 +361,12 @@ async function openIn(stitcher: Stitcher) {
   <div class="pane"><p class="error">{loadError}</p></div>
 {:else if view && game}
   <div class="panel">
+    {#snippet replaceQuestion()}
+      {#each replaceSegments as segment, i (i)}
+        {#if segment.kind === "slot"}<code>{panoramaFile}</code>{:else}{segment.text}{/if}
+      {/each}
+    {/snippet}
+
     {#snippet openInButtons(firstPrimary: boolean)}
       {#each stitchers as stitcher, i (stitcher)}
         <Button variant={firstPrimary && i === 0 ? "primary" : "secondary"} onclick={() => openIn(stitcher)}>
@@ -384,6 +391,7 @@ async function openIn(stitcher: Stitcher) {
       <InlineConfirm
         confirming={replacing}
         question={interpolate(s.actions.replace, { file: panoramaFile })}
+        questionContent={replaceQuestion}
         confirmLabel={strings.session.end.stitchAgain}
         cancelLabel={s.actions.cancel}
         onconfirm={start}
