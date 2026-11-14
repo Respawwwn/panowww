@@ -360,6 +360,15 @@ async function openIn(stitcher: Stitcher) {
   <div class="pane"><p class="error">{loadError}</p></div>
 {:else if view && game}
   <div class="panel">
+    {#snippet openInButtons(firstPrimary: boolean)}
+      {#each stitchers as stitcher, i (stitcher)}
+        <Button variant={firstPrimary && i === 0 ? "primary" : "secondary"} onclick={() => openIn(stitcher)}>
+          <Icon name={stitcher === "ptgui" ? "ptgui" : "autopano"} size={14} />
+          {interpolate(strings.session.end.openIn, { stitcher: strings.settings.stitcher[stitcher] })}
+        </Button>
+      {/each}
+    {/snippet}
+
     <div class="actions">
     {#if mode === "idle"}
       <div class="acts">
@@ -367,6 +376,7 @@ async function openIn(stitcher: Stitcher) {
           <Icon name="stitch" size={14} />
           {strings.session.end.stitch}
         </Button>
+        {@render openInButtons(false)}
       </div>
     {:else if mode === "running"}
       <!-- The progress stays in the card; the row is for the buttons. -->
@@ -391,15 +401,11 @@ async function openIn(stitcher: Stitcher) {
           <Icon name="folder" size={14} />
           {platform === "macos" ? strings.detail.revealInFinder : strings.detail.revealInExplorer}
         </Button>
+        {@render openInButtons(false)}
       </InlineConfirm>
     {:else}
       <div class="acts">
-        {#each stitchers as stitcher, i (stitcher)}
-          <Button variant={i === 0 ? "primary" : "secondary"} onclick={() => openIn(stitcher)}>
-            <Icon name={stitcher === "ptgui" ? "ptgui" : "autopano"} size={14} />
-            {interpolate(strings.session.end.openIn, { stitcher: strings.settings.stitcher[stitcher] })}
-          </Button>
-        {/each}
+        {@render openInButtons(true)}
         {#if stitchers.length === 0}
           <Button variant="primary" onclick={zip}>
             <Icon name="zip" size={14} />

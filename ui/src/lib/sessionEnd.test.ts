@@ -36,11 +36,10 @@ describe("the actions row", () => {
     ]);
   });
 
-  test("with the switch, Stitch leads and nothing else is primary", () => {
+  test("with the switch, Stitch leads and the Open in buttons move to the panel", () => {
     expect(ids({ stitchOn: true })).toEqual(["stitch*", "zip", "reveal"]);
     expect(ids({ stitchOn: true, stitchers: ["autopanoGiga"] })).toEqual([
       "stitch*",
-      "openIn:autopanoGiga",
       "zip",
       "reveal",
     ]);
@@ -50,7 +49,6 @@ describe("the actions row", () => {
     expect(ids({ stitchOn: true, hasPanorama: true, stitchers: ["ptgui"] })).toEqual([
       "previewPanorama*",
       "stitchPanel",
-      "openIn:ptgui*".replace("*", ""),
       "zip",
       "reveal",
     ]);
