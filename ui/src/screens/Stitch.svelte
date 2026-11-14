@@ -372,13 +372,13 @@ async function openIn(stitcher: Stitcher) {
           <Icon name="pano" size={14} />
           {strings.session.end.previewPanorama}
         </Button>
-        <Button onclick={revealPanorama}>
-          <Icon name="folder" size={14} />
-          {platform === "macos" ? strings.detail.revealInFinder : strings.detail.revealInExplorer}
-        </Button>
         <Button disabled={stitchDisabled} onclick={askAgain}>
           <Icon name="stitch" size={14} />
           {strings.session.end.stitchAgain}
+        </Button>
+        <Button onclick={revealPanorama}>
+          <Icon name="folder" size={14} />
+          {platform === "macos" ? strings.detail.revealInFinder : strings.detail.revealInExplorer}
         </Button>
       </InlineConfirm>
     {:else}
