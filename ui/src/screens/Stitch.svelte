@@ -61,8 +61,7 @@ let loadError = $state<string | null>(null);
 let actionError = $state<string | null>(null);
 let zipped = $state<string | null>(null);
 let replacing = $state(false);
-/** Bytes of the Session folder, as the Session end shows them. */
-let size = $state<number | null>(null);
+
 /** History thumbnails, generated on demand by file name. */
 let thumbs = $state<Record<string, string>>({});
 /** The clock, ticking while the Stitch runs, for the elapsed times. */
@@ -83,19 +82,6 @@ $effect(() => {
     })
     .catch((e) => {
       loadError = isAppError(e) ? e.message : String(e);
-    });
-});
-
-$effect(() => {
-  const f = folder;
-  size = null;
-  api.sessions
-    .size(f)
-    .then((bytes) => {
-      size = bytes;
-    })
-    .catch(() => {
-      size = null;
     });
 });
 
@@ -440,10 +426,10 @@ async function openIn(stitcher: Stitcher) {
           <p class="sub" class:bad={Boolean(actionError)}>{actionError ?? zipped}</p>
         {/if}
       </div>
-      {#if mode !== "running"}
+      {#if mode === "finished" && entry}
         <div class="facts">
           <div class="fact">
-            <div class="big">{size === null ? "…" : formatBytes(size)}</div>
+            <div class="big">{formatBytes(entry.bytes)}</div>
             <div class="sub">{strings.session.end.onDisk}</div>
           </div>
         </div>
