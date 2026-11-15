@@ -1,9 +1,11 @@
 <script lang="ts">
 // The Panorama preview window (spec §16.4, board StitchDone): Photo
 // Sphere Viewer over the dimmed app, fed by `panorama_preview` as a data
-// URL; drag to look around, scroll to zoom, arrow keys, a button back to
-// *Fill the window*; under the viewer the path in code and the field of
-// view; *Reveal* and *Done* in the footer.
+// URL; drag to look around, scroll to zoom, arrow keys; *Fill the screen*
+// puts the app window in full screen and the viewer over all of it, the
+// Panorama alone with *Reduce the window* and a close button; under the
+// viewer the path in code and the field of view; *Reveal* and *Done* in the
+// footer.
 // Without WebGL 2 the viewer throws at start: the flat preview image is
 // shown with a line saying so.
 import { Viewer } from "@photo-sphere-viewer/core";
@@ -48,8 +50,8 @@ $effect(() => {
 });
 
 // The viewer lives as long as the container and the image do: the
-// fallback swaps the container out, which ends it; *Fill the window* only
-// resizes it. Starting it without WebGL 2 throws: the window falls back to
+// fallback swaps the container out, which ends it; *Fill the screen* only
+// resizes it, so the heading stays. Starting it without WebGL 2 throws: the window falls back to
 // the flat image.
 $effect(() => {
   const el = container;
@@ -94,9 +96,30 @@ $effect(() => {
   };
 });
 
+// The app window follows *Fill the screen*, and leaves the screen when the
+// preview closes or the window goes away for any reason.
+$effect(() => {
+  if (!preview.fullScreen) {
+    return;
+  }
+  void api.stitch.fullScreen(true).catch(() => {});
+  return () => {
+    void api.stitch.fullScreen(false).catch(() => {});
+  };
+});
+
 function close() {
   preview.close();
   windows.close();
+}
+
+/** Esc or the scrim: out of the full screen first, then closed. */
+function dismiss() {
+  if (preview.fullScreen) {
+    preview.toggleFullScreen();
+  } else {
+    close();
+  }
 }
 
 function reveal() {
@@ -113,12 +136,12 @@ const when = $derived(subject?.startedAt ? formatWhen(subject.startedAt, strings
 </script>
 
 {#if subject}
-  <WindowFrame title={s.preview.title} width={1040} height={680} fill={preview.fill} onclose={close}>
+  <WindowFrame title={s.preview.title} width={1040} height={680} onclose={dismiss}>
     {#snippet aside()}
       <span class="who">{subject.gameName}</span>
       <Chip tone="ok"><Icon name="check" size={13} />{interpolate(s.preview.chip, { when: formatWhen(subject.entry.stitchedAt, strings.sessions) })}</Chip>
     {/snippet}
-    <div class="viewer" class:flat={preview.fallback}>
+    <div class="viewer" class:flat={preview.fallback} class:full={preview.fullScreen}>
       {#if preview.fallback && image}
         <img class="fallback" src={image} alt={s.preview.title} />
         <p class="nowebgl">{s.preview.noWebgl}</p>
@@ -128,11 +151,14 @@ const when = $derived(subject?.startedAt ? formatWhen(subject.startedAt, strings
         <div class="psv" bind:this={container}></div>
       {/if}
       <div class="hud">
-        <button type="button" class="hudbtn" onclick={() => preview.toggleFill()}>
-          <Icon name="crop" size={14} />
-          {s.actions.fill}
+        <button type="button" class="hudbtn" onclick={() => preview.toggleFullScreen()}>
+          <Icon name={preview.fullScreen ? "shrink" : "expand"} size={14} />
+          {preview.fullScreen ? s.actions.reduce : s.actions.fill}
         </button>
       </div>
+      {#if preview.fullScreen}
+        <button type="button" class="hudbtn round closefull" aria-label="Close" title="Close" onclick={close}>✕</button>
+      {/if}
       {#if !preview.fallback}
         <div class="hint">{s.preview.hint}</div>
       {/if}
@@ -170,6 +196,15 @@ const when = $derived(subject?.startedAt ? formatWhen(subject.startedAt, strings
     overflow: hidden;
     background: #0d0b1c;
     border: 1px solid var(--line);
+  }
+
+  /* *Fill the screen*: over the whole app window, itself in full screen. */
+  .viewer.full {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    border: 0;
+    border-radius: 0;
   }
 
   .psv {
@@ -227,6 +262,19 @@ const when = $derived(subject?.startedAt ? formatWhen(subject.startedAt, strings
     line-height: 1;
     backdrop-filter: blur(6px);
     cursor: pointer;
+  }
+
+  .hudbtn.round {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    font-size: 13px;
+  }
+
+  .closefull {
+    position: absolute;
+    top: 14px;
+    right: 14px;
   }
 
   .hudbtn:hover {

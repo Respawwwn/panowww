@@ -149,6 +149,8 @@ export const api = {
     phase: () => invoke<StitchPhase>("stitch_phase"),
     /** data: URL of `panorama-preview.jpg`, for the preview window. */
     preview: (folder: string) => invoke<string>("panorama_preview", { folder }),
+    /** The app window takes the whole screen, or leaves it (*Fill the screen*). */
+    fullScreen: (on: boolean) => invoke<void>("panorama_full_screen", { on }),
     /** Every `StitchEvent`, progress and the closing one. */
     onEvent: (handler: (event: StitchEvent) => void): Promise<UnlistenFn> =>
       listen<StitchEvent>(STITCH_EVENT, (e) => handler(e.payload)),

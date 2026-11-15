@@ -46,3 +46,16 @@ pub fn panorama_preview(folder: String) -> CmdResult<String> {
     })?;
     Ok(data_url("image/jpeg", &bytes))
 }
+
+/// The preview's *Fill the screen*: the app window takes the whole screen
+/// (macOS: simple full screen, no Space of its own; elsewhere the OS full
+/// screen), or leaves it.
+#[tauri::command]
+pub fn panorama_full_screen<R: tauri::Runtime>(
+    window: tauri::WebviewWindow<R>,
+    on: bool,
+) -> CmdResult<()> {
+    window
+        .set_simple_fullscreen(on)
+        .map_err(|e| AppError::internal(format!("full screen {on}: {e}")))
+}

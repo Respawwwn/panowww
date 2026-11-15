@@ -43,6 +43,7 @@
     "allow-stitch-cancel",
     "allow-stitch-phase",
     "allow-panorama-preview",
+    "allow-panorama-full-screen",
     "allow-get-settings",
     "allow-save-settings",
     "allow-choose-sessions-folder",

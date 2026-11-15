@@ -561,7 +561,10 @@ export const strings = {
       replace: "Replace {file}?",
       backToSession: "Back to Session",
       done: "Done",
-      fill: "Fill the window",
+      /** The preview takes the whole screen, the Panorama alone. */
+      fill: "Fill the screen",
+      /** Back from the whole screen to the preview window. */
+      reduce: "Reduce the window",
     },
     preview: {
       title: "Panorama",

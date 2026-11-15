@@ -826,7 +826,7 @@ The panel's remaining time is estimated in the UI from the stage ratios measured
 
 ### 16.4 The preview window and the files
 
-**Preview**: a window over the dimmed app (1040 × 680 like Settings): Photo Sphere Viewer (MIT, the viewer Respawwwn's site uses, bundled by Vite, no CDN) filling it, fed by `panorama_preview` as a data URL; drag to look around, scroll to zoom, arrow keys, *Fill the window* (the app window, not the OS full screen), the path in code with `stitch.preview.fov`, *Reveal* and *Done*; the title bar names the Game, with a green chip `stitch.preview.chip` saying when the Panorama was stitched. Without WebGL (WebView2 on a machine with no GPU) the flat preview image and `stitch.preview.noWebgl`.
+**Preview**: a window over the dimmed app (1040 × 680 like Settings): Photo Sphere Viewer (MIT, the viewer Respawwwn's site uses, bundled by Vite, no CDN) filling it, fed by `panorama_preview` as a data URL; drag to look around, scroll to zoom, arrow keys, *Fill the screen* (the app window in full screen, macOS simple full screen without a Space of its own, and the viewer over all of it: the Panorama alone with *Reduce the window* bottom left and a round close button top right; Esc reduces, a second Esc closes), the path in code with `stitch.preview.fov`, *Reveal* and *Done*; the title bar names the Game, with a green chip `stitch.preview.chip` saying when the Panorama was stitched. Without WebGL (WebView2 on a machine with no GPU) the flat preview image and `stitch.preview.noWebgl`.
 
 **Files**, written by `store` atomically into the Session folder: `panorama.jpg`, JPEG quality 100, 2:1, width = 2π × measured focal length rounded down to a multiple of 64, height = half, no cap, centre = the Session's start heading, horizon straightened; a GPano XMP packet in the APP1 segment (`ProjectionType=equirectangular`, `UsePanoramaViewer`, the four `CroppedArea*` and two `FullPano*`, `InitialViewHeadingDegrees=0`, `InitialViewPitchDegrees=0`, `StitchingSoftware` "Panowww {version}", `SourcePhotosCount`, `FirstPhotoDate`, `LastPhotoDate`; no `PoseHeadingDegrees`) written with `img-parts`; `panorama-preview.jpg`, the same image at most 8192 px wide, quality 90, for the viewer. `session.json` gains:
 
@@ -919,7 +919,7 @@ The known grid is the prior that says where to look; every value below is measur
 | `stitch.failed.fixGame` | under the card | tip | To fix the Game itself, run Check overlap, then capture a new Session. |
 | `stitch.cancelled.byYou` | under the Stitch button | line | Stopped. Nothing was saved. |
 | `stitch.cancelled.session` | under the Stitch button | line | Stopped: a Session started. Nothing was saved. |
-| `stitch.actions.cancel` / `.tryAgain` / `.replace` / `.backToSession` / `.done` / `.fill` | buttons | button | Cancel / Try again / Replace {file}? / Back to Session / Done / Fill the window |
+| `stitch.actions.cancel` / `.tryAgain` / `.replace` / `.backToSession` / `.done` / `.fill` / `.reduce` | buttons | button | Cancel / Try again / Replace {file}? / Back to Session / Done / Fill the screen / Reduce the window |
 | `stitch.preview.title` | preview window | window title | Panorama |
 | `stitch.preview.chip` | preview window, title bar | chip green | Stitched {when} |
 | `stitch.preview.hint` | over the viewer | pill | Drag to look around · scroll to zoom |
@@ -944,7 +944,7 @@ Reference, spike of 2026-11-14 on a 14-thread Mac, anti-ghost on: 98 Shots of 16
 
 ### 16.9 Manual tests
 
-F23 the Experimental switch changes the actions row and the *Next* line; F24 Stitch of the World of Warcraft Session, time and result against PTGui's output in the folder; F25 Cancel mid-way, nothing written; F26 the Start shortcut during a Stitch stops it and starts the Session; F27 Stitch again asks, replaces; F28 preview window: drag, zoom, start heading, Fill the window, Done; F29 failure with no Stitcher set, link to Settings; F30 the zip holds the Panorama; F31 unaligned Shots and a dropped Step on the NoClip Sessions; WF equivalents on Windows plus memory and WebGL in WebView2.
+F23 the Experimental switch changes the actions row and the *Next* line; F24 Stitch of the World of Warcraft Session, time and result against PTGui's output in the folder; F25 Cancel mid-way, nothing written; F26 the Start shortcut during a Stitch stops it and starts the Session; F27 Stitch again asks, replaces; F28 preview window: drag, zoom, Fill the screen and back, Done; F29 failure with no Stitcher set, link to Settings; F30 the zip holds the Panorama; F31 unaligned Shots and a dropped Step on the NoClip Sessions; WF equivalents on Windows plus memory and WebGL in WebView2.
 
 ### 16.10 Later
 

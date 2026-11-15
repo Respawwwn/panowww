@@ -9,8 +9,6 @@ type Props = {
   width?: number;
   /** A fixed height, for a window laid out top to bottom (About). */
   height?: number;
-  /** The whole app window, for the Panorama preview's *Fill the window*. */
-  fill?: boolean;
   onclose: () => void;
   children?: Snippet;
   footer?: Snippet;
@@ -18,16 +16,7 @@ type Props = {
   aside?: Snippet;
 };
 
-let {
-  title,
-  width = 640,
-  height,
-  fill = false,
-  onclose,
-  children,
-  footer,
-  aside,
-}: Props = $props();
+let { title, width = 640, height, onclose, children, footer, aside }: Props = $props();
 
 let scrolled = $state(false);
 
@@ -43,11 +32,10 @@ function onKeyDown(event: KeyboardEvent) {
 <div class="scrim" role="presentation" onpointerdown={(e) => e.target === e.currentTarget && onclose()}>
   <div
     class="win"
-    class:fill
     role="dialog"
     aria-label={title}
-    style:width={fill ? "100vw" : `min(${width}px, 94vw)`}
-    style:height={fill ? "100vh" : height ? `min(${height}px, 92vh)` : undefined}
+    style:width={`min(${width}px, 94vw)`}
+    style:height={height ? `min(${height}px, 92vh)` : undefined}
   >
     <header class="win-t" class:scrolled>
       <h2>{title}</h2>
@@ -82,11 +70,6 @@ function onKeyDown(event: KeyboardEvent) {
     border-radius: var(--r);
     box-shadow: var(--pop);
     overflow: hidden;
-  }
-
-  .win.fill {
-    max-height: none;
-    border-radius: 0;
   }
 
   .win-t {

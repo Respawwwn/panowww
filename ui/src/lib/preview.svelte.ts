@@ -1,5 +1,5 @@
 // The Panorama preview window (spec §16.4): which Panorama it shows,
-// whether it fills the app window, and whether the 360° viewer gave up
+// whether it fills the screen, and whether the 360° viewer gave up
 // (no WebGL 2) and the flat image is shown instead. The reducer is pure so
 // the states are tested as data; the store wraps it for the screens.
 import type { Game } from "./generated/Game";
@@ -16,8 +16,8 @@ export interface PreviewSubject {
 
 export interface PreviewState {
   subject: PreviewSubject | null;
-  /** *Fill the window*: the viewer takes the whole app window. */
-  fill: boolean;
+  /** *Fill the screen*: the app window takes the screen, the viewer the window. */
+  fullScreen: boolean;
   /** The viewer could not start: the flat preview image is shown. */
   fallback: boolean;
 }
@@ -25,20 +25,24 @@ export interface PreviewState {
 export type PreviewAction =
   | { type: "open"; subject: PreviewSubject }
   | { type: "close" }
-  | { type: "toggleFill" }
+  | { type: "toggleFullScreen" }
   | { type: "viewerFailed" };
 
-export const initialPreviewState: PreviewState = { subject: null, fill: false, fallback: false };
+export const initialPreviewState: PreviewState = {
+  subject: null,
+  fullScreen: false,
+  fallback: false,
+};
 
-/** The state after `action`. Opening resets the fill and the fallback. */
+/** The state after `action`. Opening resets the full screen and the fallback. */
 export function reducePreview(state: PreviewState, action: PreviewAction): PreviewState {
   switch (action.type) {
     case "open":
-      return { subject: action.subject, fill: false, fallback: false };
+      return { subject: action.subject, fullScreen: false, fallback: false };
     case "close":
-      return { ...state, subject: null, fill: false };
-    case "toggleFill":
-      return state.subject ? { ...state, fill: !state.fill } : state;
+      return { ...state, subject: null, fullScreen: false };
+    case "toggleFullScreen":
+      return state.subject ? { ...state, fullScreen: !state.fullScreen } : state;
     case "viewerFailed":
       return state.subject ? { ...state, fallback: true } : state;
   }
@@ -50,8 +54,8 @@ export const preview = {
   get subject(): PreviewSubject | null {
     return state.subject;
   },
-  get fill(): boolean {
-    return state.fill;
+  get fullScreen(): boolean {
+    return state.fullScreen;
   },
   get fallback(): boolean {
     return state.fallback;
@@ -62,8 +66,8 @@ export const preview = {
   close() {
     state = reducePreview(state, { type: "close" });
   },
-  toggleFill() {
-    state = reducePreview(state, { type: "toggleFill" });
+  toggleFullScreen() {
+    state = reducePreview(state, { type: "toggleFullScreen" });
   },
   viewerFailed() {
     state = reducePreview(state, { type: "viewerFailed" });

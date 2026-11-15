@@ -41,6 +41,7 @@ const COMMANDS: &[&str] = &[
     "stitch_cancel",
     "stitch_phase",
     "panorama_preview",
+    "panorama_full_screen",
     "get_settings",
     "save_settings",
     "choose_sessions_folder",

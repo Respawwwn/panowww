@@ -79,6 +79,7 @@ pub fn handler<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + 
         stitch::stitch_cancel,
         stitch::stitch_phase,
         stitch::panorama_preview,
+        stitch::panorama_full_screen,
         settings::get_settings,
         settings::save_settings,
         settings::choose_sessions_folder,

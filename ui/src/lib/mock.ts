@@ -227,6 +227,8 @@ export function installMock(): void {
         return { phase: "idle" };
       case "panorama_preview":
         return samplePanorama();
+      case "panorama_full_screen":
+        return null;
       case "check_for_updates":
         return { version: "0.2.0", url: "https://github.com/Respawwwn/panowww/releases" };
       case "session_size":
