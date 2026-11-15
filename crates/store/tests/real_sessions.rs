@@ -163,10 +163,6 @@ fn check(slug: &str) {
             .collect(),
     };
     let platform = platform();
-    insta::with_settings!({ snapshot_suffix => platform.as_str() }, {
-        insta::assert_debug_snapshot!(slug, summary);
-    });
-
     // The JPEG as the store writes it, so the reference is a real panorama.jpg.
     // The writer adds the panorama block to session.json, so it gets a copy.
     let out = tempfile::tempdir().unwrap();
@@ -180,6 +176,10 @@ fn check(slug: &str) {
         .join(format!("{slug}.jpg"));
     std::fs::create_dir_all(kept.parent().unwrap()).unwrap();
     std::fs::copy(&produced, &kept).unwrap();
+    // After the Panorama is kept, so a failing report still leaves it to see.
+    insta::with_settings!({ snapshot_suffix => platform.as_str() }, {
+        insta::assert_debug_snapshot!(slug, summary);
+    });
     let reference = fixtures
         .join("expected")
         .join(&platform)
