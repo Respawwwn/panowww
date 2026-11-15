@@ -275,6 +275,23 @@ Game matrix:
 | Star Wars Battlefront 2 (2017) | Mouse | Move (raw input) | Borderless, primary display | – | ✓ 2026-11-04 | – | Offline Arcade only; 6 × 13 Sessions, 78 Shots |
 | Overwatch | Gamepad | Right stick | Primary display | – | – | ✓ 2026-11-07 | Practice range; 5 × 7 Session, 35 Shots |
 
+## Windows · Stitch (spec §16.9, Stitch map issue 10)
+
+The F23–F31 pass on Windows, plus timing, memory and the WebView2 preview. Build the installer from `feat/native-stitch` with `pnpm tauri build` and install it over the current one. The Sessions come from the fixtures repository: `git clone https://github.com/Respawwwn/panowww-stitch-fixtures` anywhere, then Settings → Sessions folder → that clone. Panowww lists its `sessions\*` (the six real Sessions) and `failing\*` (the sky Session that cannot be linked) as Sessions; the Stitch writes its `panorama.jpg` beside their Shots, which the clone's `.gitignore` keeps out of git. Set the Sessions folder back afterwards. Turn on Settings → Experimental → *Stitch in Panowww* first. Memory: Task Manager → Details, right-click a column header → *Select columns* → *Peak working set*, on `panowww.exe`.
+
+| # | Check | How | Pass | Result |
+|---|---|---|---|---|
+| WF15 | Experimental switch | As F23 | As F23, with *Open in…* for `PTGui.exe` and `AutopanoGiga_x64.exe` | To run |
+| WF16 | Stitch of the World of Warcraft Session, time and memory | As F24 on `world-of-warcraft-2026-11-07_23-14-46`; note the duration in the green box and the peak working set | The Panorama as on macOS (compare with `expected\world-of-warcraft-2026-11-07_23-14-46.jpg` in the clone); the dropped Step r04_c07 = r04_c08; the duration and the peak written here. The memory budget is a quarter of the RAM, 1 to 8 GiB: the log line `Stitch starting … budget_mb=` shows it, read through `GlobalMemoryStatusEx` | To run |
+| WF17 | The other five Sessions | Stitch each one | Each as its `expected\<slug>.jpg`: the chips *1 Shot not aligned* on two NoClip Sessions, *14 Shots not aligned* on the MacBook one, none on the others | To run |
+| WF18 | Cancel mid-way | As F25 | As F25 | To run |
+| WF19 | A Session starts during a Stitch | As F26, with a Game of the machine selected and the Sessions folder set back first | As F26 | To run |
+| WF20 | Stitch again | As F27 | As F27 | To run |
+| WF21 | Preview in WebView2 | As F28: drag, scroll, arrow keys, *Fill the screen*, Esc twice, the round ✕, *Reveal*, *Done* | As F28; *Fill the screen* takes the whole screen (on Windows the OS full screen: the taskbar hides too); *Reveal* selects `panorama.jpg` in Explorer. A CSP or WebGL error in the 360° view: report it with the devtools console (right-click → Inspect in a debug build) | To run |
+| WF22 | Preview without a GPU | Quit Panowww; set `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--disable-gpu` for the user (System → Advanced system settings → Environment variables), relaunch, *Preview Panorama*; remove the variable afterwards | The flat preview image with *This window cannot show the 360° view…*, no blank window | To run |
+| WF23 | Failure with no Stitcher | As F29 on `failing\sky-2x3-2026-11-15`, with both Stitchers reset, then one set | As F29 | To run |
+| WF24 | Zip holds the Panorama | As F30 | As F30, the zip's path in code | To run |
+
 ## Release (issue 21)
 
 Two test tags, `v0.0.1-test.1` and `v0.0.1-test.2`, pushed on `feat/21-release`; their draft Releases and tags were deleted afterwards.
