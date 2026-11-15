@@ -10,12 +10,56 @@ rust-version = "1.99"
 license = "MIT"
 publish = false
 
-# The Stitch's tests align a synthetic Session; unoptimised they take minutes.
-[profile.dev.package.panowww-stitch]
-opt-level = 2
+# `just dev` is a debug build: the Stitch and every dependency (PNG
+# decoding of the Shots, JPEG encoding of the Panorama) are optimized as in
+# a release so the app stitches as fast as the released one. Our other
+# crates stay debug for quick rebuilds.
+[profile.dev.package."*"]
+opt-level = 3
 
+# The image path of the Stitch without its checks. Not every dependency:
+# Tauri compiles its devtools only with debug assertions on.
+[profile.dev.package.image]
+debug-assertions = false
+overflow-checks = false
+
+[profile.dev.package.png]
+debug-assertions = false
+overflow-checks = false
+
+[profile.dev.package.fdeflate]
+debug-assertions = false
+overflow-checks = false
+
+[profile.dev.package.miniz_oxide]
+debug-assertions = false
+overflow-checks = false
+
+[profile.dev.package.crc32fast]
+debug-assertions = false
+overflow-checks = false
+
+[profile.dev.package."simd-adler32"]
+debug-assertions = false
+overflow-checks = false
+
+[profile.dev.package."zune-jpeg"]
+debug-assertions = false
+overflow-checks = false
+
+[profile.dev.package.panowww-stitch]
+opt-level = 3
+debug-assertions = false
+overflow-checks = false
+codegen-units = 16
+
+# The Stitch's tests align a synthetic Session; unoptimised they take minutes.
+# The test profile inherits the dev one: its checks come back on here.
 [profile.test.package.panowww-stitch]
 opt-level = 2
+debug-assertions = true
+overflow-checks = true
+codegen-units = 256
 
 [workspace.lints.rust]
 unsafe_op_in_unsafe_fn = "deny"
