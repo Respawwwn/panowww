@@ -7,6 +7,7 @@ import type { PanoramaEntry } from "./generated/PanoramaEntry";
 import type { Stage } from "./generated/Stage";
 import type { StitchEvent } from "./generated/StitchEvent";
 import type { StitchMeasured } from "./generated/StitchMeasured";
+import type { StitchOptions } from "./generated/StitchOptions";
 import type { StitchProgress } from "./generated/StitchProgress";
 
 export type StageName = Stage["stage"];
@@ -245,8 +246,8 @@ export const stitch = {
     return unlisten;
   },
   /** Asks for a Stitch; `false` when a run or another Stitch is in progress. */
-  async start(folder: string): Promise<boolean> {
-    const started = await api.stitch.start(folder);
+  async start(folder: string, options: StitchOptions): Promise<boolean> {
+    const started = await api.stitch.start(folder, options);
     if (started) {
       state = startStitch(state, folder, Date.now());
     }

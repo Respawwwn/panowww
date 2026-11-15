@@ -2,7 +2,8 @@
 // The Stitch panel (spec §16.3, boards StitchIdle, StitchRunning,
 // StitchWarnings, StitchFailed, StitchFailedNoStitcher): under the
 // Session header with *Back to Session*, the top card with the title, the
-// chips and the actions of the state; on the left the six stages with
+// chips and the actions of the state; on the left the Options card, the
+// six stages with
 // their times, the card *Measured from the Shots*, the green file box or
 // the running tips or the failed hints; on the right the Shots grid with
 // the Row being aligned framed, pending Shots dimmed, amber for Shots
@@ -18,6 +19,7 @@ import Thumbnail from "../components/Thumbnail.svelte";
 import Tip from "../components/Tip.svelte";
 import { api, isAppError, type Stitcher } from "../lib/api";
 import { formatBytes, formatSeconds, formatWhen, shotLabel } from "../lib/format";
+import type { StitchOptions } from "../lib/generated/StitchOptions";
 import { nav } from "../lib/nav.svelte";
 import { preview } from "../lib/preview.svelte";
 import { run } from "../lib/run.svelte";
@@ -34,6 +36,7 @@ import {
   stageState,
   stitch,
 } from "../lib/stitch.svelte";
+import { DEFAULT_OPTIONS, optionsFor, optionsOfEntry, withOptions } from "../lib/stitchOptions";
 import {
   type CellStates,
   cellState,
@@ -49,6 +52,7 @@ import {
 } from "../lib/stitchView";
 import { interpolate, plural, splitPlaceholders, strings } from "../lib/strings";
 import { windows } from "../lib/windows.svelte";
+import OptionsCard from "./stitch/OptionsCard.svelte";
 
 type Props = { gameId: string; folder: string };
 
@@ -131,6 +135,24 @@ $effect(() => {
 });
 
 const game = $derived(view?.game ?? null);
+
+/** The Options card: what made the Panorama on disk, else what the Game
+ * remembers; changes are remembered for the Game. */
+let options = $state<StitchOptions>({ ...DEFAULT_OPTIONS });
+$effect(() => {
+  const loaded = view;
+  if (!loaded) {
+    return;
+  }
+  const onDisk = stitch.entryFor(folder) ?? loaded.panorama;
+  options = onDisk ? optionsOfEntry(onDisk) : optionsFor(settings.value, loaded.game.id);
+});
+
+function rememberOptions(next: StitchOptions) {
+  if (game) {
+    void settings.save(withOptions(settings.value, game.id, next)).catch(() => {});
+  }
+}
 const rows = $derived(game?.rows ?? 0);
 const shotsPerRow = $derived(game?.shotsPerRow ?? 0);
 const total = $derived(rows * shotsPerRow);
@@ -235,7 +257,11 @@ const measured = $derived.by(() => {
 const panoramaFile = $derived(entry?.file ?? "panorama.jpg");
 const doneSegments = $derived(splitPlaceholders(s.done.file, ["file"]));
 const replaceSegments = $derived(splitPlaceholders(s.actions.replace, ["file"]));
-const unalignedSegments = $derived(splitPlaceholders(s.unaligned.box, ["list"]));
+/** The Panorama's unaligned Shots were left out rather than placed. */
+const leftOut = $derived(entry?.unalignedShots === "leaveOut");
+const unalignedSegments = $derived(
+  splitPlaceholders(leftOut ? s.unaligned.boxLeftOut : s.unaligned.box, ["list"]),
+);
 const droppedSegments = $derived(splitPlaceholders(s.dropped.box, ["pairs"]));
 
 const unalignedRefs = $derived(
@@ -292,7 +318,7 @@ async function start() {
   actionError = null;
   zipped = null;
   try {
-    await stitch.start(folder);
+    await stitch.start(folder, options);
   } catch (error) {
     actionError = isAppError(error) ? error.message : String(error);
   }
@@ -389,7 +415,7 @@ async function openIn(stitcher: Stitcher) {
       <div class="acts">
         <Button variant="primary" disabled={stitchDisabled} onclick={start}>
           <Icon name="stitch" size={14} />
-          {strings.session.end.stitch}
+          {s.actions.start}
         </Button>
         {@render openInButtons(false)}
       </div>
@@ -441,7 +467,7 @@ async function openIn(stitcher: Stitcher) {
         <div class="titleRow">
           <h2>{title}</h2>
           {#if mode === "finished" && unalignedRefs.length > 0}
-            <Chip tone="warn"><Icon name="warn" size={13} />{plural(s.unaligned.chip, unalignedRefs.length)}</Chip>
+            <Chip tone="warn"><Icon name="warn" size={13} />{plural(leftOut ? s.unaligned.chipLeftOut : s.unaligned.chip, unalignedRefs.length)}</Chip>
           {/if}
           {#if mode === "finished" && droppedPairs.length > 0}
             <Chip tone="warn"><Icon name="warn" size={13} />{plural(s.dropped.chip, droppedPairs.length)}</Chip>
@@ -477,6 +503,17 @@ async function openIn(stitcher: Stitcher) {
 
     <div class="columns">
       <div class="left">
+        <OptionsCard
+          {options}
+          running={mode === "running"}
+          startLabel={mode === "finished" ? strings.session.end.stitchAgain : mode === "failed" ? s.actions.tryAgain : s.actions.start}
+          startDisabled={stitchDisabled}
+          onchange={(next) => (options = next)}
+          oncommit={rememberOptions}
+          onstart={mode === "finished" ? askAgain : start}
+          oncancel={cancel}
+        />
+
         <section class="card stages">
           {#each stageRows as row (row.name)}
             <div class="stage {row.state}">
@@ -577,7 +614,7 @@ async function openIn(stitcher: Stitcher) {
                 {#if segment.kind === "slot"}{#each unalignedRefs as ref, j (refLabel(ref))}{#if j > 0}{j === unalignedRefs.length - 1 ? ` ${s.shots.and} ` : ", "}{/if}<code>{refLabel(ref)}</code>{/each}{:else}{segment.text}{/if}
               {/each}
             </div>
-            <Tip text={s.shots.legendUnaligned} />
+            <Tip text={leftOut ? s.shots.legendLeftOut : s.shots.legendUnaligned} />
           {/if}
           {#if droppedPairs.length > 0 && entry}
             <div class="tipbox warn">

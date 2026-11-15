@@ -47,7 +47,8 @@ test("the Stitch commands and the Experimental switch go through as the Rust sid
     return cmd === "stitch_phase" ? { phase: "idle" } : cmd === "stitch_session" ? true : null;
   });
 
-  expect(await api.stitch.start("/S/a")).toBe(true);
+  const options = { antiGhost: false, unalignedShots: "leaveOut" as const, jpegQuality: 92 };
+  expect(await api.stitch.start("/S/a", options)).toBe(true);
   await api.stitch.cancel();
   expect(await api.stitch.phase()).toEqual({ phase: "idle" });
   await api.stitch.preview("/S/a");
@@ -61,7 +62,7 @@ test("the Stitch commands and the Experimental switch go through as the Rust sid
     "panorama_preview",
     "save_settings",
   ]);
-  expect(seen[0]?.args).toEqual({ folder: "/S/a" });
+  expect(seen[0]?.args).toEqual({ folder: "/S/a", options });
   expect(seen[3]?.args).toEqual({ folder: "/S/a" });
   const saved = seen[4]?.args as { settings: { experimental: { stitch: boolean } } } | undefined;
   expect(saved?.settings.experimental).toEqual({ stitch: true });

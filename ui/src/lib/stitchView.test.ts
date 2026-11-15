@@ -30,6 +30,8 @@ const entry: PanoramaEntry = {
   unaligned: [],
   droppedSteps: [],
   antiGhost: true,
+  unalignedShots: "placeFromGrid",
+  jpegQuality: 100,
 };
 
 const grid = (startPole: "nadir" | "zenith") => ({ rows: 7, shotsPerRow: 14, startPole });

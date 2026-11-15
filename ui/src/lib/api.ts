@@ -24,6 +24,7 @@ import type { Settings } from "./generated/Settings";
 import type { StitchEvent } from "./generated/StitchEvent";
 import type { Stitcher } from "./generated/Stitcher";
 import type { StitcherCheck } from "./generated/StitcherCheck";
+import type { StitchOptions } from "./generated/StitchOptions";
 import type { StitchPhase } from "./generated/StitchPhase";
 import type { UpdateInfo } from "./generated/UpdateInfo";
 import type { Zone } from "./generated/Zone";
@@ -143,7 +144,8 @@ export const api = {
      * run is in progress or a Stitch already runs (the request is ignored).
      * Everything after arrives on `onEvent`.
      */
-    start: (folder: string) => invoke<boolean>("stitch_session", { folder }),
+    start: (folder: string, options: StitchOptions) =>
+      invoke<boolean>("stitch_session", { folder, options }),
     /** Stops the Stitch; nothing is written. A no-op while idle. */
     cancel: () => invoke<void>("stitch_cancel"),
     phase: () => invoke<StitchPhase>("stitch_phase"),

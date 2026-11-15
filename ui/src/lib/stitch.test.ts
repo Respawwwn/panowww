@@ -29,6 +29,8 @@ const entry: PanoramaEntry = {
   unaligned: [],
   droppedSteps: [],
   antiGhost: true,
+  unalignedShots: "placeFromGrid",
+  jpegQuality: 100,
 };
 
 const progress = (

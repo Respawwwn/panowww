@@ -214,22 +214,11 @@ const panoramaValues = $derived.by(
       : {},
 );
 
-/** Opens the Stitch panel; when `start`, asks for the Stitch first. */
-async function openStitch(start: boolean) {
-  if (!folder) {
-    return;
+/** Opens the Stitch panel: the Stitch starts there, after its options. */
+function openStitch() {
+  if (folder) {
+    nav.showStitch(game.id, folder);
   }
-  actionError = null;
-  if (start) {
-    const started = await stitch.start(folder).catch((error: unknown) => {
-      actionError = isAppError(error) ? error.message : String(error);
-      return false;
-    });
-    if (!started) {
-      return;
-    }
-  }
-  nav.showStitch(game.id, folder);
 }
 
 /** The preview window over the app (spec §16.4). */
@@ -293,12 +282,12 @@ async function back() {
   <div class="actions">
     {#each actions as action (action.id === "openIn" ? `openIn-${action.stitcher}` : action.id)}
       {#if action.id === "stitch"}
-        <Button variant="primary" disabled={stitchDisabled} onclick={() => openStitch(true)}>
+        <Button variant="primary" disabled={!folder} onclick={openStitch}>
           <Icon name="stitch" size={14} />
           {strings.session.end.stitch}
         </Button>
       {:else if action.id === "stitching"}
-        <Button variant="primary" onclick={() => openStitch(false)}>
+        <Button variant="primary" onclick={openStitch}>
           <Icon name="stitch" size={14} />
           {interpolate(strings.session.end.stitching, { pct: percent(stitch.running?.progress ?? null) })}
         </Button>
@@ -308,7 +297,7 @@ async function back() {
           {strings.session.end.previewPanorama}
         </Button>
       {:else if action.id === "stitchPanel"}
-        <Button disabled={!folder} onclick={() => openStitch(false)}>
+        <Button disabled={!folder} onclick={openStitch}>
           <Icon name="stitch" size={14} />
           {strings.session.end.stitch}
         </Button>
@@ -357,8 +346,8 @@ async function back() {
             {#if segment.kind === "text"}{segment.text}{:else if segment.name === "stitchHere"}<button
                 type="button"
                 class="lnk"
-                disabled={stitchDisabled}
-                onclick={() => openStitch(true)}>{strings.session.end.next.stitchHere}</button
+                disabled={!folder}
+                onclick={openStitch}>{strings.session.end.next.stitchHere}</button
               >{:else}{#each stitchers as stitcher, j (stitcher)}{#if j > 0}{strings.session.end.next.or}{/if}<button
                   type="button"
                   class="lnk"

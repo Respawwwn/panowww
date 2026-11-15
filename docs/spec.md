@@ -806,20 +806,21 @@ Decided on the Stitch map (local, 2026-11-13 and 2026-11-14): three research not
 
 ### 16.1 Scope and switch
 
-The **Stitch** (GLOSSARY) assembles a completed Session's Shots into a **Panorama** inside Panowww. It is experimental: `experimental.stitch` in `settings.json`, `false` by default, shown as the switch *Stitch in Panowww* in a new **Experimental** card of Settings (title, chip *Beta*, the line `settings.experimental.intro`, the switch and its hint; no CPU or memory warning). With the switch on, the Stitchers card's second line reads `settings.stitchersNoteExperimental` instead of `settings.stitchersNote`. Leaving Experimental is a release decision, no migration. **Completed Sessions only.** Nothing is adjustable in this version: anti-ghost always on, unaligned Shots always kept, JPEG quality always 100 (options come later behind a pre-start state, §16.10). Both OSes in the same release; Windows checked by hand before announcing. No speed or quality promise in the UI; the finished line shows the real duration.
+The **Stitch** (GLOSSARY) assembles a completed Session's Shots into a **Panorama** inside Panowww. It is experimental: `experimental.stitch` in `settings.json`, `false` by default, shown as the switch *Stitch in Panowww* in a new **Experimental** card of Settings (title, chip *Beta*, the line `settings.experimental.intro`, the switch and its hint; no CPU or memory warning). With the switch on, the Stitchers card's second line reads `settings.stitchersNoteExperimental` instead of `settings.stitchersNote`. Leaving Experimental is a release decision, no migration. **Completed Sessions only.** Three options, in the panel's Options card (§16.3): anti-ghost (default on), the Shots without control points placed from the grid (default) or left out, JPEG quality 50–100 (default 100). Each Game remembers its own in `settings.json` under `experimental.stitchOptions`, keyed by the Game's id, not in the Game file: older Panowww versions refuse a Game or a Session with fields they do not know. They move into the Game file, with a version bump, if the Stitch leaves Experimental. Both OSes in the same release; Windows checked by hand before announcing. No speed or quality promise in the UI; the finished line shows the real duration.
 
 ### 16.2 Session end with the switch on
 
-The actions row of a completed Session starts with **Stitch** (primary), then *Open in PTGui* / *Open in Autopano Giga* per Stitcher set, *Zip Session*, *Reveal*. Once a Panorama exists the primary becomes **Preview Panorama**, followed by *Stitch again* (outlined); the summary card shows `session.end.panorama`. While a Stitch runs the button reads `session.end.stitching` and reopens the panel. The *Next* line is clickable and has four variants: switch on with Stitchers set (`session.end.next.stitchAndOpen`), on without (`.stitchOrDrop`), off with (`.openIn`), off without (`.drop`, today's text); `{stitchHere}` opens the Stitch, `{stitchers}` are the Stitchers set, underlined, acting like the *Open in…* buttons. *Stitch* is disabled during a countdown or a run.
+The actions row of a completed Session starts with **Stitch** (primary, opens the panel: nothing starts before *Start Stitch* there), then *Open in PTGui* / *Open in Autopano Giga* per Stitcher set, *Zip Session*, *Reveal*. Once a Panorama exists the primary becomes **Preview Panorama**, followed by *Stitch again* (outlined); the summary card shows `session.end.panorama`. While a Stitch runs the button reads `session.end.stitching` and reopens the panel. The *Next* line is clickable and has four variants: switch on with Stitchers set (`session.end.next.stitchAndOpen`), on without (`.stitchOrDrop`), off with (`.openIn`), off without (`.drop`, today's text); `{stitchHere}` opens the panel, `{stitchers}` are the Stitchers set, underlined, acting like the *Open in…* buttons. *Start Stitch* in the panel is disabled during a countdown or a run.
 
 ### 16.3 The Stitch panel
 
 The Stitch lives in the **right panel**, under the Session header (state chip, Game name, **Back to Session**), the sidebar dimmed while it runs; only the preview is a window over the app. States:
-- **Not started**: title `stitch.title.idle`, sub-line `stitch.subtitle` and `stitch.willWrite`, six pending stages, the measured card with `stitch.measured.pending`, the plain Shots grid, one primary **Stitch** button. The Stitch never starts on its own.
+- **Options card**, on the left above the stages, in every state: `stitch.options.title`; the switch *Anti-ghost* with `stitch.options.antiGhostHint`; *Shots without control points* as a two-way switch *Place from the grid* / *Leave out*, the latter with `stitch.options.leaveOutHint`; *JPEG quality* as three buttons 100 % / 95 % / 90 % above a slider of whole percents from 50 to 100 with its value: the buttons only move the slider, the matching one highlighted, none in between. At the bottom, the card's own button: *Start Stitch*, *Stitch again* once a Panorama exists (the same inline question as the actions row), *Try again* after a failure; while a Stitch runs the choices are greyed out and the button is *Cancel*. The card opens on the options of the Panorama on disk, else on the Game's; every change is remembered for the Game (the slider once released).
+- **Not started**: title `stitch.title.idle`, sub-line `stitch.subtitle` and `stitch.willWrite`, six pending stages, the measured card with `stitch.measured.pending`, the plain Shots grid; **Start Stitch** (primary) in the actions row, with the *Open in…* buttons. The Stitch never starts on its own.
 - **In progress**: progress bar, percentage and *Cancel* in the top card; stages (`stitch.stage.*`) with their times, the current one with `Align · Row {row} of {rows}`; the card *Measured from the Shots* (field of view, turn Step, pitch Step, start pole, closing turn, drift: all measured, nothing taken from the Game); the Shots grid with the current Row framed purple and pending Shots dimmed, caption `stitch.shots.aligning`; `stitch.progress.time` and `stitch.progress.cores`. *Back to Session* leaves the panel, the Stitch goes on.
 - **Cancelled**: back to *not started* with `stitch.cancelled.byYou`, or `stitch.cancelled.session` when a Session started. Nothing written.
 - **Finished**: `stitch.title.finished`; actions **Preview Panorama** (primary), *Reveal* (selects `panorama.jpg`), *Stitch again* (outlined; asks `stitch.actions.replace` inline, only when the file exists, then starts at once); the green box `stitch.done.file` with a *Reveal* button on the left. The panel stays finished after the preview closes.
-- **Finished with warnings**: amber chip `stitch.unaligned.chip` and, under the Shots grid, the amber box `stitch.unaligned.box` in PTGui's words, the Shots named in code and amber in the grid; the same for dropped Steps (`stitch.dropped.chip`, `stitch.dropped.box`).
+- **Finished with warnings**: amber chip `stitch.unaligned.chip` and, under the Shots grid, the amber box `stitch.unaligned.box` in PTGui's words (`.chipLeftOut`, `.boxLeftOut` and `stitch.shots.legendLeftOut` when they were left out), the Shots named in code and amber in the grid; the same for dropped Steps (`stitch.dropped.chip`, `stitch.dropped.box`).
 - **Failed**: `stitch.title.failed`, red chip; the red box under the Shots grid: `stitch.failed.tooFew` with the unlinked Shots red, or `stitch.failed.other` for any other error with its message. With a Stitcher set: *Open in PTGui* (primary), *Open in Autopano Giga*, *Try again*, and the hint box `stitch.failed.stitcherHint` with the same *Open in…* buttons inside; without: *Zip Session* (primary), *Try again*, the box `stitch.failed.noStitcher` with the button `stitch.failed.setOne`. Under the card in both cases, `stitch.failed.fixGame`.
 
 The panel's remaining time is estimated in the UI from the stage ratios measured on the spike (read 7 %, Overlaps 20 %, align 30 %, render 25 %, blend 15 %, save 3 %), refined by the elapsed time.
@@ -828,7 +829,7 @@ The panel's remaining time is estimated in the UI from the stage ratios measured
 
 **Preview**: a window over the dimmed app (1040 × 680 like Settings): Photo Sphere Viewer (MIT, the viewer Respawwwn's site uses, bundled by Vite, no CDN) filling it, fed by `panorama_preview` as a data URL; drag to look around, scroll to zoom, arrow keys, *Fill the screen* (the app window in full screen, macOS simple full screen without a Space of its own, and the viewer over all of it: the Panorama alone with *Reduce the window* bottom left and a round close button top right; Esc reduces, a second Esc closes), the path in code with `stitch.preview.fov`, *Reveal* and *Done*; the title bar names the Game, with a green chip `stitch.preview.chip` saying when the Panorama was stitched. Without WebGL (WebView2 on a machine with no GPU) the flat preview image and `stitch.preview.noWebgl`.
 
-**Files**, written by `store` atomically into the Session folder: `panorama.jpg`, JPEG quality 100, 2:1, width = 2π × measured focal length rounded down to a multiple of 64, height = half, no cap, centre = the Session's start heading, horizon straightened; a GPano XMP packet in the APP1 segment (`ProjectionType=equirectangular`, `UsePanoramaViewer`, the four `CroppedArea*` and two `FullPano*`, `InitialViewHeadingDegrees=0`, `InitialViewPitchDegrees=0`, `StitchingSoftware` "Panowww {version}", `SourcePhotosCount`, `FirstPhotoDate`, `LastPhotoDate`; no `PoseHeadingDegrees`) written with `img-parts`; `panorama-preview.jpg`, the same image at most 8192 px wide, quality 90, for the viewer. `session.json` gains:
+**Files**, written by `store` atomically into the Session folder: `panorama.jpg`, at the card's JPEG quality, 2:1, width = 2π × measured focal length rounded down to a multiple of 64, height = half, no cap, centre = the Session's start heading, horizon straightened; a GPano XMP packet in the APP1 segment (`ProjectionType=equirectangular`, `UsePanoramaViewer`, the four `CroppedArea*` and two `FullPano*`, `InitialViewHeadingDegrees=0`, `InitialViewPitchDegrees=0`, `StitchingSoftware` "Panowww {version}", `SourcePhotosCount`, `FirstPhotoDate`, `LastPhotoDate`; no `PoseHeadingDegrees`), and a second description in the namespace `https://github.com/Respawwwn/panowww/ns/stitch/1.0/` with `Panowww:AntiGhost`, `Panowww:UnalignedShots`, `Panowww:JpegQuality`, written with `img-parts`; `panorama-preview.jpg`, the same image at most 8192 px wide, quality 90, for the viewer. `session.json` gains:
 
 ```json
 "panorama": {
@@ -838,11 +839,11 @@ The panel's remaining time is estimated in the UI from the stage ratios measured
   "fieldOfViewDeg": 90.0, "turnStepDeg": 25.2, "pitchStepDeg": 25.2,
   "startPoleOffsetDeg": 19.0, "closingTurnDeg": 0.4, "driftDeg": 0.3,
   "unaligned": ["r07_c03.png"], "droppedSteps": [["r04_c07.png", "r04_c08.png"]],
-  "antiGhost": true
+  "antiGhost": true, "unalignedShots": "placeFromGrid", "jpegQuality": 100
 }
 ```
 
-A second Stitch overwrites both files and the block. *Delete Session* removes them with the folder. **Zip Session includes the Panorama** when it exists. The Sessions tables do not change in this version.
+A block written before the options reads as `placeFromGrid` and 100. Left out, the unaligned Shots stay named in `unaligned`; the pixels only they would have taken are black, the rest of the render is the same. A second Stitch overwrites both files and the block. *Delete Session* removes them with the folder. **Zip Session includes the Panorama** when it exists. The Sessions tables do not change in this version.
 
 ### 16.5 Architecture
 
@@ -860,7 +861,7 @@ The known grid is the prior that says where to look; every value below is measur
 4. **Overlaps**: matches by patch correlation between the four grid neighbours, the neighbour warped into the Shot's view through the current poses, coarse to fine (1/8 ±30 px, 1/4 ±16, 1/2 ±10, 1/2 ±4), up to 12 centres per pair spread over the overlap, patch radius adapted to thin bands, flat patches skipped, outliers rejected against the pair's median shift, accepted at NCC ≥ 0.45.
 5. **Align**: bundle adjustment on the **gimbal model**, one pitch per Row, one yaw per Shot, one focal length, no roll; Huber-weighted ray-space residuals; priors that damp each pass around its starting estimate, tight (0.3°) on the yaw of pole Rows; then a free small rotation per Shot (σ 0.6°) with two more matching rounds. **Unaligned Shots** (no accepted match) keep their grid pose with their neighbours' measured values and are reported. **Failure**: too few linked Shots to measure the field of view (`TooFewLinked`).
 6. **Render**: equirectangular inverse mapping by bands; label = nearest optical axis among the Shots that see the pixel; **seam finder** by minimum-error boundary at 1/4 resolution between the two Shots of each adjacent label pair, lifted to full resolution (no graph cut in this version).
-7. **Blend** (anti-ghost): one Shot per pixel, Burt–Adelson multi-band blend (six bands) on the seam masks, so Shots mix only across the seam line and nothing misaligned is averaged.
+7. **Blend**: one Shot per pixel (the seam finder of step 6 is the anti-ghost option; off, Shots meet halfway between their centres), Burt–Adelson multi-band blend (six bands) on the seam masks, so Shots mix only across the seam line and nothing misaligned is averaged.
 8. **Save**: `store` writes the files and the block.
 
 ### 16.7 Strings
@@ -893,6 +894,10 @@ The known grid is the prior that says where to look; every value below is measur
 | `stitch.stage.read` / `.overlaps` / `.align` / `.alignRow` / `.render` / `.blend` / `.save` | stages card | line | Read the Shots / Find the Overlaps / Align / Align · Row {row} of {rows} / Render the sphere / Blend the seams / Save 360° panorama |
 | `stitch.progress.time` | under the stages | tip | {elapsed} elapsed · about {left} left |
 | `stitch.progress.cores` | under the stages | tip | Uses every core. The game can keep running: nothing is captured. |
+| `stitch.options.title` | Options card | section | Options |
+| `stitch.options.antiGhost` / `.antiGhostHint` | Options card | switch / tip | Anti-ghost / Shots meet where they agree best, so a moving object is not doubled. |
+| `stitch.options.unaligned` / `.placeFromGrid` / `.leaveOut` / `.leaveOutHint` | Options card | label / segments / tip | Shots without control points / Place from the grid / Leave out / What only these Shots saw stays black. |
+| `stitch.options.quality` / `.percent` | Options card | label / value | JPEG quality / {n} % |
 | `stitch.measured.title` | measured card | section | Measured from the Shots |
 | `stitch.measured.pending` | measured card, before align | tip | Field of view, Steps and drift, once the Stitch runs. Nothing is taken from the Game's numbers. |
 | `stitch.measured.rows` / `.shotsPerRow` | measured card, first two lines | label | Rows / Shots per Row (the Session's grid, the Stitch's starting guess) |
@@ -905,11 +910,12 @@ The known grid is the prior that says where to look; every value below is measur
 | `stitch.shots.aligning` | Shots card caption | fragment | Row {row} of {rows} · {k} / {n} Shots aligned |
 | `stitch.shots.aligned` | Shots card caption | fragment | {n} / {n} Shots aligned |
 | `stitch.shots.legend` | under the grid, running | tip | Row 1 is the start pole of this Game, the {pole}. The framed Row is being aligned; dimmed Shots are waiting. |
-| `stitch.shots.legendUnaligned` | under the grid, finished | tip | Amber: Shots placed from the grid, not aligned. |
+| `stitch.shots.legendUnaligned` / `.legendLeftOut` | under the grid, finished | tip | Amber: Shots placed from the grid, not aligned. / Amber: Shots left out, without control points. |
 | `stitch.shots.legendFailed` | under the grid, failed | tip | Red: Shots without any control points. They look alike: sky, fog, a dark scene, or a camera that did not move. |
 | `stitch.done.file` | green box | box green | {file} created in {duration} (the file name as code; its size is in the card above) |
 | `stitch.unaligned.chip` | top card | chip amber | {n} Shots not aligned (1 Shot not aligned) |
 | `stitch.unaligned.box` | under the grid | box amber | Panowww was unable to detect control points for some of the Shots. {list} do not have any control points linking them to the other Shots, so they were placed from the grid, not aligned. |
+| `stitch.unaligned.chipLeftOut` / `.boxLeftOut` | top card / under the grid | chip / box amber | {n} Shots left out (1 Shot left out) / … so they were left out: what only they saw is black. |
 | `stitch.dropped.chip` | top card | chip amber | {n} Steps did not move (1 Step did not move) |
 | `stitch.dropped.box` | under the grid | box amber | The camera did not move for some Steps. {pairs} are the same image, so that Row turned {deg}° short and its last Shots were placed by their neighbours. |
 | `stitch.failed.tooFew` | under the grid | box red | Too few Shots could be linked. Panowww was unable to detect control points for {k} of the {n} Shots, so the field of view cannot be measured and the sphere cannot be placed. |
@@ -920,6 +926,7 @@ The known grid is the prior that says where to look; every value below is measur
 | `stitch.failed.fixGame` | under the card | tip | To fix the Game itself, run Check overlap, then capture a new Session. |
 | `stitch.cancelled.byYou` | under the Stitch button | line | Stopped. Nothing was saved. |
 | `stitch.cancelled.session` | under the Stitch button | line | Stopped: a Session started. Nothing was saved. |
+| `stitch.actions.start` | actions row and Options card, not started | button primary | Start Stitch |
 | `stitch.actions.cancel` / `.tryAgain` / `.replace` / `.backToSession` / `.done` / `.fill` / `.reduce` | buttons | button | Cancel / Try again / Replace {file}? / Back to Session / Done / Fill the screen / Reduce the window |
 | `stitch.preview.title` | preview window | window title | Panorama |
 | `stitch.preview.chip` | preview window, title bar | chip green | Stitched {when} |
@@ -949,7 +956,7 @@ F23 the Experimental switch changes the actions row and the *Next* line; F24 Sti
 
 ### 16.10 Later
 
-A pre-start state when the person clicks *Stitch*, with the options: anti-ghost on / off, unaligned Shots kept from the grid / left out, JPEG quality. A Panorama mark or *Preview* action on the Sessions tables once the Stitch leaves Experimental. Interrupted Sessions. A `wgpu` render if 4K Shots push the multi-band render past a few seconds.
+More options: output width, lossless PNG. A Panorama mark or *Preview* action on the Sessions tables once the Stitch leaves Experimental. Interrupted Sessions. A `wgpu` render if 4K Shots push the multi-band render past a few seconds.
 
 ## Appendix A: App constants
 

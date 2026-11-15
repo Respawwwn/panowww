@@ -10,6 +10,7 @@ import type { RunKindDto } from "./generated/RunKindDto";
 import type { SessionSummary } from "./generated/SessionSummary";
 import type { Settings } from "./generated/Settings";
 import type { StitchEvent } from "./generated/StitchEvent";
+import type { StitchOptions } from "./generated/StitchOptions";
 import { applyRunEvent } from "./run.svelte";
 import { defaultSettings } from "./settings.svelte";
 import { stitch } from "./stitch.svelte";
@@ -219,7 +220,7 @@ export function installMock(): void {
       case "runner_phase":
         return "idle";
       case "stitch_session":
-        simulateStitch(String(args.folder));
+        simulateStitch(String(args.folder), args.options as StitchOptions);
         return true;
       case "stitch_cancel":
         return null;
@@ -285,7 +286,7 @@ function sample(x: number): string {
  * stages at the spike's shares, then Finished with two Shots placed from
  * the grid; a folder ending in `_19-48-00` fails with too few links.
  */
-function simulateStitch(folder: string): void {
+function simulateStitch(folder: string, options: StitchOptions): void {
   const rows = 6;
   const steps: StitchEvent[] = [];
   const stage = (s: StitchEvent & { event: "progress" }) => steps.push(s);
@@ -385,7 +386,7 @@ function simulateStitch(folder: string): void {
           driftDeg: 0.26,
           unaligned: ["r06_c03.png", "r06_c09.png"],
           droppedSteps: [["r04_c07.png", "r04_c08.png"]],
-          antiGhost: true,
+          ...options,
         },
       };
   const all = failing
@@ -551,6 +552,8 @@ function sampleSessions(entries: GameEntry[]): SessionSummary[] {
             unaligned: [],
             droppedSteps: [],
             antiGhost: true,
+            unalignedShots: "placeFromGrid",
+            jpegQuality: 100,
           },
         }
       : {}),

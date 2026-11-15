@@ -493,6 +493,18 @@ export const strings = {
       time: "{elapsed} elapsed · about {left} left",
       cores: "Uses every core. The game can keep running: nothing is captured.",
     },
+    options: {
+      title: "Options",
+      antiGhost: "Anti-ghost",
+      antiGhostHint: "Shots meet where they agree best, so a moving object is not doubled.",
+      unaligned: "Shots without control points",
+      placeFromGrid: "Place from the grid",
+      leaveOut: "Leave out",
+      leaveOutHint: "What only these Shots saw stays black.",
+      quality: "JPEG quality",
+      /** The slider's value and each preset button. */
+      percent: "{n} %",
+    },
     measured: {
       title: "Measured from the Shots",
       /** The grid of the Session, the Stitch's starting guess: first in the card. */
@@ -528,6 +540,7 @@ export const strings = {
       legend:
         "Row 1 is the start pole of this Game, the {pole}. The framed Row is being aligned; dimmed Shots are waiting.",
       legendUnaligned: "Amber: Shots placed from the grid, not aligned.",
+      legendLeftOut: "Amber: Shots left out, without control points.",
       legendFailed:
         "Red: Shots without any control points. They look alike: sky, fog, a dark scene, or a camera that did not move.",
     },
@@ -537,6 +550,10 @@ export const strings = {
     },
     unaligned: {
       chip: { one: "1 Shot not aligned", other: "{n} Shots not aligned" },
+      /** The same Shots when the Options card left them out. */
+      chipLeftOut: { one: "1 Shot left out", other: "{n} Shots left out" },
+      boxLeftOut:
+        "Panowww was unable to detect control points for some of the Shots. {list} do not have any control points linking them to the other Shots, so they were left out: what only they saw is black.",
       box: "Panowww was unable to detect control points for some of the Shots. {list} do not have any control points linking them to the other Shots, so they were placed from the grid, not aligned.",
     },
     dropped: {
@@ -559,6 +576,8 @@ export const strings = {
     },
     actions: {
       cancel: "Cancel",
+      /** The idle panel's primary button, in the actions row and the Options card. */
+      start: "Start Stitch",
       tryAgain: "Try again",
       /** `{file}` is drawn as code where the layout allows. */
       replace: "Replace {file}?",
