@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { interpolate, splitKeyCaps, splitPlaceholders, strings } from "./strings";
+import { interpolate, plural, splitKeyCaps, splitPlaceholders, strings } from "./strings";
 
 describe("interpolate", () => {
   test("fills every placeholder", () => {
@@ -62,6 +62,15 @@ describe("splitPlaceholders", () => {
     expect(splitPlaceholders(strings.session.end.next.drop, ["stitchHere"])).toEqual([
       { kind: "text", text: strings.session.end.next.drop },
     ]);
+  });
+});
+
+describe("plural", () => {
+  test("one Shot, two Shots", () => {
+    expect(plural(strings.stitch.unaligned.chip, 1)).toBe("1 Shot not aligned");
+    expect(plural(strings.stitch.unaligned.chip, 2)).toBe("2 Shots not aligned");
+    expect(plural(strings.stitch.dropped.chip, 1)).toBe("1 Step did not move");
+    expect(plural(strings.stitch.dropped.chip, 0)).toBe("0 Steps did not move");
   });
 });
 

@@ -907,9 +907,9 @@ The known grid is the prior that says where to look; every value below is measur
 | `stitch.shots.legendUnaligned` | under the grid, finished | tip | Amber: Shots placed from the grid, not aligned. |
 | `stitch.shots.legendFailed` | under the grid, failed | tip | Red: Shots without any control points. They look alike: sky, fog, a dark scene, or a camera that did not move. |
 | `stitch.done.file` | green box | box green | {file} created in {duration} (the file name as code; its size is in the card above) |
-| `stitch.unaligned.chip` | top card | chip amber | {n} Shots not aligned |
+| `stitch.unaligned.chip` | top card | chip amber | {n} Shots not aligned (1 Shot not aligned) |
 | `stitch.unaligned.box` | under the grid | box amber | Panowww was unable to detect control points for some of the Shots. {list} do not have any control points linking them to the other Shots, so they were placed from the grid, not aligned. |
-| `stitch.dropped.chip` | top card | chip amber | {n} Steps did not move |
+| `stitch.dropped.chip` | top card | chip amber | {n} Steps did not move (1 Step did not move) |
 | `stitch.dropped.box` | under the grid | box amber | The camera did not move for some Steps. {pairs} are the same image, so that Row turned {deg}° short and its last Shots were placed by their neighbours. |
 | `stitch.failed.tooFew` | under the grid | box red | Too few Shots could be linked. Panowww was unable to detect control points for {k} of the {n} Shots, so the field of view cannot be measured and the sphere cannot be placed. |
 | `stitch.failed.other` | under the grid | box red | {message} Nothing was saved. |

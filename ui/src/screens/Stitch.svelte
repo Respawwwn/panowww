@@ -47,7 +47,7 @@ import {
   panelMode,
   refLabel,
 } from "../lib/stitchView";
-import { interpolate, splitPlaceholders, strings } from "../lib/strings";
+import { interpolate, plural, splitPlaceholders, strings } from "../lib/strings";
 import { windows } from "../lib/windows.svelte";
 
 type Props = { gameId: string; folder: string };
@@ -443,10 +443,10 @@ async function openIn(stitcher: Stitcher) {
         <div class="titleRow">
           <h2>{title}</h2>
           {#if mode === "finished" && unalignedRefs.length > 0}
-            <Chip tone="warn"><Icon name="warn" size={13} />{interpolate(s.unaligned.chip, { n: unalignedRefs.length })}</Chip>
+            <Chip tone="warn"><Icon name="warn" size={13} />{plural(s.unaligned.chip, unalignedRefs.length)}</Chip>
           {/if}
           {#if mode === "finished" && droppedPairs.length > 0}
-            <Chip tone="warn"><Icon name="warn" size={13} />{interpolate(s.dropped.chip, { n: droppedPairs.length })}</Chip>
+            <Chip tone="warn"><Icon name="warn" size={13} />{plural(s.dropped.chip, droppedPairs.length)}</Chip>
           {/if}
           {#if mode === "failed"}
             <Chip tone="bad">{s.title.failedChip}</Chip>

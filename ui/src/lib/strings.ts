@@ -533,11 +533,11 @@ export const strings = {
       file: "{file} created in {duration}",
     },
     unaligned: {
-      chip: "{n} Shots not aligned",
+      chip: { one: "1 Shot not aligned", other: "{n} Shots not aligned" },
       box: "Panowww was unable to detect control points for some of the Shots. {list} do not have any control points linking them to the other Shots, so they were placed from the grid, not aligned.",
     },
     dropped: {
-      chip: "{n} Steps did not move",
+      chip: { one: "1 Step did not move", other: "{n} Steps did not move" },
       box: "The camera did not move for some Steps. {pairs} are the same image, so that Row turned {deg}° short and its last Shots were placed by their neighbours.",
     },
     failed: {
@@ -634,6 +634,17 @@ export function interpolate(template: string, values: InterpolationValues = {}):
     const value = values[name];
     return value === undefined ? placeholder : String(value);
   });
+}
+
+/** A counted string: `one` for exactly 1, `other` for the rest, with `{n}`. */
+export interface Plural {
+  readonly one: string;
+  readonly other: string;
+}
+
+/** Picks the form of `forms` for `n` and fills `{n}` and `values`. */
+export function plural(forms: Plural, n: number, values: InterpolationValues = {}): string {
+  return interpolate(n === 1 ? forms.one : forms.other, { n, ...values });
 }
 
 /** Which global shortcut a `[…]` marker stands for. */
