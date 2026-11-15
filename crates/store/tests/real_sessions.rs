@@ -203,8 +203,8 @@ macro_rules! real_session {
     };
 }
 
-// NoClip in a browser, 5 × 6, around 89° of field of view. One Shot of the
-// sky unaligned, placed from the grid.
+// NoClip in a browser, 5 × 6, around 89° of field of view. Two of them had
+// one sky Shot unaligned until the matcher chose its centres by texture.
 real_session!(noclip_2026_11_14_12_58_50, "noclip-2026-11-14_12-58-50");
 real_session!(noclip_2026_11_14_13_50_29, "noclip-2026-11-14_13-50-29");
 real_session!(noclip_2026_11_14_13_52_35, "noclip-2026-11-14_13-52-35");
@@ -213,8 +213,9 @@ real_session!(
     noclip_wow_2026_11_14_13_11_28,
     "noclip-wow-2026-11-14_13-11-28"
 );
-// Mario Kart in NoClip on a MacBook screen, 7 × 14: fourteen sky Shots in
-// Rows 6 and 7 that only the grid can place.
+// Mario Kart in NoClip on a MacBook screen, 7 × 14: sky Shots in Rows 6 and
+// 7 that only the grid can place, fourteen at first, four since the matcher
+// chose its centres by texture.
 real_session!(
     noclip_generic_macbook_2026_11_01_13_42_30,
     "noclip-generic-macbook-2026-11-01_13-42-30"
@@ -225,3 +226,7 @@ real_session!(
     world_of_warcraft_2026_11_07_23_14_46,
     "world-of-warcraft-2026-11-07_23-14-46"
 );
+// Rainbow Six Siege on Windows, 5 × 7 at 91°: a parking garage of white
+// walls and grey floor, where the Rows' closing pairs had one match each
+// and the front seam broke by 20 px before the matcher's texture cells.
+real_session!(r6_2026_11_15_14_31_29, "r6-2026-11-15_14-31-29");
