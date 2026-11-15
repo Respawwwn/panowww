@@ -283,7 +283,7 @@ async function back() {
     </Chip>
     <span class="name">{game.name}</span>
   </div>
-  <Button size="lg" onclick={back}>
+  <Button onclick={back}>
     <Icon name="back" />
     {strings.session.end.backToGame}
   </Button>

@@ -361,7 +361,7 @@ async function openIn(stitcher: Stitcher) {
       <span class="name">{view.game.name}</span>
     {/if}
   </div>
-  <Button size="lg" onclick={back}>
+  <Button onclick={back}>
     <Icon name="back" />
     {s.actions.backToSession}
   </Button>
