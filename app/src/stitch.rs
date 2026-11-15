@@ -12,7 +12,7 @@ use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
 
 use panowww_core::ports::CancelFlag;
-use panowww_stitch::{Grid, Limits, Stage, StitchError, StitchProgress, stitch};
+use panowww_stitch::{Grid, Limits, Stage, StitchError, StitchOptions, StitchProgress, stitch};
 use panowww_store::panorama::{FolderShotSource, write_panorama};
 use panowww_store::session::{SessionRecord, SessionStatus};
 use panowww_store::sink::SystemWallClock;
@@ -43,6 +43,8 @@ pub struct StitchSpec {
     pub folder: PathBuf,
     /// Written into the `panorama` block and the XMP.
     pub app_version: String,
+    /// The Options card's choices.
+    pub options: StitchOptions,
 }
 
 pub struct StitchOwner {
@@ -225,6 +227,7 @@ impl Worker {
             &source,
             &grid,
             &self.limits,
+            &spec.options,
             &|p| progress.report(p),
             &self.cancellation.flag,
         ) {
@@ -253,6 +256,7 @@ impl Worker {
         match write_panorama(
             &spec.folder,
             &stitched,
+            spec.options.quality(),
             &spec.app_version,
             started,
             &SystemWallClock,
@@ -422,6 +426,7 @@ mod tests {
         StitchSpec {
             folder: folder.to_owned(),
             app_version: "1.1.0-test".to_owned(),
+            options: StitchOptions::default(),
         }
     }
 

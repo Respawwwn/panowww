@@ -16,7 +16,7 @@ use std::time::Instant;
 
 use image::RgbImage;
 use panowww_core::ports::CancelFlag;
-use panowww_stitch::{Grid, Limits, ShotRef, stitch};
+use panowww_stitch::{Grid, Limits, ShotRef, StitchOptions, stitch};
 use panowww_store::panorama::{self, FolderShotSource, write_panorama};
 use panowww_store::session::{SessionRecord, shot_file_name};
 use panowww_store::sink::WallClock;
@@ -118,6 +118,7 @@ fn check(slug: &str) {
         &source,
         &grid,
         &Limits::default(),
+        &StitchOptions::default(),
         &|_| {},
         &CancelFlag::new(),
     )
@@ -155,7 +156,7 @@ fn check(slug: &str) {
     let out = tempfile::tempdir().unwrap();
     std::fs::copy(folder.join("session.json"), out.path().join("session.json")).unwrap();
     let clock = FrozenClock("2026-11-15T12:00:00+01:00[+01:00]".parse().unwrap());
-    write_panorama(out.path(), &stitched, "regression", started, &clock).unwrap();
+    write_panorama(out.path(), &stitched, 100, "regression", started, &clock).unwrap();
     let produced = out.path().join(panorama::FILE);
     let reference = fixtures.join("expected").join(format!("{slug}.jpg"));
     if std::env::var_os(WRITE).is_some() {

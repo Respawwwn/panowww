@@ -3,11 +3,14 @@
 //! preview switch, the appearance, the Stitchers' paths and the
 //! experimental switches.
 
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use panowww_core::game::NewGameDefaults;
+use panowww_stitch::StitchOptions;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
+use uuid::Uuid;
 
 use crate::StoreError;
 use crate::json::{self, Loaded};
@@ -111,12 +114,17 @@ pub struct Settings {
 }
 
 /// Features behind the Experimental card of Settings, off by default.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, TS)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct Experimental {
     /// The Stitch (spec §16): a completed Session gets a Stitch button.
     pub stitch: bool,
+    /// The Stitch's options each Game remembers, by Game id. Kept here,
+    /// not in the Game file, while the Stitch is experimental: older
+    /// Panowww versions refuse a Game with fields they do not know.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub stitch_options: BTreeMap<Uuid, StitchOptions>,
 }
 
 /// The program behind each *Open in…* button of a completed Session;
@@ -303,6 +311,14 @@ mod tests {
         };
         settings.shortcuts.start = Shortcut::new([Modifier::Alt], "KeyP");
         settings.sessions_folder = PathBuf::from("/Volumes/Shots");
+        settings.experimental.stitch_options.insert(
+            Uuid::from_u128(7),
+            StitchOptions {
+                anti_ghost: false,
+                jpeg_quality: 92,
+                ..StitchOptions::default()
+            },
+        );
         settings.save(&paths).unwrap();
         assert_eq!(Settings::load(&paths).unwrap(), settings);
     }

@@ -3,6 +3,7 @@
 
 use std::path::{Path, PathBuf};
 
+use panowww_stitch::StitchOptions;
 use tauri::State;
 
 use crate::dto::{StitchCancelReason, StitchPhase};
@@ -11,13 +12,19 @@ use crate::runner::data_url;
 use crate::state::SharedState;
 use crate::stitch::{StitchSpec, preview_path};
 
-/// Starts the Stitch of the Session in `folder`. `false` when a run is in
-/// progress or a Stitch already runs: the request is ignored.
+/// Starts the Stitch of the Session in `folder` with the Options card's
+/// choices. `false` when a run is in progress or a Stitch already runs:
+/// the request is ignored.
 #[tauri::command]
-pub fn stitch_session(state: State<'_, SharedState>, folder: String) -> bool {
+pub fn stitch_session(
+    state: State<'_, SharedState>,
+    folder: String,
+    options: StitchOptions,
+) -> bool {
     state.stitch.start(StitchSpec {
         folder: PathBuf::from(folder),
         app_version: state.version.clone(),
+        options,
     })
 }
 

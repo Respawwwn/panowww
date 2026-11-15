@@ -10,7 +10,7 @@ use std::time::Instant;
 use img_parts::jpeg::markers;
 use img_parts::jpeg::{Jpeg, JpegSegment};
 use panowww_core::ports::Frame;
-use panowww_stitch::{ShotRef, ShotSource, Stitched};
+use panowww_stitch::{ShotRef, ShotSource, StitchOptions, Stitched, UnalignedShots};
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
@@ -23,8 +23,6 @@ use crate::sink::WallClock;
 pub const FILE: &str = "panorama.jpg";
 /// File name of the preview copy, at most 8192 px wide.
 pub const PREVIEW_FILE: &str = "panorama-preview.jpg";
-/// JPEG quality of the Panorama: nothing is adjustable in this version.
-pub const JPEG_QUALITY: u8 = 100;
 /// JPEG quality of the preview copy.
 pub const PREVIEW_JPEG_QUALITY: u8 = 90;
 
@@ -62,6 +60,17 @@ pub struct PanoramaEntry {
     /// `[twin, duplicate]` Shots of a Step the game swallowed, by file name.
     pub dropped_steps: Vec<[String; 2]>,
     pub anti_ghost: bool,
+    /// What became of the `unaligned` Shots. Absent before the options:
+    /// placed from the grid.
+    #[serde(default)]
+    pub unaligned_shots: UnalignedShots,
+    /// The JPEG quality `file` was written at. Absent before the options: 100.
+    #[serde(default = "full_quality")]
+    pub jpeg_quality: u8,
+}
+
+fn full_quality() -> u8 {
+    StitchOptions::MAX_QUALITY
 }
 
 /// The Shots of one Session folder, decoded on demand from their PNG.
@@ -120,6 +129,7 @@ impl ShotSource for FolderShotSource {
 pub fn write_panorama(
     folder: &Path,
     stitched: &Stitched,
+    jpeg_quality: u8,
     app_version: &str,
     started: Instant,
     clock: &dyn WallClock,
@@ -127,8 +137,13 @@ pub fn write_panorama(
     let mut record = SessionRecord::read(folder)?;
     let report = &stitched.report;
     let path = folder.join(FILE);
-    let jpeg = encode_jpeg(&path, &stitched.panorama, JPEG_QUALITY)?;
-    let jpeg = with_xmp(&path, jpeg, &gpano_packet(&record, report, app_version))?;
+    let jpeg_quality = jpeg_quality.clamp(StitchOptions::MIN_QUALITY, StitchOptions::MAX_QUALITY);
+    let jpeg = encode_jpeg(&path, &stitched.panorama, jpeg_quality)?;
+    let jpeg = with_xmp(
+        &path,
+        jpeg,
+        &gpano_packet(&record, report, jpeg_quality, app_version),
+    )?;
     write_atomic(&path, &jpeg)?;
     let preview_path = folder.join(PREVIEW_FILE);
     let preview = encode_jpeg(&preview_path, &stitched.preview, PREVIEW_JPEG_QUALITY)?;
@@ -156,6 +171,8 @@ pub fn write_panorama(
             .map(|[twin, duplicate]| [file_name(twin), file_name(duplicate)])
             .collect(),
         anti_ghost: report.anti_ghost,
+        unaligned_shots: report.unaligned_shots,
+        jpeg_quality,
     };
     record.version = crate::session::CURRENT_VERSION;
     record.panorama = Some(entry.clone());
@@ -228,6 +245,7 @@ fn with_xmp(path: &Path, jpeg: Vec<u8>, packet: &str) -> Result<Vec<u8>, StoreEr
 fn gpano_packet(
     record: &SessionRecord,
     report: &panowww_stitch::StitchReport,
+    jpeg_quality: u8,
     app_version: &str,
 ) -> String {
     let (w, h) = (report.width, report.height);
@@ -241,6 +259,11 @@ fn gpano_packet(
     };
     let software = xml_escape(&format!("Panowww {app_version}"));
     let count = record.shots.len();
+    let anti_ghost = if report.anti_ghost { "True" } else { "False" };
+    let unaligned = match report.unaligned_shots {
+        UnalignedShots::PlaceFromGrid => "placeFromGrid",
+        UnalignedShots::LeaveOut => "leaveOut",
+    };
     format!(
         "<?xpacket begin=\"\u{feff}\" id=\"W5M0MpCehiHzreSzNTczkc9d\"?>\n\
          <x:xmpmeta xmlns:x=\"adobe:ns:meta/\">\n\
@@ -259,6 +282,11 @@ fn gpano_packet(
          \x20  <GPano:StitchingSoftware>{software}</GPano:StitchingSoftware>\n\
          \x20  <GPano:SourcePhotosCount>{count}</GPano:SourcePhotosCount>\n\
          {dates}\
+         \x20 </rdf:Description>\n\
+         \x20 <rdf:Description rdf:about=\"\" xmlns:Panowww=\"https://github.com/Respawwwn/panowww/ns/stitch/1.0/\">\n\
+         \x20  <Panowww:AntiGhost>{anti_ghost}</Panowww:AntiGhost>\n\
+         \x20  <Panowww:UnalignedShots>{unaligned}</Panowww:UnalignedShots>\n\
+         \x20  <Panowww:JpegQuality>{jpeg_quality}</Panowww:JpegQuality>\n\
          \x20 </rdf:Description>\n\
          \x20</rdf:RDF>\n\
          </x:xmpmeta>\n\

@@ -2,8 +2,8 @@
 //! into a Panorama, with no OS code and no file system.
 //!
 //! Interface: [`stitch`] takes a [`ShotSource`] (the Shots, fetched on
-//! demand), the Session's [`Grid`], the machine's [`Limits`], a progress
-//! callback and a [`CancelFlag`], and returns a [`Stitched`]: the Panorama
+//! demand), the Session's [`Grid`], the machine's [`Limits`], the
+//! [`StitchOptions`], a progress callback and a [`CancelFlag`], and returns a [`Stitched`]: the Panorama
 //! and preview pixels plus a [`StitchReport`] of what was measured from
 //! the Shots. The grid is only the starting guess: the field of view, the
 //! pitch of every Row, the heading of every Shot and the Steps the game
@@ -21,6 +21,7 @@ mod geom;
 mod grid;
 mod levels;
 mod matching;
+mod options;
 mod place_rows;
 mod render;
 mod report;
@@ -35,6 +36,7 @@ use panowww_core::ports::{CancelFlag, Frame, StoreError};
 
 pub use error::StitchError;
 pub use grid::Grid;
+pub use options::{StitchOptions, UnalignedShots};
 use render::Renderer as _;
 pub use report::{ShotRef, Stage, StageDurations, StitchMeasured, StitchProgress, StitchReport};
 
@@ -91,6 +93,7 @@ pub fn stitch(
     source: &dyn ShotSource,
     grid: &Grid,
     limits: &Limits,
+    options: &StitchOptions,
     progress: &(dyn Fn(StitchProgress) + Sync),
     cancel: &CancelFlag,
 ) -> Result<Stitched, StitchError> {
@@ -135,6 +138,12 @@ pub fn stitch(
             poses: &aligned.poses,
             f_px: aligned.f_px,
             limits: *limits,
+            anti_ghost: options.anti_ghost,
+            left_out: if options.unaligned_shots == UnalignedShots::LeaveOut {
+                &aligned.unaligned
+            } else {
+                &[]
+            },
         },
         progress,
         cancel,
@@ -166,7 +175,8 @@ pub fn stitch(
                 [refs[0], refs[1]]
             })
             .collect(),
-        anti_ghost: true,
+        anti_ghost: options.anti_ghost,
+        unaligned_shots: options.unaligned_shots,
         durations: StageDurations {
             read_ms,
             overlaps_ms: aligned.overlaps_ms,

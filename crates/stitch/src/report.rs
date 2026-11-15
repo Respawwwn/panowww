@@ -146,6 +146,8 @@ pub struct StitchReport {
     /// `[twin, duplicate]` pairs of identical consecutive Shots.
     pub dropped_steps: Vec<[ShotRef; 2]>,
     pub anti_ghost: bool,
+    /// What became of the `unaligned` Shots.
+    pub unaligned_shots: crate::UnalignedShots,
     pub durations: StageDurations,
 }
 

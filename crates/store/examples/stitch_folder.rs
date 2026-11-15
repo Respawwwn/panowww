@@ -9,7 +9,7 @@ use std::path::PathBuf;
 use std::time::Instant;
 
 use panowww_core::ports::CancelFlag;
-use panowww_stitch::{Grid, Limits, StitchProgress, stitch};
+use panowww_stitch::{Grid, Limits, StitchOptions, StitchProgress, stitch};
 use panowww_store::panorama::FolderShotSource;
 use panowww_store::session::SessionRecord;
 
@@ -53,6 +53,7 @@ fn main() {
         &source,
         &grid,
         &Limits::default(),
+        &StitchOptions::default(),
         &progress,
         &CancelFlag::new(),
     ) {

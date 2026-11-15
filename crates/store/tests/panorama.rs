@@ -13,7 +13,7 @@ use std::time::Instant;
 use panowww_core::game::{Game, NewGameDefaults, StartPole};
 use panowww_core::ports::{CancelFlag, DisplayId, Zone};
 use panowww_stitch::synthetic::{MemorySource, Perturbation, session};
-use panowww_stitch::{Grid, Limits, ShotSource, stitch};
+use panowww_stitch::{Grid, Limits, ShotSource, StitchOptions, UnalignedShots, stitch};
 use panowww_store::panorama::{self, FolderShotSource, PanoramaEntry, write_panorama};
 use panowww_store::session::{
     CURRENT_VERSION, SessionFormat, SessionRecord, SessionStatus, ShotEntry, shot_file_name,
@@ -114,11 +114,12 @@ fn a_session_folder_is_stitched_and_its_panorama_written_with_its_block() {
         &source,
         &grid,
         &Limits::default(),
+        &StitchOptions::default(),
         &|_| {},
         &CancelFlag::new(),
     )
     .unwrap();
-    let entry = write_panorama(&folder, &stitched, "1.1.0-test", started, &clock()).unwrap();
+    let entry = write_panorama(&folder, &stitched, 100, "1.1.0-test", started, &clock()).unwrap();
 
     // The files.
     let jpeg = std::fs::read(folder.join("panorama.jpg")).unwrap();
@@ -156,6 +157,9 @@ fn a_session_folder_is_stitched_and_its_panorama_written_with_its_block() {
     for expected in [
         "<GPano:ProjectionType>equirectangular</GPano:ProjectionType>".to_owned(),
         "<GPano:UsePanoramaViewer>True</GPano:UsePanoramaViewer>".to_owned(),
+        "<Panowww:AntiGhost>True</Panowww:AntiGhost>".to_owned(),
+        "<Panowww:UnalignedShots>placeFromGrid</Panowww:UnalignedShots>".to_owned(),
+        "<Panowww:JpegQuality>100</Panowww:JpegQuality>".to_owned(),
         format!(
             "<GPano:FullPanoWidthPixels>{}</GPano:FullPanoWidthPixels>",
             stitched.panorama.width
@@ -233,7 +237,15 @@ fn a_session_folder_is_stitched_and_its_panorama_written_with_its_block() {
 
     // A second Stitch replaces the files and the block.
     let later = FrozenClock("2026-11-14T17:00:00+01:00[+01:00]".parse().unwrap());
-    let again = write_panorama(&folder, &stitched, "1.1.0-test", Instant::now(), &later).unwrap();
+    let again = write_panorama(
+        &folder,
+        &stitched,
+        100,
+        "1.1.0-test",
+        Instant::now(),
+        &later,
+    )
+    .unwrap();
     assert_eq!(again.stitched_at, "2026-11-14T17:00:00+01:00");
     assert_eq!(
         SessionRecord::read(&folder)
@@ -290,6 +302,8 @@ fn a_record_without_the_block_still_loads_and_an_old_version_too() {
         unaligned: vec!["r07_c03.png".to_owned()],
         dropped_steps: vec![["r04_c07.png".to_owned(), "r04_c08.png".to_owned()]],
         anti_ghost: true,
+        unaligned_shots: UnalignedShots::LeaveOut,
+        jpeg_quality: 92,
     };
     let json = serde_json::to_string(&entry).unwrap();
     assert!(
@@ -297,6 +311,13 @@ fn a_record_without_the_block_still_loads_and_an_old_version_too() {
         "{json}"
     );
     assert_eq!(serde_json::from_str::<PanoramaEntry>(&json).unwrap(), entry);
+    // A block written before the options reads as their defaults.
+    let older = json
+        .replace(r#","unalignedShots":"leaveOut""#, "")
+        .replace(r#","jpegQuality":92"#, "");
+    let older = serde_json::from_str::<PanoramaEntry>(&older).unwrap();
+    assert_eq!(older.unaligned_shots, UnalignedShots::PlaceFromGrid);
+    assert_eq!(older.jpeg_quality, 100);
 }
 
 #[test]
@@ -329,6 +350,7 @@ fn a_missing_shot_surfaces_through_the_source_as_the_store_message() {
         &source,
         &grid,
         &Limits::default(),
+        &StitchOptions::default(),
         &|_| {},
         &CancelFlag::new(),
     )

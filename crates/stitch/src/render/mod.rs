@@ -50,6 +50,10 @@ pub struct RenderInput<'a> {
     pub poses: &'a [Rot],
     pub f_px: f64,
     pub limits: Limits,
+    /// The seam finder; off, Shots meet halfway between their centres.
+    pub anti_ghost: bool,
+    /// Shots kept out of the Panorama: what only they saw stays black.
+    pub left_out: &'a [usize],
 }
 
 /// What the render produced.
@@ -134,38 +138,29 @@ impl Renderer for CpuRenderer {
             ));
             let e0 = b0.saturating_sub(BAND_MARGIN);
             let e1 = (b1 + BAND_MARGIN).min(height);
-            let touching: Vec<usize> = (0..views.len())
+            let all: Vec<usize> = (0..views.len())
                 .filter(|&i| views[i].rows.0 < e1 && views[i].rows.1 >= e0)
                 .collect();
-            // Frames: fetch the new ones, drop the ones this band is past.
-            cache.retain(|&i, _| views[i].rows.1 >= e0);
-            let missing: Vec<usize> = touching
+            let touching: Vec<usize> = all
                 .iter()
                 .copied()
-                .filter(|i| !cache.contains_key(i))
+                .filter(|i| !input.left_out.contains(i))
                 .collect();
-            let fetched: Vec<(usize, Result<Frame, StitchError>)> = missing
-                .par_iter()
-                .map(|&i| {
-                    let (row, col) = input.source.position(i);
-                    (
-                        i,
-                        input.source.shot(i).map_err(|source| StitchError::Shot {
-                            row,
-                            col,
-                            source,
-                        }),
-                    )
-                })
-                .collect();
-            for (i, frame) in fetched {
-                cache.insert(i, Arc::new(frame?));
-            }
+            fetch_frames(input.source, &views, &touching, e0, &mut cache)?;
             let eh = e1 - e0;
             let labels = label_band(&views, &touching, &cam, width, height, e0, eh);
-            let labels = seams::refine(
-                labels, &views, &touching, &cache, &cam, width, height, e0, eh,
-            );
+            let hole = if touching.len() < all.len() {
+                hole_band(&labels, &views, &all, &cam, width, height, e0, eh)
+            } else {
+                Vec::new()
+            };
+            let labels = if input.anti_ghost {
+                seams::refine(
+                    labels, &views, &touching, &cache, &cam, width, height, e0, eh,
+                )
+            } else {
+                labels
+            };
             let blend_started = Instant::now();
             blend_band(
                 &mut out,
@@ -178,6 +173,7 @@ impl Renderer for CpuRenderer {
                 height,
                 (e0, e1),
                 (b0, b1),
+                &hole,
             );
             blend_ms += blend_started.elapsed().as_millis();
         }
@@ -266,6 +262,63 @@ fn label_band(
     labels
 }
 
+/// The frames of the Shots that touch a band: the new ones fetched in
+/// parallel, the ones the band is past dropped.
+fn fetch_frames(
+    source: &dyn ShotSource,
+    views: &[ShotView],
+    touching: &[usize],
+    e0: usize,
+    cache: &mut HashMap<usize, Arc<Frame>>,
+) -> Result<(), StitchError> {
+    cache.retain(|&i, _| views[i].rows.1 >= e0);
+    let missing: Vec<usize> = touching
+        .iter()
+        .copied()
+        .filter(|i| !cache.contains_key(i))
+        .collect();
+    let fetched: Vec<(usize, Result<Frame, StitchError>)> = missing
+        .par_iter()
+        .map(|&i| {
+            let (row, col) = source.position(i);
+            (
+                i,
+                source
+                    .shot(i)
+                    .map_err(|source| StitchError::Shot { row, col, source }),
+            )
+        })
+        .collect();
+    for (i, frame) in fetched {
+        cache.insert(i, Arc::new(frame?));
+    }
+    Ok(())
+}
+
+/// The pixels of the band a left-out Shot would have taken and no other
+/// Shot sees: `labels` were drawn without the left-out Shots, `all` holds
+/// every Shot touching the band.
+#[allow(
+    clippy::too_many_arguments,
+    reason = "the band, its Shots and its place, named"
+)]
+fn hole_band(
+    labels: &[u16],
+    views: &[ShotView],
+    all: &[usize],
+    cam: &Cam,
+    width: usize,
+    height: usize,
+    e0: usize,
+    eh: usize,
+) -> Vec<bool> {
+    label_band(views, all, cam, width, height, e0, eh)
+        .iter()
+        .zip(labels)
+        .map(|(&with, &without)| without == NO_LABEL && with != NO_LABEL)
+        .collect()
+}
+
 /// The circular range of columns a label occupies in the band, grown by a
 /// margin and aligned, as `(start, width)` with `start` possibly negative.
 fn label_box(
@@ -334,6 +387,7 @@ fn blend_band(
     height: usize,
     extended: (usize, usize),
     own: (usize, usize),
+    hole: &[bool],
 ) {
     let (e0, e1) = extended;
     let eh = e1 - e0;
@@ -426,6 +480,12 @@ fn blend_band(
         .for_each(|(jj, row)| {
             let j = b0 - e0 + jj;
             for x in 0..width {
+                // What only a left-out Shot saw stays black: the coarse
+                // levels of the blend would otherwise smear its neighbours
+                // into the hole.
+                if !hole.is_empty() && hole[j * width + x] {
+                    continue;
+                }
                 for c in 0..3 {
                     row[x * 3 + c] = result[c].d[j * width + x].round().clamp(0.0, 255.0) as u8;
                 }

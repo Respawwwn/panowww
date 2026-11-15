@@ -6,8 +6,8 @@ use panowww_core::ports::{CancelFlag, Frame, StoreError};
 use crate::geom::Cam;
 use crate::synthetic::{MemorySource, Perturbation, session};
 use crate::{
-    Grid, Limits, ShotSource, StitchError, StitchProgress, align, dropped, focal, grid, levels,
-    stitch,
+    Grid, Limits, ShotSource, StitchError, StitchOptions, StitchProgress, UnalignedShots, align,
+    dropped, focal, grid, levels, stitch,
 };
 
 fn small_grid() -> Grid {
@@ -156,7 +156,14 @@ fn a_cancel_during_read_stops_the_stitch() {
         inner,
         cancel: cancel.clone(),
     };
-    let result = stitch(&source, &grid, &Limits::default(), &no_progress, &cancel);
+    let result = stitch(
+        &source,
+        &grid,
+        &Limits::default(),
+        &StitchOptions::default(),
+        &no_progress,
+        &cancel,
+    );
     assert_eq!(result.unwrap_err(), StitchError::Cancelled);
 }
 
@@ -169,6 +176,7 @@ fn a_session_that_does_not_cover_its_grid_is_refused() {
         &source,
         &grid,
         &Limits::default(),
+        &StitchOptions::default(),
         &no_progress,
         &CancelFlag::new(),
     )
@@ -180,6 +188,7 @@ fn a_session_that_does_not_cover_its_grid_is_refused() {
         &source,
         &grid,
         &Limits::default(),
+        &StitchOptions::default(),
         &no_progress,
         &CancelFlag::new(),
     )
@@ -195,6 +204,7 @@ fn a_budget_too_small_is_refused_before_reading() {
         &source,
         &grid,
         &Limits { memory_bytes: 1000 },
+        &StitchOptions::default(),
         &no_progress,
         &CancelFlag::new(),
     )
@@ -238,6 +248,7 @@ fn a_capture_on_its_grid_renders_its_world() {
         &source,
         &grid,
         &Limits::default(),
+        &StitchOptions::default(),
         &|p| reports.lock().unwrap().push(p),
         &CancelFlag::new(),
     )
@@ -305,6 +316,7 @@ fn the_hard_capture_renders_and_reports_its_defects() {
         &source,
         &grid,
         &Limits::default(),
+        &StitchOptions::default(),
         &no_progress,
         &CancelFlag::new(),
     )
@@ -332,6 +344,66 @@ fn the_hard_capture_renders_and_reports_its_defects() {
 }
 
 #[test]
+fn the_options_change_the_render_and_are_reported() {
+    // A sparse grid like the NoClip Sessions, 5 × 6 at 90°: the middle of
+    // each Shot is seen by no other. One flat Shot on the horizon Row.
+    let grid = Grid {
+        rows: 5,
+        shots_per_row: 6,
+        start_pole: StartPole::Nadir,
+    };
+    let mut perturbation = Perturbation::none(&grid);
+    perturbation.flat_shots = vec![(3, 2)];
+    let (source, _) = session(640, 320, 90.0, &grid, &perturbation);
+    let run = |options: StitchOptions| {
+        stitch(
+            &source,
+            &grid,
+            &Limits::default(),
+            &options,
+            &no_progress,
+            &CancelFlag::new(),
+        )
+        .unwrap()
+    };
+    let black = |f: &Frame| f.rgb.chunks(3).filter(|p| p.iter().all(|&c| c < 3)).count();
+    let base = run(StitchOptions::default());
+    assert!(base.report.anti_ghost);
+    assert_eq!(base.report.unaligned_shots, UnalignedShots::PlaceFromGrid);
+    assert_eq!(
+        base.report
+            .unaligned
+            .iter()
+            .map(|s| (s.row, s.col))
+            .collect::<Vec<_>>(),
+        vec![(3, 2)]
+    );
+
+    // Without the seam finder the Shots meet halfway: other pixels.
+    let plain = run(StitchOptions {
+        anti_ghost: false,
+        ..StitchOptions::default()
+    });
+    assert!(!plain.report.anti_ghost);
+    assert_ne!(plain.panorama.rgb, base.panorama.rgb);
+
+    // The flat Shot left out: what only it saw turns black.
+    let left = run(StitchOptions {
+        unaligned_shots: UnalignedShots::LeaveOut,
+        ..StitchOptions::default()
+    });
+    assert_eq!(left.report.unaligned_shots, UnalignedShots::LeaveOut);
+    assert_eq!(left.report.unaligned.len(), 1, "still named in the report");
+    let (with, without) = (black(&base.panorama), black(&left.panorama));
+    eprintln!("black pixels: {with} placed from the grid, {without} left out");
+    let pixels = (left.panorama.width * left.panorama.height) as usize;
+    assert!(
+        without > with + pixels / 200,
+        "{with} → {without} of {pixels}"
+    );
+}
+
+#[test]
 fn a_tight_budget_renders_by_narrow_bands() {
     let grid = small_grid();
     let (source, _) = session(320, 160, 90.0, &grid, &Perturbation::none(&grid));
@@ -339,7 +411,15 @@ fn a_tight_budget_renders_by_narrow_bands() {
     let limits = Limits {
         memory_bytes: 24 * 1024 * 1024,
     };
-    let stitched = stitch(&source, &grid, &limits, &no_progress, &CancelFlag::new()).unwrap();
+    let stitched = stitch(
+        &source,
+        &grid,
+        &limits,
+        &StitchOptions::default(),
+        &no_progress,
+        &CancelFlag::new(),
+    )
+    .unwrap();
     assert!(stitched.panorama.is_well_formed());
     let psnr = psnr_against_world(&stitched.panorama, -60.0, 60.0);
     eprintln!("narrow bands PSNR against the world: {psnr:.1} dB");
@@ -562,6 +642,7 @@ fn an_all_flat_capture_has_too_few_links() {
         &source,
         &grid,
         &Limits::default(),
+        &StitchOptions::default(),
         &no_progress,
         &CancelFlag::new(),
     )
