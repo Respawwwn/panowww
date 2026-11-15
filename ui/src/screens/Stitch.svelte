@@ -862,12 +862,13 @@ async function openIn(stitcher: Stitcher) {
     font-size: 12.5px;
   }
 
-  /* The Reveal button on green: white at rest in both themes, a deeper
-     green on hover instead of the app's near-invisible hover tint. */
+  /* The Reveal button on green: white at rest in light, a soft tint in
+     dark, a deeper green on hover instead of the app's near-invisible
+     hover tint. */
   .okbox :global(.btn) {
-    background: #fff;
+    background: var(--ok-btn);
     border-color: transparent;
-    color: #1d7a40;
+    color: var(--ok-btn-fg);
   }
 
   .okbox :global(.btn:hover:not(:disabled)) {
