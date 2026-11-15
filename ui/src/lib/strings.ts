@@ -533,7 +533,7 @@ export const strings = {
       file: "{file} created in {duration}",
     },
     unaligned: {
-      chip: "{n} Shots placed from the grid",
+      chip: "{n} Shots not aligned",
       box: "Panowww was unable to detect control points for some of the Shots. {list} do not have any control points linking them to the other Shots, so they were placed from the grid, not aligned.",
     },
     dropped: {
