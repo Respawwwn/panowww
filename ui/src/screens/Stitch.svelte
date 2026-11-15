@@ -457,7 +457,7 @@ async function openIn(stitcher: Stitcher) {
           <p class="sub">{cancelledBy === "sessionStarted" ? s.cancelled.session : s.cancelled.byYou}</p>
         {/if}
         {#if actionError || zipped}
-          <p class="sub" class:bad={Boolean(actionError)}>{actionError ?? zipped}</p>
+          <p class="sub" class:bad={Boolean(actionError)}>{#if actionError}{actionError}{:else}<code title={zipped}>{zipped}</code>{/if}</p>
         {/if}
       </div>
       {#if mode === "finished" && entry}

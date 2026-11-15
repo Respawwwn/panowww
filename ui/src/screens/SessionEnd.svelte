@@ -331,7 +331,7 @@ async function back() {
     {/each}
   </div>
   {#if zipped || actionError}
-    <p class="note" class:error={Boolean(actionError)}>{actionError ?? zipped}</p>
+    <p class="note" class:error={Boolean(actionError)}>{#if actionError}{actionError}{:else}<code title={zipped}>{zipped}</code>{/if}</p>
   {/if}
 
   <section class="card summary">
