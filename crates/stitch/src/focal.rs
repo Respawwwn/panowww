@@ -10,9 +10,11 @@
     reason = "level sizes become camera parameters"
 )]
 
+use panowww_core::ports::CancelFlag;
 use rayon::prelude::*;
 
 use crate::correlate::{Window, correlate};
+use crate::error::StitchError;
 use crate::geom::{Cam, Rot, axis, pose, yaw_pitch};
 use crate::grid::{Grid, GridParams};
 use crate::levels::Pyramids;
@@ -56,14 +58,19 @@ struct Landing {
 /// one of its two neighbours when that one measures better: a camera that
 /// starts short of its pole can point the nominal horizon Row at the sky.
 /// Falls back to 90° when no Row measures three pairs.
-pub fn estimate(pyramids: &Pyramids, grid: &Grid, poses: &[Rot]) -> Focal {
+pub fn estimate(
+    pyramids: &Pyramids,
+    grid: &Grid,
+    poses: &[Rot],
+    cancel: &CancelFlag,
+) -> Result<Focal, StitchError> {
     let horizon = grid.horizon_row();
     let fallback = Focal {
         f_px: Cam::f_for_hfov(f64::from(pyramids.width), GUESS_HFOV),
         ncc: -1.0,
         measured: 0,
     };
-    let on_horizon = estimate_on_row(pyramids, grid, poses, horizon);
+    let on_horizon = estimate_on_row(pyramids, grid, poses, horizon, cancel)?;
     // The horizon Row's nominal pitch is the truest, so it is kept whenever
     // it measures at least half its pairs; the neighbours step in when it
     // looks at the sky.
@@ -71,14 +78,14 @@ pub fn estimate(pyramids: &Pyramids, grid: &Grid, poses: &[Rot]) -> Focal {
     if let Some(found) = on_horizon
         && found.measured >= enough
     {
-        return found;
+        return Ok(found);
     }
     let mut best = on_horizon;
     for row in [horizon.saturating_sub(1), horizon + 1] {
         if row < 1 || row > grid.rows {
             continue;
         }
-        if let Some(found) = estimate_on_row(pyramids, grid, poses, row)
+        if let Some(found) = estimate_on_row(pyramids, grid, poses, row, cancel)?
             && best.is_none_or(|b| found.measured as f64 * found.ncc > b.measured as f64 * b.ncc)
         {
             tracing::debug!(
@@ -91,12 +98,19 @@ pub fn estimate(pyramids: &Pyramids, grid: &Grid, poses: &[Rot]) -> Focal {
             best = Some(found);
         }
     }
-    best.unwrap_or(fallback)
+    Ok(best.unwrap_or(fallback))
 }
 
 /// The estimate on one Row; `None` when fewer than three of its pairs
-/// measure under any guess.
-fn estimate_on_row(pyramids: &Pyramids, grid: &Grid, poses: &[Rot], row: u32) -> Option<Focal> {
+/// measure under any guess. The cancel flag is read between the guesses:
+/// each one correlates every pair of the Row.
+fn estimate_on_row(
+    pyramids: &Pyramids,
+    grid: &Grid,
+    poses: &[Rot],
+    row: u32,
+    cancel: &CancelFlag,
+) -> Result<Option<Focal>, StitchError> {
     let level = 2u32;
     let l0 = pyramids.shot(0).level(level);
     let (lw, lh) = (l0.w as u32, l0.h as u32);
@@ -106,7 +120,7 @@ fn estimate_on_row(pyramids: &Pyramids, grid: &Grid, poses: &[Rot], row: u32) ->
         .filter(|&(i, j)| pyramids.position(i).0 == row && pyramids.position(j).0 == row)
         .collect();
     if pairs.len() < 3 {
-        return None;
+        return Ok(None);
     }
     // Where B's centre lands in A, found by correlating B's central patch
     // around the position a guess predicts, under each guess in turn; the
@@ -148,6 +162,9 @@ fn estimate_on_row(pyramids: &Pyramids, grid: &Grid, poses: &[Rot], row: u32) ->
     };
     let mut best: Option<(f64, Measured)> = None;
     for guess_hfov in GUESS_HFOVS {
+        if cancel.is_raised() {
+            return Err(StitchError::Cancelled);
+        }
         let results = measured_under(guess_hfov);
         let (n, ncc) = mean_ncc(&results);
         tracing::debug!(guess_hfov, measured = n, ncc, "field of view guess");
@@ -157,8 +174,12 @@ fn estimate_on_row(pyramids: &Pyramids, grid: &Grid, poses: &[Rot], row: u32) ->
             best = Some((n as f64 * ncc, results));
         }
     }
-    let (_, results) = best?;
-    let first = solve(&results, lw, lh)?;
+    let Some((_, results)) = best else {
+        return Ok(None);
+    };
+    let Some(first) = solve(&results, lw, lh) else {
+        return Ok(None);
+    };
     // Measured again under the field of view just found: the warp is now
     // nearly right, so the landings are too. The 15° grid of guesses alone
     // leaves a few percent on the focal length.
@@ -168,11 +189,11 @@ fn estimate_on_row(pyramids: &Pyramids, grid: &Grid, poses: &[Rot], row: u32) ->
     let found = solve(&again, lw, lh)
         .filter(|f| f.measured >= first.measured && (f.f_px / first.f_px - 1.0).abs() < 0.2)
         .unwrap_or(first);
-    Some(Focal {
+    Ok(Some(Focal {
         f_px: found.f_px * l0.scale,
         ncc: found.ncc,
         measured: found.measured,
-    })
+    }))
 }
 
 /// The focal length, in level pixels, that makes the landings of

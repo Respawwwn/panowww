@@ -111,10 +111,7 @@ pub fn align(
     let started = Instant::now();
     let total = pyramids.count();
     let anchor = pyramids.index_of(grid.horizon_row(), 1).unwrap_or(0);
-    let mut params = place(pyramids, grid, dropped, progress);
-    if cancel.is_raised() {
-        return Err(StitchError::Cancelled);
-    }
+    let mut params = place(pyramids, grid, dropped, progress, cancel)?;
     let pairs = pyramids.neighbour_pairs(grid);
     let passes = GIMBAL_PASSES.len() as f32;
     let mut checked = false;
@@ -196,9 +193,10 @@ fn place(
     grid: &Grid,
     dropped: &Dropped,
     progress: &(dyn Fn(StitchProgress) + Sync),
-) -> GridParams {
+    cancel: &CancelFlag,
+) -> Result<GridParams, StitchError> {
     let mut params = GridParams::nominal(pyramids, grid, &dropped.drops, 1.0);
-    let found = focal::estimate(pyramids, grid, &params.poses());
+    let found = focal::estimate(pyramids, grid, &params.poses(), cancel)?;
     params.f_px = found.f_px;
     let rechained = focal::chain_rows(pyramids, grid, &mut params);
     tracing::debug!(rechained, "Rows re-chained from their measured Steps");
@@ -220,9 +218,15 @@ fn place(
             drift_deg: None,
         }),
     );
-    let placed = place_rows(pyramids, grid, &mut params, &|f| {
-        progress(StitchProgress::new(Stage::Overlaps, 0.05 + 0.45 * f));
-    });
+    let placed = place_rows(
+        pyramids,
+        grid,
+        &mut params,
+        &|f| {
+            progress(StitchProgress::new(Stage::Overlaps, 0.05 + 0.45 * f));
+        },
+        cancel,
+    )?;
     for p in &placed {
         tracing::debug!(
             row = p.row,
@@ -235,7 +239,7 @@ fn place(
     let cam = Cam::new(params.f_px, pyramids.width, pyramids.height);
     let snapshot = measure(pyramids, grid, dropped, &params.poses(), &cam);
     progress(StitchProgress::new(Stage::Overlaps, 0.5).with_measured(snapshot.into()));
-    params
+    Ok(params)
 }
 
 /// The Align stage proper: matching rounds with a free small rotation per

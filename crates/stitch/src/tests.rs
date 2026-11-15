@@ -35,7 +35,7 @@ fn the_field_of_view_is_found_within_one_percent() {
     let drops = dropped::detect(&pyramids);
     assert_eq!(drops.pairs, Vec::<(usize, usize)>::new());
     let params = grid::GridParams::nominal(&pyramids, &grid, &drops.drops, 1.0);
-    let found = focal::estimate(&pyramids, &grid, &params.poses());
+    let found = focal::estimate(&pyramids, &grid, &params.poses(), &CancelFlag::new()).unwrap();
     let error = (found.f_px - truth.f_px).abs() / truth.f_px;
     assert!(
         error < 0.01,
@@ -61,7 +61,7 @@ fn the_field_of_view_survives_the_hard_capture() {
     .unwrap();
     let drops = dropped::detect(&pyramids);
     let params = grid::GridParams::nominal(&pyramids, &grid, &drops.drops, 1.0);
-    let found = focal::estimate(&pyramids, &grid, &params.poses());
+    let found = focal::estimate(&pyramids, &grid, &params.poses(), &CancelFlag::new()).unwrap();
     // The turn Step is 26.7° where the grid says 25.7°: the horizon Row's
     // prior is one degree off per Shot, the search still lands within 2 %.
     let error = (found.f_px - truth.f_px).abs() / truth.f_px;
@@ -145,6 +145,40 @@ impl ShotSource for Raising {
         self.cancel.raise();
         self.inner.shot(index)
     }
+}
+
+#[test]
+fn a_cancel_during_the_row_placement_stops_the_stitch() {
+    // Raised at the first Overlaps report, which the field of view sends
+    // before the Rows are placed: the stage must end at its next check,
+    // not after the last Row.
+    let grid = small_grid();
+    let (source, _) = session(640, 320, 90.0, &grid, &Perturbation::none(&grid));
+    let cancel = CancelFlag::new();
+    let reports = std::sync::Mutex::new(Vec::new());
+    let progress = |p: StitchProgress| {
+        if matches!(p.stage, crate::Stage::Overlaps) {
+            cancel.raise();
+        }
+        reports.lock().unwrap().push(p);
+    };
+    let result = stitch(
+        &source,
+        &grid,
+        &Limits::default(),
+        &StitchOptions::default(),
+        &progress,
+        &cancel,
+    );
+    assert_eq!(result.unwrap_err(), StitchError::Cancelled);
+    let overlaps = reports
+        .into_inner()
+        .unwrap()
+        .into_iter()
+        .filter(|p| matches!(p.stage, crate::Stage::Overlaps))
+        .map(|p| p.stage_fraction)
+        .fold(0.0f32, f32::max);
+    assert!(overlaps < 0.5, "the placement ran on to {overlaps}");
 }
 
 #[test]

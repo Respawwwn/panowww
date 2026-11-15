@@ -81,7 +81,8 @@ pub struct Stitched {
 /// Stages: Read (grey pyramids, dropped Steps), field of view, Row
 /// placement, Overlaps, Align, Render, Blend. `progress` is called from the
 /// stitching threads, hence `Sync`; `cancel` is checked between stages and inside the long
-/// ones.
+/// ones: between the field-of-view guesses, before each Row placement and its candidates,
+/// between the matching rounds, and per band of the render.
 ///
 /// # Errors
 ///

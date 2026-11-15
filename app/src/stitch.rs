@@ -238,6 +238,12 @@ impl Worker {
                 total,
                 unlinked,
             }) => {
+                tracing::warn!(
+                    linked,
+                    total,
+                    ?unlinked,
+                    "Stitch failed: too few Shots could be linked"
+                );
                 return StitchEvent::Failed {
                     error: StitchFailure::TooFewLinked {
                         linked: u32::try_from(linked).unwrap_or(u32::MAX),
