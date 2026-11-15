@@ -60,9 +60,11 @@ fixtures *ARGS:
 stitch-regress *ARGS:
     cargo nextest run --release -p panowww-store --test real_sessions --run-ignored only --no-tests=fail "$@"
 
-# Approve the current code's output as the reference: rewrites the Panoramas
-# in the fixtures and the report snapshots here. Review the Panoramas by eye
-# before committing either.
+# Approve the current code's output as this platform's reference (the
+# floating point differs per CPU, so macos-aarch64, windows-x86_64 and
+# linux-x86_64 each keep their own): rewrites the Panoramas in the fixtures'
+# expected/<platform>/ and the report snapshots here. Review the Panoramas by
+# eye before committing either.
 stitch-regress-accept *ARGS:
     PANOWWW_STITCH_FIXTURES_WRITE=1 INSTA_UPDATE=always just stitch-regress "$@"
 

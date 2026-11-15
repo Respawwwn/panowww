@@ -142,6 +142,8 @@ impl StitchOwner {
         if let Some(cancellation) = lock(&self.cancel).as_ref() {
             lock(&cancellation.reason).get_or_insert(reason);
             cancellation.flag.raise();
+            // With the "Stitch stopped" line, measures how fast Cancel lands.
+            tracing::info!(?reason, "Stitch cancel requested");
         }
     }
 
@@ -220,6 +222,9 @@ impl Worker {
             rows = grid.rows,
             shots_per_row = grid.shots_per_row,
             budget_mb = self.limits.memory_bytes / (1024 * 1024),
+            anti_ghost = spec.options.anti_ghost,
+            unaligned_shots = ?spec.options.unaligned_shots,
+            jpeg_quality = spec.options.quality(),
             "Stitch starting"
         );
         let progress = Throttle::new(Arc::clone(&self.emit));
@@ -232,12 +237,18 @@ impl Worker {
             &self.cancellation.flag,
         ) {
             Ok(stitched) => stitched,
-            Err(StitchError::Cancelled) => return self.cancelled(),
+            Err(StitchError::Cancelled) => return self.cancelled(started),
             Err(StitchError::TooFewLinked {
                 linked,
                 total,
                 unlinked,
             }) => {
+                tracing::warn!(
+                    linked,
+                    total,
+                    ?unlinked,
+                    "Stitch failed: too few Shots could be linked"
+                );
                 return StitchEvent::Failed {
                     error: StitchFailure::TooFewLinked {
                         linked: u32::try_from(linked).unwrap_or(u32::MAX),
@@ -250,7 +261,7 @@ impl Worker {
         };
         // Cancel lands between the stages too: nothing is written after it.
         if self.cancellation.flag.is_raised() {
-            return self.cancelled();
+            return self.cancelled(started);
         }
         (self.emit)(StitchEvent::Progress(StitchProgress::new(Stage::Save, 0.0)));
         match write_panorama(
@@ -266,6 +277,8 @@ impl Worker {
                     width = entry.width,
                     height = entry.height,
                     duration_ms = entry.duration_ms,
+                    unaligned = stitched.report.unaligned.len(),
+                    jpeg_quality = entry.jpeg_quality,
                     "Panorama written"
                 );
                 (self.emit)(StitchEvent::Progress(StitchProgress::new(Stage::Save, 1.0)));
@@ -275,9 +288,13 @@ impl Worker {
         }
     }
 
-    fn cancelled(&self) -> StitchEvent {
+    fn cancelled(&self, started: Instant) -> StitchEvent {
         let reason = lock(&self.cancellation.reason).unwrap_or(StitchCancelReason::Button);
-        tracing::info!(?reason, "Stitch stopped");
+        tracing::info!(
+            ?reason,
+            after_ms = started.elapsed().as_millis(),
+            "Stitch stopped"
+        );
         StitchEvent::Cancelled { reason }
     }
 

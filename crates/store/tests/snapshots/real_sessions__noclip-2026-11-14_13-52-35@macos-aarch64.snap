@@ -4,12 +4,12 @@ expression: summary
 ---
 Summary {
     size: "5376 × 2688",
-    field_of_view_deg: "89.08",
-    turn_step_deg: "61.41",
+    field_of_view_deg: "89.11",
+    turn_step_deg: "61.42",
     pitch_step_deg: "43.25",
-    start_pole_offset_deg: "5.84",
-    closing_turn_deg: "-8.46",
-    drift_deg: "1.49",
+    start_pole_offset_deg: "5.82",
+    closing_turn_deg: "-8.52",
+    drift_deg: "1.51",
     unaligned: [],
     dropped_steps: [],
 }

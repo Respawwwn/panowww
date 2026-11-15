@@ -1,0 +1,16 @@
+---
+source: crates/store/tests/real_sessions.rs
+assertion_line: 181
+expression: summary
+---
+Summary {
+    size: "5440 × 2720",
+    field_of_view_deg: "89.14",
+    turn_step_deg: "55.25",
+    pitch_step_deg: "33.89",
+    start_pole_offset_deg: "12.38",
+    closing_turn_deg: "-26.78",
+    drift_deg: "1.62",
+    unaligned: [],
+    dropped_steps: [],
+}

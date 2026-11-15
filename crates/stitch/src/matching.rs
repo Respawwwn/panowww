@@ -15,7 +15,7 @@
 
 use rayon::prelude::*;
 
-use crate::correlate::{Window, correlate};
+use crate::correlate::{Window, correlate, texture};
 use crate::geom::{Cam, Rot};
 use crate::levels::Pyramids;
 
@@ -120,25 +120,7 @@ pub fn correspondences(
             // A thin overlap band (sparse grids) gets smaller patches rather than none.
             let narrow = (maxx - minx).min(maxy - miny);
             let radius = ((narrow / 2.0) as i32).clamp(pass.radius.min(10), pass.radius);
-            // Up to `want` centres spread over the overlap, a patch and a half apart.
-            let want = if scale >= 8.0 { 6 } else { 12 };
-            let min_dist = f64::from(radius) * 1.5;
-            let stride = (pts.len() / (want * 3)).max(1);
-            let mut centres: Vec<(f64, f64)> = Vec::new();
-            for (k, p) in pts.iter().enumerate() {
-                if !k.is_multiple_of(stride) {
-                    continue;
-                }
-                if centres
-                    .iter()
-                    .all(|c| ((c.0 - p.0).powi(2) + (c.1 - p.1).powi(2)).sqrt() >= min_dist)
-                {
-                    centres.push(*p);
-                    if centres.len() >= want {
-                        break;
-                    }
-                }
-            }
+            let centres = centres(a, &pts, (minx, miny, maxx, maxy), radius);
             let window = Window {
                 radius,
                 search: pass.search,
@@ -179,6 +161,59 @@ pub fn correspondences(
         .collect()
 }
 
+/// Most cells an overlap is cut into for its centres.
+const MAX_CELLS: usize = 64;
+
+/// The centres of an overlap, a patch and a half apart: its box is cut into
+/// cells of that spacing, [`MAX_CELLS`] at most, and each cell gives its
+/// best-textured spot. Spread keeps the pair's median shift honest and lets
+/// a wide overlap (a Row's closing pair) carry as many matches as fit;
+/// texture keeps a low-texture overlap (white wall, grey floor) from being
+/// probed on its flat spots only, which once left the closing pair of a
+/// Row with a single match and broke the front seam of a Session.
+fn centres(
+    a: &crate::levels::Level,
+    pts: &[(f64, f64)],
+    bbox: (f64, f64, f64, f64),
+    radius: i32,
+) -> Vec<(f64, f64)> {
+    let (minx, miny, maxx, maxy) = bbox;
+    let min_dist = f64::from(radius) * 1.5;
+    let (bw, bh) = ((maxx - minx).max(1.0), (maxy - miny).max(1.0));
+    let (mut nx, mut ny) = (
+        ((bw / min_dist).ceil() as usize).max(1),
+        ((bh / min_dist).ceil() as usize).max(1),
+    );
+    while nx * ny > MAX_CELLS {
+        if nx >= ny {
+            nx -= 1;
+        } else {
+            ny -= 1;
+        }
+    }
+    let mut best: Vec<Option<((f64, f64), f32)>> = vec![None; nx * ny];
+    for &p in pts {
+        let Some(v) = texture(a, p, radius) else {
+            continue;
+        };
+        let cx = (((p.0 - minx) / bw) * nx as f64) as usize;
+        let cy = (((p.1 - miny) / bh) * ny as f64) as usize;
+        let cell = &mut best[cy.min(ny - 1) * nx + cx.min(nx - 1)];
+        if cell.is_none_or(|(_, b)| v > b) {
+            *cell = Some((p, v));
+        }
+    }
+    let mut centres: Vec<(f64, f64)> = Vec::new();
+    for (p, _) in best.into_iter().flatten() {
+        if centres
+            .iter()
+            .all(|c| ((c.0 - p.0).powi(2) + (c.1 - p.1).powi(2)).sqrt() >= min_dist)
+        {
+            centres.push(p);
+        }
+    }
+    centres
+}
 /// RMS residual of matches under poses, in full-resolution pixels.
 pub fn residual_px(corrs: &[Corr], poses: &[Rot], cam: &Cam) -> f64 {
     if corrs.is_empty() {

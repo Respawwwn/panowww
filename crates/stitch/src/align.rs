@@ -111,10 +111,7 @@ pub fn align(
     let started = Instant::now();
     let total = pyramids.count();
     let anchor = pyramids.index_of(grid.horizon_row(), 1).unwrap_or(0);
-    let mut params = place(pyramids, grid, dropped, progress);
-    if cancel.is_raised() {
-        return Err(StitchError::Cancelled);
-    }
+    let mut params = place(pyramids, grid, dropped, progress, cancel)?;
     let pairs = pyramids.neighbour_pairs(grid);
     let passes = GIMBAL_PASSES.len() as f32;
     let mut checked = false;
@@ -174,6 +171,7 @@ pub fn align(
         pyramids, grid, &pairs, &mut poses, &cam, anchor, progress, cancel,
     )?;
     let unaligned = unlinked(&corrs, total);
+    log_pairs(pyramids, &pairs, &corrs, &poses, &cam);
     let measured = measure(pyramids, grid, dropped, &poses, &cam);
     Ok(Alignment {
         f_px: params.f_px,
@@ -195,9 +193,10 @@ fn place(
     grid: &Grid,
     dropped: &Dropped,
     progress: &(dyn Fn(StitchProgress) + Sync),
-) -> GridParams {
+    cancel: &CancelFlag,
+) -> Result<GridParams, StitchError> {
     let mut params = GridParams::nominal(pyramids, grid, &dropped.drops, 1.0);
-    let found = focal::estimate(pyramids, grid, &params.poses());
+    let found = focal::estimate(pyramids, grid, &params.poses(), cancel)?;
     params.f_px = found.f_px;
     let rechained = focal::chain_rows(pyramids, grid, &mut params);
     tracing::debug!(rechained, "Rows re-chained from their measured Steps");
@@ -219,9 +218,15 @@ fn place(
             drift_deg: None,
         }),
     );
-    let placed = place_rows(pyramids, grid, &mut params, &|f| {
-        progress(StitchProgress::new(Stage::Overlaps, 0.05 + 0.45 * f));
-    });
+    let placed = place_rows(
+        pyramids,
+        grid,
+        &mut params,
+        &|f| {
+            progress(StitchProgress::new(Stage::Overlaps, 0.05 + 0.45 * f));
+        },
+        cancel,
+    )?;
     for p in &placed {
         tracing::debug!(
             row = p.row,
@@ -234,7 +239,7 @@ fn place(
     let cam = Cam::new(params.f_px, pyramids.width, pyramids.height);
     let snapshot = measure(pyramids, grid, dropped, &params.poses(), &cam);
     progress(StitchProgress::new(Stage::Overlaps, 0.5).with_measured(snapshot.into()));
-    params
+    Ok(params)
 }
 
 /// The Align stage proper: matching rounds with a free small rotation per
@@ -275,6 +280,42 @@ fn free_passes(
     }
     progress(StitchProgress::new(Stage::Align { row: rows, rows }, 1.0));
     Ok(corrs)
+}
+
+/// Debug log, one line per neighbour pair: its accepted matches and their
+/// RMS and worst residual, so a seam the overall residual hides shows up.
+fn log_pairs(
+    pyramids: &Pyramids,
+    pairs: &[(usize, usize)],
+    corrs: &[Corr],
+    poses: &[Rot],
+    cam: &Cam,
+) {
+    if !tracing::enabled!(tracing::Level::DEBUG) {
+        return;
+    }
+    for &(i, j) in pairs {
+        let errors: Vec<f64> = corrs
+            .iter()
+            .filter(|c| (c.ia == i && c.ib == j) || (c.ia == j && c.ib == i))
+            .map(|c| {
+                ((cam.ray(&poses[c.ia], c.a.0, c.a.1) - cam.ray(&poses[c.ib], c.b.0, c.b.1))
+                    * cam.f)
+                    .norm()
+            })
+            .collect();
+        let (ra, ca) = pyramids.position(i);
+        let (rb, cb) = pyramids.position(j);
+        let pair = format!("r{ra:02}_c{ca:02}-r{rb:02}_c{cb:02}");
+        let n = errors.len();
+        let rms_px = if n == 0 {
+            0.0
+        } else {
+            (errors.iter().map(|e| e * e).sum::<f64>() / n as f64).sqrt()
+        };
+        let worst_px = errors.iter().copied().fold(0.0, f64::max);
+        tracing::debug!(pair, matches = n, rms_px, worst_px, "pair");
+    }
 }
 
 /// Shots that no accepted match touches.

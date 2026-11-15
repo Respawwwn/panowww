@@ -13,9 +13,11 @@
     reason = "pixel coordinates and sizes move between integers and floats throughout; the placement reads as one piece"
 )]
 
+use panowww_core::ports::CancelFlag;
 use rayon::prelude::*;
 
 use crate::correlate::{Window, correlate};
+use crate::error::StitchError;
 use crate::geom::{Cam, wrap_deg};
 use crate::grid::{Grid, GridParams};
 use crate::levels::Pyramids;
@@ -44,13 +46,17 @@ pub struct Placed {
     pub ncc: f64,
 }
 
-/// Places every Row in `params`, outward from the horizon Row.
+/// Places every Row in `params`, outward from the horizon Row. The cancel
+/// flag is read before each Row, between its candidates and between the
+/// steps of its refinement: a Row takes half a second to place on a
+/// 1080p Session, and a press should not wait for the whole stage.
 pub fn place_rows(
     pyramids: &Pyramids,
     grid: &Grid,
     params: &mut GridParams,
     progress: &(dyn Fn(f32) + Sync),
-) -> Vec<Placed> {
+    cancel: &CancelFlag,
+) -> Result<Vec<Placed>, StitchError> {
     let l0 = pyramids.shot(0).level(8);
     let cam = Cam::new(params.f_px / l0.scale, l0.w as u32, l0.h as u32);
     // Small Shots get smaller patches, kept inside the image.
@@ -71,6 +77,9 @@ pub fn place_rows(
     let total = order.len().max(1) as f32;
     let mut placed = Vec::new();
     for (k, (fixed, moving)) in order.into_iter().enumerate() {
+        if cancel.is_raised() {
+            return Err(StitchError::Cancelled);
+        }
         progress(k as f32 / total);
         let upward = moving > fixed;
         let (lower, upper) = if upward {
@@ -159,6 +168,9 @@ pub fn place_rows(
         let mut best = (0.0f64, 0.0f64, -1.0f64);
         let mut best_count = 0usize;
         for (dp, dy, sc) in candidates {
+            if cancel.is_raised() {
+                return Err(StitchError::Cancelled);
+            }
             let mut g = params.clone();
             apply(&mut g, dp.to_radians(), dy.to_radians());
             let count = correspondences(pyramids, &g.poses(), params.f_px, verify, &pairs).len();
@@ -191,6 +203,9 @@ pub fn place_rows(
         let (cp, cy) = (best.0, best.1);
         let mut dp = cp - PITCH_STEP;
         while dp <= cp + PITCH_STEP {
+            if cancel.is_raised() {
+                return Err(StitchError::Cancelled);
+            }
             let (mut dy, dy_end) = if pole_fixed {
                 (cy, cy)
             } else {
@@ -225,5 +240,5 @@ pub fn place_rows(
         });
     }
     progress(1.0);
-    placed
+    Ok(placed)
 }
