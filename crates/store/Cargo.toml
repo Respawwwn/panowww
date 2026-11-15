@@ -26,6 +26,7 @@ uuid = { version = "1", features = ["serde", "v4"] }
 zip = { version = "9", default-features = false }
 
 [dev-dependencies]
+insta = "1"
 panowww-core = { path = "../core", features = ["test-support"] }
 panowww-stitch = { path = "../stitch", features = ["test-support"] }
 tempfile = "3"

@@ -3227,6 +3227,7 @@ version = "1.0.0-beta.2"
 dependencies = [
  "image",
  "img-parts",
+ "insta",
  "jiff",
  "notify",
  "panowww-core",
