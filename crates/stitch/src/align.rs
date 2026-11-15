@@ -174,6 +174,7 @@ pub fn align(
         pyramids, grid, &pairs, &mut poses, &cam, anchor, progress, cancel,
     )?;
     let unaligned = unlinked(&corrs, total);
+    log_pairs(pyramids, &pairs, &corrs, &poses, &cam);
     let measured = measure(pyramids, grid, dropped, &poses, &cam);
     Ok(Alignment {
         f_px: params.f_px,
@@ -275,6 +276,42 @@ fn free_passes(
     }
     progress(StitchProgress::new(Stage::Align { row: rows, rows }, 1.0));
     Ok(corrs)
+}
+
+/// Debug log, one line per neighbour pair: its accepted matches and their
+/// RMS and worst residual, so a seam the overall residual hides shows up.
+fn log_pairs(
+    pyramids: &Pyramids,
+    pairs: &[(usize, usize)],
+    corrs: &[Corr],
+    poses: &[Rot],
+    cam: &Cam,
+) {
+    if !tracing::enabled!(tracing::Level::DEBUG) {
+        return;
+    }
+    for &(i, j) in pairs {
+        let errors: Vec<f64> = corrs
+            .iter()
+            .filter(|c| (c.ia == i && c.ib == j) || (c.ia == j && c.ib == i))
+            .map(|c| {
+                ((cam.ray(&poses[c.ia], c.a.0, c.a.1) - cam.ray(&poses[c.ib], c.b.0, c.b.1))
+                    * cam.f)
+                    .norm()
+            })
+            .collect();
+        let (ra, ca) = pyramids.position(i);
+        let (rb, cb) = pyramids.position(j);
+        let pair = format!("r{ra:02}_c{ca:02}-r{rb:02}_c{cb:02}");
+        let n = errors.len();
+        let rms_px = if n == 0 {
+            0.0
+        } else {
+            (errors.iter().map(|e| e * e).sum::<f64>() / n as f64).sqrt()
+        };
+        let worst_px = errors.iter().copied().fold(0.0, f64::max);
+        tracing::debug!(pair, matches = n, rms_px, worst_px, "pair");
+    }
 }
 
 /// Shots that no accepted match touches.

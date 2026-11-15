@@ -41,6 +41,29 @@ pub struct Window {
     pub search: i32,
 }
 
+/// How textured the patch of `a` around `centre` is: the variance of every
+/// other pixel of it, `None` when the patch leaves `a` or is flat, as
+/// [`correlate`] would refuse it. Ranks the candidate centres of an overlap
+/// before any correlation is run; for patches this large the plain variance
+/// predicts a clear correlation peak better than a corner measure does.
+pub fn texture(a: &Level, centre: (f64, f64), radius: i32) -> Option<f32> {
+    let (mut sum, mut sum2, mut n) = (0f32, 0f32, 0usize);
+    let mut j = -radius;
+    while j <= radius {
+        let mut i = -radius;
+        while i <= radius {
+            let v = a.sample(centre.0 + f64::from(i), centre.1 + f64::from(j))?;
+            sum += v;
+            sum2 += v * v;
+            n += 1;
+            i += 2;
+        }
+        j += 2;
+    }
+    let nf = n as f32;
+    let var = sum2 / nf - (sum / nf).powi(2);
+    (var >= FLAT_VARIANCE).then_some(var)
+}
 /// Correlates the patch of `a` around `centre` with `b` warped into `a`'s
 /// view through `ra` and `rb`, over the shifts of `window`. `cam` is the
 /// camera at the levels' scale. `None` when the patch leaves `a`, is flat,

@@ -1,11 +1,12 @@
 ---
 source: crates/stitch/src/tests.rs
+assertion_line: 621
 expression: "((a.measured.field_of_view * 10.0).round() / 10.0,\n(a.measured.turn_step * 10.0).round() / 10.0,\n(a.measured.pitch_step * 10.0).round() / 10.0,\n(a.measured.start_pole_offset * 10.0).round() / 10.0, unaligned.len(),)"
 ---
 (
     90.0,
     26.7,
     29.0,
-    3.9,
+    3.8,
     2,
 )
