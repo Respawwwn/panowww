@@ -2,12 +2,9 @@
 // The Options card of the Stitch panel (spec §16.3), under the stages,
 // closed by default:
 // anti-ghost, the Shots without control points, the JPEG quality as a
-// slider of whole percents with three presets that only move it; the
-// card's own button starts the Stitch, cancels it while it runs, or
-// stitches again. Greyed out while a Stitch runs.
-import Button from "../../components/Button.svelte";
+// slider of whole percents with three presets that only move it. Greyed
+// out while a Stitch runs; the Stitch starts from the panel's toolbar.
 import CollapsibleCard from "../../components/CollapsibleCard.svelte";
-import Icon from "../../components/Icon.svelte";
 import Segmented from "../../components/Segmented.svelte";
 import Switch from "../../components/Switch.svelte";
 import Tip from "../../components/Tip.svelte";
@@ -20,19 +17,13 @@ type Props = {
   options: StitchOptions;
   /** A Stitch of this Session runs: the choices are locked. */
   running: boolean;
-  /** The button's label: *Start Stitch*, *Stitch again* or *Try again*. */
-  startLabel: string;
-  startDisabled: boolean;
   /** Every change, the slider's too while it moves. */
   onchange: (options: StitchOptions) => void;
   /** A change to keep: the slider calls it once released. */
   oncommit: (options: StitchOptions) => void;
-  onstart: () => void;
-  oncancel: () => void;
 };
 
-let { options, running, startLabel, startDisabled, onchange, oncommit, onstart, oncancel }: Props =
-  $props();
+let { options, running, onchange, oncommit }: Props = $props();
 
 const t = strings.stitch.options;
 
@@ -112,16 +103,6 @@ function slide(value: number, keep: boolean) {
     </div>
   </div>
 
-  <div class="go">
-    {#if running}
-      <Button onclick={oncancel}>{strings.stitch.actions.cancel}</Button>
-    {:else}
-      <Button variant="primary" disabled={startDisabled} onclick={onstart}>
-        <Icon name="stitch" size={14} />
-        {startLabel}
-      </Button>
-    {/if}
-  </div>
   </div>
 </CollapsibleCard>
 
@@ -168,8 +149,4 @@ function slide(value: number, keep: boolean) {
     font-variant-numeric: tabular-nums;
   }
 
-  .go {
-    display: flex;
-    justify-content: flex-end;
-  }
 </style>

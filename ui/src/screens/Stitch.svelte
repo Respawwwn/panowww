@@ -516,12 +516,8 @@ async function openIn(stitcher: Stitcher) {
         <OptionsCard
           {options}
           running={mode === "running"}
-          startLabel={mode === "finished" ? strings.session.end.stitchAgain : mode === "failed" ? s.actions.tryAgain : s.actions.start}
-          startDisabled={stitchDisabled}
           onchange={(next) => (options = next)}
           oncommit={rememberOptions}
-          onstart={mode === "finished" ? askAgain : start}
-          oncancel={cancel}
         />
 
         {#if mode !== "failed"}
