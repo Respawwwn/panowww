@@ -1,10 +1,12 @@
 <script lang="ts">
-// The Options card of the Stitch panel (spec §16.3), above the stages:
+// The Options card of the Stitch panel (spec §16.3), under the stages,
+// closed by default with a summary of the choices:
 // anti-ghost, the Shots without control points, the JPEG quality as a
 // slider of whole percents with three presets that only move it; the
 // card's own button starts the Stitch, cancels it while it runs, or
 // stitches again. Greyed out while a Stitch runs.
 import Button from "../../components/Button.svelte";
+import CollapsibleCard from "../../components/CollapsibleCard.svelte";
 import Icon from "../../components/Icon.svelte";
 import Segmented from "../../components/Segmented.svelte";
 import Switch from "../../components/Switch.svelte";
@@ -43,6 +45,18 @@ const presetItems = QUALITY_PRESETS.map((q) => ({
   label: interpolate(t.percent, { n: q }),
 }));
 
+let open = $state(false);
+
+const summary = $derived(
+  [
+    options.antiGhost ? t.antiGhost : t.noAntiGhost,
+    options.unalignedShots === "leaveOut" ? t.leaveOut : null,
+    interpolate(t.percent, { n: options.jpegQuality }),
+  ]
+    .filter(Boolean)
+    .join(" · "),
+);
+
 function set(next: Partial<StitchOptions>) {
   const changed = { ...options, ...next };
   onchange(changed);
@@ -58,8 +72,8 @@ function slide(value: number, keep: boolean) {
 }
 </script>
 
-<section class="card options" class:locked={running}>
-  <b>{t.title}</b>
+<CollapsibleCard title={t.title} {summary} {open} ontoggle={() => (open = !open)}>
+  <div class="options" class:locked={running}>
 
   <div class="opt">
     <Switch
@@ -118,19 +132,14 @@ function slide(value: number, keep: boolean) {
       </Button>
     {/if}
   </div>
-</section>
+  </div>
+</CollapsibleCard>
 
 <style>
   .options {
-    padding: 12px 14px;
     display: flex;
     flex-direction: column;
     gap: 12px;
-  }
-
-  b {
-    font-weight: 600;
-    font-size: 13px;
   }
 
   .opt {

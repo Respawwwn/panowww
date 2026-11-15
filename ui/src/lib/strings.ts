@@ -502,6 +502,8 @@ export const strings = {
       leaveOut: "Leave out",
       leaveOutHint: "What only these Shots saw stays black.",
       quality: "JPEG quality",
+      /** The closed card's summary: `{antiGhost} · {quality}`, ` · Leave out` added. */
+      noAntiGhost: "No anti-ghost",
       /** The slider's value and each preset button. */
       percent: "{n} %",
     },

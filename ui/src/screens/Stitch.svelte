@@ -375,6 +375,12 @@ async function openIn(stitcher: Stitcher) {
 }
 </script>
 
+{#snippet replaceQuestion()}
+  {#each replaceSegments as segment, i (i)}
+    {#if segment.kind === "slot"}<code>{panoramaFile}</code>{:else}{segment.text}{/if}
+  {/each}
+{/snippet}
+
 <div class="toolbar" data-tauri-drag-region>
   <div class="who">
     {#if view}
@@ -385,21 +391,34 @@ async function openIn(stitcher: Stitcher) {
       <span class="name">{view.game.name}</span>
     {/if}
   </div>
-  <Button onclick={back}>
-    <Icon name="back" />
-    {s.actions.backToSession}
-  </Button>
+  <div class="head-acts">
+    {#if view && mode !== "running"}
+      <InlineConfirm
+        confirming={replacing}
+        question={interpolate(s.actions.replace, { file: panoramaFile })}
+        questionContent={replaceQuestion}
+        confirmLabel={strings.session.end.stitchAgain}
+        cancelLabel={s.actions.cancel}
+        onconfirm={start}
+        oncancel={() => (replacing = false)}
+      >
+        <Button variant="primary" disabled={stitchDisabled} onclick={mode === "finished" ? askAgain : start}>
+          <Icon name="stitch" size={14} />
+          {mode === "finished" ? strings.session.end.stitchAgain : mode === "failed" ? s.actions.tryAgain : s.actions.start}
+        </Button>
+      </InlineConfirm>
+    {/if}
+    <Button onclick={back}>
+      <Icon name="back" />
+      {s.actions.backToSession}
+    </Button>
+  </div>
 </div>
 
 {#if loadError}
   <div class="pane"><p class="error">{loadError}</p></div>
 {:else if view && game}
   <div class="panel">
-    {#snippet replaceQuestion()}
-      {#each replaceSegments as segment, i (i)}
-        {#if segment.kind === "slot"}<code>{panoramaFile}</code>{:else}{segment.text}{/if}
-      {/each}
-    {/snippet}
 
     {#snippet openInButtons(firstPrimary: boolean)}
       {#each stitchers as stitcher, i (stitcher)}
@@ -410,41 +429,27 @@ async function openIn(stitcher: Stitcher) {
       {/each}
     {/snippet}
 
+    <!-- Hidden when it would stay empty: no Stitcher set, nothing finished or failed. -->
+    {#if stitchers.length > 0 || mode === "finished" || mode === "failed"}
     <div class="actions">
     {#if mode === "idle"}
       <div class="acts">
-        <Button variant="primary" disabled={stitchDisabled} onclick={start}>
-          <Icon name="stitch" size={14} />
-          {s.actions.start}
-        </Button>
         {@render openInButtons(false)}
       </div>
     {:else if mode === "running"}
       <!-- The progress stays in the card; the row is for the buttons. -->
     {:else if mode === "finished"}
-      <InlineConfirm
-        confirming={replacing}
-        question={interpolate(s.actions.replace, { file: panoramaFile })}
-        questionContent={replaceQuestion}
-        confirmLabel={strings.session.end.stitchAgain}
-        cancelLabel={s.actions.cancel}
-        onconfirm={start}
-        oncancel={() => (replacing = false)}
-      >
+      <div class="acts">
         <Button variant="primary" onclick={previewPanorama}>
           <Icon name="pano" size={14} />
           {strings.session.end.previewPanorama}
-        </Button>
-        <Button disabled={stitchDisabled} onclick={askAgain}>
-          <Icon name="stitch" size={14} />
-          {strings.session.end.stitchAgain}
         </Button>
         {@render openInButtons(false)}
         <Button onclick={revealPanorama}>
           <Icon name="folder" size={14} />
           {platform === "macos" ? strings.detail.revealInFinder : strings.detail.revealInExplorer}
         </Button>
-      </InlineConfirm>
+      </div>
     {:else}
       <div class="acts">
         {@render openInButtons(true)}
@@ -454,13 +459,10 @@ async function openIn(stitcher: Stitcher) {
             {strings.session.end.zip}
           </Button>
         {/if}
-        <Button disabled={stitchDisabled} onclick={start}>
-          <Icon name="stitch" size={14} />
-          {s.actions.tryAgain}
-        </Button>
       </div>
     {/if}
     </div>
+    {/if}
 
     <section class="card top">
       <div class="titles">
@@ -503,17 +505,6 @@ async function openIn(stitcher: Stitcher) {
 
     <div class="columns">
       <div class="left">
-        <OptionsCard
-          {options}
-          running={mode === "running"}
-          startLabel={mode === "finished" ? strings.session.end.stitchAgain : mode === "failed" ? s.actions.tryAgain : s.actions.start}
-          startDisabled={stitchDisabled}
-          onchange={(next) => (options = next)}
-          oncommit={rememberOptions}
-          onstart={mode === "finished" ? askAgain : start}
-          oncancel={cancel}
-        />
-
         <section class="card stages">
           {#each stageRows as row (row.name)}
             <div class="stage {row.state}">
@@ -525,6 +516,17 @@ async function openIn(stitcher: Stitcher) {
             </div>
           {/each}
         </section>
+
+        <OptionsCard
+          {options}
+          running={mode === "running"}
+          startLabel={mode === "finished" ? strings.session.end.stitchAgain : mode === "failed" ? s.actions.tryAgain : s.actions.start}
+          startDisabled={stitchDisabled}
+          onchange={(next) => (options = next)}
+          oncommit={rememberOptions}
+          onstart={mode === "finished" ? askAgain : start}
+          oncancel={cancel}
+        />
 
         {#if mode !== "failed"}
           <section class="card measuredCard">
@@ -641,6 +643,12 @@ async function openIn(stitcher: Stitcher) {
     padding: 0 24px;
     border-bottom: 1px solid var(--line);
     flex: none;
+  }
+
+  .head-acts {
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
   .who {

@@ -1,11 +1,11 @@
 <script lang="ts">
-// Collapsible card of the Setup left pane (spec §11.2): numbered badge,
-// title, one-line summary, chevron; one open at a time is the parent's job.
+// Collapsible card of the Setup left pane (spec §11.2): numbered badge
+// (none for the Stitch's Options card), title, one-line summary, chevron; one open at a time is the parent's job.
 import type { Snippet } from "svelte";
 import Badge from "./Badge.svelte";
 
 type Props = {
-  n: number | string;
+  n?: number | string;
   title: string;
   summary?: string;
   open: boolean;
@@ -16,9 +16,9 @@ type Props = {
 let { n, title, summary = "", open, ontoggle, children }: Props = $props();
 </script>
 
-<section class="card" class:open>
+<section class="card" class:open class:plain={n === undefined}>
   <button type="button" class="head" aria-expanded={open} onclick={ontoggle}>
-    <Badge {n} />
+    {#if n !== undefined}<Badge {n} />{/if}
     <b>{title}</b>
     <span class="sum">{summary}</span>
     <svg class="chev" viewBox="0 0 16 16" aria-hidden="true">
@@ -73,5 +73,10 @@ let { n, title, summary = "", open, ontoggle, children }: Props = $props();
     flex-direction: column;
     gap: 12px;
     padding: 4px 14px 14px 50px;
+  }
+
+  /* No badge: the body lines up with the title. */
+  .plain .body {
+    padding-left: 14px;
   }
 </style>
