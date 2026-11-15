@@ -51,4 +51,19 @@ jobs:
       - name: stitch the real Sessions
         env:
           PANOWWW_STITCH_FIXTURES: ${{ github.workspace }}/fixtures
-        run: cargo nextest run --release -p panowww-store --test real_sessions --run-ignored only --no-tests=fail
+          # insta writes nothing on CI by default: keep the new snapshots.
+          INSTA_UPDATE: new
+        run: cargo nextest run --release -p panowww-store --test real_sessions --run-ignored only --no-tests=fail --no-fail-fast
+      # A platform without references (the first run on a new runner image)
+      # or a deliberate change: the Panoramas and the new report snapshots to
+      # look at, then commit to the fixtures under expected/<platform>/ and
+      # here next to the test.
+      - name: keep the Panoramas to approve
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: real-sessions-linux
+          path: |
+            target/tmp/real-sessions/
+            crates/store/tests/snapshots/*.snap.new
+          if-no-files-found: ignore

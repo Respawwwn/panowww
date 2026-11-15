@@ -1,9 +1,16 @@
 //! The real Sessions of the sibling repository `panowww-stitch-fixtures`,
 //! stitched again and held to the Panorama that was approved by eye: the
 //! report must match its snapshot exactly, the pixels must stay within a
-//! small tolerance of the reference JPEG. The tolerance is there for other
-//! CPUs, whose floating point may differ in the last bit; on one machine the
-//! output is byte for byte the same.
+//! small tolerance of the reference JPEG.
+//!
+//! One reference per platform (`macos-aarch64`, `windows-x86_64`,
+//! `linux-x86_64`…): the floating point differs per CPU and maths library,
+//! enough to move a Pose by a hundredth of a degree and a textured
+//! Panorama by several levels, so no tolerance can hold two platforms to
+//! one reference and still catch a regression. On one platform the output
+//! is byte for byte the same; the tolerance only absorbs the JPEG decoder.
+//! Each run also leaves its Panoramas in `target/tmp/real-sessions/<platform>/`
+//! so a platform without references (CI's Linux) can be approved by eye.
 //!
 //! Ignored by default: the fixtures weigh half a gigabyte and live in
 //! <https://github.com/Respawwwn/panowww-stitch-fixtures>, expected next to
@@ -32,6 +39,12 @@ const MEAN_TOLERANCE: f64 = 0.05;
 const FAR_LEVELS: u8 = 8;
 /// …and at most this share of the pixels may be far.
 const FAR_TOLERANCE: f64 = 0.000_05;
+
+/// The platform the references are kept for: the floating point of a
+/// Stitch depends on the CPU and the maths library, so on both.
+fn platform() -> String {
+    format!("{}-{}", std::env::consts::OS, std::env::consts::ARCH)
+}
 
 struct FrozenClock(jiff::Zoned);
 
@@ -149,7 +162,10 @@ fn check(slug: &str) {
             .map(|[twin, duplicate]| format!("{} = {}", name(*twin), name(*duplicate)))
             .collect(),
     };
-    insta::assert_debug_snapshot!(slug, summary);
+    let platform = platform();
+    insta::with_settings!({ snapshot_suffix => platform.as_str() }, {
+        insta::assert_debug_snapshot!(slug, summary);
+    });
 
     // The JPEG as the store writes it, so the reference is a real panorama.jpg.
     // The writer adds the panorama block to session.json, so it gets a copy.
@@ -158,7 +174,16 @@ fn check(slug: &str) {
     let clock = FrozenClock("2026-11-15T12:00:00+01:00[+01:00]".parse().unwrap());
     write_panorama(out.path(), &stitched, 100, "regression", started, &clock).unwrap();
     let produced = out.path().join(panorama::FILE);
-    let reference = fixtures.join("expected").join(format!("{slug}.jpg"));
+    let kept = Path::new(env!("CARGO_TARGET_TMPDIR"))
+        .join("real-sessions")
+        .join(&platform)
+        .join(format!("{slug}.jpg"));
+    std::fs::create_dir_all(kept.parent().unwrap()).unwrap();
+    std::fs::copy(&produced, &kept).unwrap();
+    let reference = fixtures
+        .join("expected")
+        .join(&platform)
+        .join(format!("{slug}.jpg"));
     if std::env::var_os(WRITE).is_some() {
         std::fs::create_dir_all(reference.parent().unwrap()).unwrap();
         std::fs::copy(&produced, &reference).unwrap();
@@ -167,8 +192,10 @@ fn check(slug: &str) {
     }
     assert!(
         reference.is_file(),
-        "{slug}: no reference at {}; `just stitch-regress-accept {slug}` writes one",
-        reference.display()
+        "{slug}: no {platform} reference at {}; `just stitch-regress-accept {slug}` on \
+         this platform writes one, the Panorama to approve is {}",
+        reference.display(),
+        kept.display()
     );
     let (a, b) = (decode(&produced), decode(&reference));
     assert_eq!(
