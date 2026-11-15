@@ -862,8 +862,14 @@ async function openIn(stitcher: Stitcher) {
     font-size: 12.5px;
   }
 
-  /* The Reveal button on green: a plain button at rest, a deeper green on
-     hover instead of the app's near-invisible hover tint. */
+  /* The Reveal button on green: white at rest in both themes, a deeper
+     green on hover instead of the app's near-invisible hover tint. */
+  .okbox :global(.btn) {
+    background: #fff;
+    border-color: transparent;
+    color: #1d7a40;
+  }
+
   .okbox :global(.btn:hover:not(:disabled)) {
     color: var(--ok-fg);
     background: color-mix(in srgb, var(--ok) 18%, transparent);
