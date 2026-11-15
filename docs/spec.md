@@ -888,13 +888,14 @@ The known grid is the prior that says where to look; every value below is measur
 | `stitch.title.finished` | top card | title | Panorama stitched in {duration} |
 | `stitch.title.failed` | top card | title | Could not stitch this Session |
 | `stitch.subtitle` | top card | line | {date} · {rows} Rows × {shotsPerRow} · {w} × {h} Shots |
-| `stitch.subtitleFinished` | top card, Panorama exists | line | {date} · {rows} Rows × {shotsPerRow} · {w} × {h} px (the Panorama's size) |
+| `stitch.subtitleFinished` | top card, Panorama exists | line | {date} · {w} × {h} px (the Panorama's size; the grid is in the measured card) |
 | `stitch.willWrite` | top card, not started | line | Writes panorama.jpg in the Session folder, about {w} × {h}. |
 | `stitch.stage.read` / `.overlaps` / `.align` / `.alignRow` / `.render` / `.blend` / `.save` | stages card | line | Read the Shots / Find the Overlaps / Align / Align · Row {row} of {rows} / Render the sphere / Blend the seams / Save 360° panorama |
 | `stitch.progress.time` | under the stages | tip | {elapsed} elapsed · about {left} left |
 | `stitch.progress.cores` | under the stages | tip | Uses every core. The game can keep running: nothing is captured. |
 | `stitch.measured.title` | measured card | section | Measured from the Shots |
 | `stitch.measured.pending` | measured card, before align | tip | Field of view, Steps and drift, once the Stitch runs. Nothing is taken from the Game's numbers. |
+| `stitch.measured.rows` / `.shotsPerRow` | measured card, first two lines | label | Rows / Shots per Row (the Session's grid, the Stitch's starting guess) |
 | `stitch.measured.fov` / `.turnStep` / `.pitchStep` / `.startPole` / `.closing` / `.drift` | measured card | label | Field of view / Turn Step / Pitch Step / Start pole / Closing turn / Drift per Shot |
 | `stitch.measured.fovValue` | value | fragment | {deg}° wide |
 | `stitch.measured.poleShort` / `.polePast` / `.poleOn` | value | fragment | {deg}° short of the {pole} / {deg}° past the {pole} / on the {pole} |

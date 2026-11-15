@@ -32,6 +32,8 @@ const entry: PanoramaEntry = {
   antiGhost: true,
 };
 
+const grid = (startPole: "nadir" | "zenith") => ({ rows: 7, shotsPerRow: 14, startPole });
+
 const running = (stage: StitchRunning["progress"]): StitchRunning => ({
   folder: "/S/a",
   progress: stage,
@@ -129,7 +131,9 @@ describe("the grid caption", () => {
 
 describe("the measured card", () => {
   test("reads the entry in words, poles and closing turns signed", () => {
-    expect(measuredRows(measuredOfEntry(entry), "nadir")).toEqual([
+    expect(measuredRows(measuredOfEntry(entry), grid("nadir"))).toEqual([
+      ["Rows", "7"],
+      ["Shots per Row", "14"],
       ["Field of view", "92.4° wide"],
       ["Turn Step", "25.6°"],
       ["Pitch Step", "29.4°"],
@@ -139,11 +143,11 @@ describe("the measured card", () => {
     ]);
     const exact = measuredRows(
       measuredOfEntry({ ...entry, startPoleOffsetDeg: -2.5, closingTurnDeg: 0.0, driftDeg: 0 }),
-      "zenith",
+      grid("zenith"),
     );
-    expect(exact[3]).toEqual(["Start pole", "2.5° past the Zenith"]);
-    expect(exact[4]).toEqual(["Closing turn", "closes"]);
-    expect(exact[5]).toEqual(["Drift per Shot", "under 0.0°"]);
+    expect(exact[5]).toEqual(["Start pole", "2.5° past the Zenith"]);
+    expect(exact[6]).toEqual(["Closing turn", "closes"]);
+    expect(exact[7]).toEqual(["Drift per Shot", "under 0.0°"]);
   });
 
   test("shows the field of view alone before the Rows are placed", () => {
@@ -156,10 +160,14 @@ describe("the measured card", () => {
         closingTurnDeg: null,
         driftDeg: null,
       },
-      "nadir",
+      grid("nadir"),
     );
-    expect(early[0]).toEqual(["Field of view", "92.4° wide"]);
-    expect(early.slice(1).map(([, v]) => v)).toEqual(["…", "…", "…", "…", "…"]);
+    expect(early.slice(0, 3)).toEqual([
+      ["Rows", "7"],
+      ["Shots per Row", "14"],
+      ["Field of view", "92.4° wide"],
+    ]);
+    expect(early.slice(3).map(([, v]) => v)).toEqual(["…", "…", "…", "…", "…"]);
   });
 });
 

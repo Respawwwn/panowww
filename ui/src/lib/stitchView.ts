@@ -4,9 +4,9 @@
 // data and the screen only lays them out.
 
 import { shotLabel } from "./format";
+import type { Game } from "./generated/Game";
 import type { PanoramaEntry } from "./generated/PanoramaEntry";
 import type { ShotRef } from "./generated/ShotRef";
-import type { StartPole } from "./generated/StartPole";
 import type { StitchMeasured } from "./generated/StitchMeasured";
 import type { StitchProgress } from "./generated/StitchProgress";
 import type { StitchLast, StitchRunning } from "./stitch.svelte";
@@ -126,9 +126,12 @@ export const NOT_YET = "…";
  * The six rows of the *Measured from the Shots* card: the field of view
  * as soon as it is found, the rest once the Rows are placed.
  */
-export function measuredRows(m: StitchMeasured, startPole: StartPole): [string, string][] {
+export function measuredRows(
+  m: StitchMeasured,
+  grid: Pick<Game, "rows" | "shotsPerRow" | "startPole">,
+): [string, string][] {
   const t = strings.stitch.measured;
-  const pole = startPole === "nadir" ? strings.setup.grid.nadir : strings.setup.grid.zenith;
+  const pole = grid.startPole === "nadir" ? strings.setup.grid.nadir : strings.setup.grid.zenith;
   const poleText = (offset: number) =>
     Math.abs(offset) < 0.05
       ? interpolate(t.poleOn, { pole })
@@ -140,6 +143,8 @@ export function measuredRows(m: StitchMeasured, startPole: StartPole): [string, 
   const or = (value: number | null, text: (v: number) => string) =>
     value === null ? NOT_YET : text(value);
   return [
+    [t.rows, String(grid.rows)],
+    [t.shotsPerRow, String(grid.shotsPerRow)],
     [t.fov, interpolate(t.fovValue, { deg: deg(m.fieldOfViewDeg) })],
     [t.turnStep, or(m.turnStepDeg, (v) => `${deg(v)}°`)],
     [t.pitchStep, or(m.pitchStepDeg, (v) => `${deg(v)}°`)],

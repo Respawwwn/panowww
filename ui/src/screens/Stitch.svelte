@@ -171,8 +171,6 @@ const subtitle = $derived.by(() => {
     mode === "finished" && entry
       ? interpolate(s.subtitleFinished, {
           date,
-          rows: game.rows,
-          shotsPerRow: game.shotsPerRow,
           w: entry.width,
           h: entry.height,
         })
@@ -227,10 +225,10 @@ const measured = $derived.by(() => {
     return null;
   }
   if (mode === "running" && running?.measured) {
-    return measuredRows(running.measured, game.startPole);
+    return measuredRows(running.measured, game);
   }
   if (mode === "finished" && entry) {
-    return measuredRows(measuredOfEntry(entry), game.startPole);
+    return measuredRows(measuredOfEntry(entry), game);
   }
   return null;
 });
@@ -862,6 +860,20 @@ async function openIn(stitcher: Stitcher) {
     background: var(--ok-soft);
     color: var(--ok-fg);
     font-size: 12.5px;
+  }
+
+  /* The Reveal button on green: an outline of the box's own colour, a
+     deeper green on hover instead of the app's near-invisible hover tint. */
+  .okbox :global(.btn) {
+    background: transparent;
+    border-color: color-mix(in srgb, var(--ok) 45%, transparent);
+    color: var(--ok-fg);
+    box-shadow: none;
+  }
+
+  .okbox :global(.btn:hover:not(:disabled)) {
+    background: color-mix(in srgb, var(--ok) 18%, transparent);
+    border-color: color-mix(in srgb, var(--ok) 65%, transparent);
   }
 
   .grow {

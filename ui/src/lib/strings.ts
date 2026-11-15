@@ -478,7 +478,7 @@ export const strings = {
     },
     subtitle: "{date} · {rows} Rows × {shotsPerRow} · {w} × {h} Shots",
     /** Once a Panorama exists: its size instead of the Shots'. */
-    subtitleFinished: "{date} · {rows} Rows × {shotsPerRow} · {w} × {h} px",
+    subtitleFinished: "{date} · {w} × {h} px",
     willWrite: "Writes panorama.jpg in the Session folder, about {w} × {h}.",
     stage: {
       read: "Read the Shots",
@@ -495,6 +495,9 @@ export const strings = {
     },
     measured: {
       title: "Measured from the Shots",
+      /** The grid of the Session, the Stitch's starting guess: first in the card. */
+      rows: "Rows",
+      shotsPerRow: "Shots per Row",
       pending:
         "Field of view, Steps and drift, once the Stitch runs. Nothing is taken from the Game's numbers.",
       fov: "Field of view",
