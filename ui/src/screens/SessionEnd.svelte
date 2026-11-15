@@ -191,6 +191,13 @@ const actions = $derived(
     stitching,
   }),
 );
+/** The Stitch's button and the *Open in…* buttons live in the toolbar,
+ * like *Start Stitch* in the panel; the heading keeps the rest. */
+const stitchAction = $derived(
+  actions.find((a) => a.id === "stitch" || a.id === "stitching" || a.id === "stitchPanel") ?? null,
+);
+const openInActions = $derived(actions.flatMap((a) => (a.id === "openIn" ? [a] : [])));
+const headingActions = $derived(actions.filter((a) => a !== stitchAction && a.id !== "openIn"));
 /** *Stitch* waits for the Runner (spec §16.2) and for a Stitch elsewhere. */
 const stitchDisabled = $derived(!folder || run.busy || (stitch.running !== null && !stitching));
 
@@ -269,6 +276,21 @@ async function back() {
     <Icon name="back" />
     {strings.session.end.backToGame}
   </Button>
+  <span class="spacer"></span>
+  {#each openInActions as action (action.stitcher)}
+    <Button variant={action.primary ? "primary" : "secondary"} disabled={!folder} onclick={() => openIn(action.stitcher)}>
+      <Icon name={action.stitcher === "ptgui" ? "ptgui" : "autopano"} size={14} />
+      {interpolate(strings.session.end.openIn, { stitcher: strings.settings.stitcher[action.stitcher] })}
+    </Button>
+  {/each}
+  {#if stitchAction}
+    <Button variant="primary" disabled={!folder} onclick={openStitch}>
+      <Icon name="stitch" size={14} />
+      {stitchAction.id === "stitching"
+        ? interpolate(strings.session.end.stitching, { pct: percent(stitch.running?.progress ?? null) })
+        : strings.session.end.stitch}
+    </Button>
+  {/if}
 </div>
 
 <div class="end">
@@ -282,31 +304,11 @@ async function back() {
     </Chip>
   </div>
   <div class="actions">
-    {#each actions as action (action.id === "openIn" ? `openIn-${action.stitcher}` : action.id)}
-      {#if action.id === "stitch"}
-        <Button variant="primary" disabled={!folder} onclick={openStitch}>
-          <Icon name="stitch" size={14} />
-          {strings.session.end.stitch}
-        </Button>
-      {:else if action.id === "stitching"}
-        <Button variant="primary" onclick={openStitch}>
-          <Icon name="stitch" size={14} />
-          {interpolate(strings.session.end.stitching, { pct: percent(stitch.running?.progress ?? null) })}
-        </Button>
-      {:else if action.id === "previewPanorama"}
+    {#each headingActions as action (action.id === "openIn" ? `openIn-${action.stitcher}` : action.id)}
+      {#if action.id === "previewPanorama"}
         <Button variant="primary" disabled={!folder} onclick={previewPanorama}>
           <Icon name="pano" size={14} />
           {strings.session.end.previewPanorama}
-        </Button>
-      {:else if action.id === "stitchPanel"}
-        <Button disabled={!folder} onclick={openStitch}>
-          <Icon name="stitch" size={14} />
-          {strings.session.end.stitch}
-        </Button>
-      {:else if action.id === "openIn"}
-        <Button variant={action.primary ? "primary" : "secondary"} disabled={!folder} onclick={() => openIn(action.stitcher)}>
-          <Icon name={action.stitcher === "ptgui" ? "ptgui" : "autopano"} size={14} />
-          {interpolate(strings.session.end.openIn, { stitcher: strings.settings.stitcher[action.stitcher] })}
         </Button>
       {:else if action.id === "zip"}
         <Button variant={action.primary ? "primary" : "secondary"} disabled={!folder} onclick={zip}>
@@ -391,7 +393,7 @@ async function back() {
     height: 60px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: 12px;
     padding: 0 24px;
     border-bottom: 1px solid var(--line);
@@ -470,6 +472,10 @@ async function back() {
     font-size: 22px;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
+  }
+
+  .spacer {
+    flex: 1;
   }
 
   .heading {

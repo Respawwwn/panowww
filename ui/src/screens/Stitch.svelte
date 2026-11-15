@@ -399,7 +399,7 @@ async function openIn(stitcher: Stitcher) {
         oncancel={() => (replacing = false)}
       >
         <Button variant="primary" disabled={stitchDisabled} onclick={mode === "finished" ? askAgain : start}>
-          <Icon name="stitch" size={14} />
+          {#if mode === "idle"}<Icon name="play" size={13} />{:else}<Icon name="stitch" size={14} />{/if}
           {mode === "finished" ? strings.session.end.stitchAgain : mode === "failed" ? s.actions.tryAgain : s.actions.start}
         </Button>
       </InlineConfirm>
