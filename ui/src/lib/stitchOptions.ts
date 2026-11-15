@@ -38,11 +38,13 @@ export function withOptions(settings: Settings, gameId: string, options: StitchO
   };
 }
 
-/** The options a Panorama on disk was made with. */
+/** The options a Panorama on disk was made with; a block written before
+ * the options lacks the last two: the defaults then. */
 export function optionsOfEntry(entry: PanoramaEntry): StitchOptions {
+  const partial = entry as Partial<PanoramaEntry>;
   return {
-    antiGhost: entry.antiGhost,
-    unalignedShots: entry.unalignedShots,
-    jpegQuality: entry.jpegQuality,
+    antiGhost: partial.antiGhost ?? DEFAULT_OPTIONS.antiGhost,
+    unalignedShots: partial.unalignedShots ?? DEFAULT_OPTIONS.unalignedShots,
+    jpegQuality: partial.jpegQuality ?? DEFAULT_OPTIONS.jpegQuality,
   };
 }

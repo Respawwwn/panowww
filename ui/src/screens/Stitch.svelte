@@ -23,7 +23,6 @@ import type { StitchOptions } from "../lib/generated/StitchOptions";
 import { nav } from "../lib/nav.svelte";
 import { preview } from "../lib/preview.svelte";
 import { run } from "../lib/run.svelte";
-import { stateTone } from "../lib/sessionText";
 import { fetchSessionView, type SessionView } from "../lib/sessionView";
 import { settings } from "../lib/settings.svelte";
 import { detectPlatform } from "../lib/shortcut";
@@ -135,6 +134,9 @@ $effect(() => {
 });
 
 const game = $derived(view?.game ?? null);
+const panoramaTone = $derived(
+  mode === "finished" ? ("ok" as const) : mode === "failed" ? ("bad" as const) : ("lav" as const),
+);
 
 /** The Options card: what made the Panorama on disk, else what the Game
  * remembers; changes are remembered for the Game. */
@@ -255,7 +257,6 @@ const measured = $derived.by(() => {
   return null;
 });
 const panoramaFile = $derived(entry?.file ?? "panorama.jpg");
-const doneSegments = $derived(splitPlaceholders(s.done.file, ["file"]));
 const replaceSegments = $derived(splitPlaceholders(s.actions.replace, ["file"]));
 /** The Panorama's unaligned Shots were left out rather than placed. */
 const leftOut = $derived(entry?.unalignedShots === "leaveOut");
@@ -382,15 +383,10 @@ async function openIn(stitcher: Stitcher) {
 {/snippet}
 
 <div class="toolbar" data-tauri-drag-region>
-  <div class="who">
-    {#if view}
-      <Chip tone={stateTone(view.status)}>
-        {#if view.status === "completed"}<Icon name="check" size={13} />{/if}
-        {strings.session.end.chip[view.status]}
-      </Chip>
-      <span class="name">{view.game.name}</span>
-    {/if}
-  </div>
+  <Button onclick={back}>
+    <Icon name="back" />
+    {s.actions.backToSession}
+  </Button>
   <div class="head-acts">
     {#if view && mode !== "running"}
       <InlineConfirm
@@ -408,10 +404,6 @@ async function openIn(stitcher: Stitcher) {
         </Button>
       </InlineConfirm>
     {/if}
-    <Button onclick={back}>
-      <Icon name="back" />
-      {s.actions.backToSession}
-    </Button>
   </div>
 </div>
 
@@ -429,8 +421,15 @@ async function openIn(stitcher: Stitcher) {
       {/each}
     {/snippet}
 
-    <!-- Hidden when it would stay empty: no Stitcher set, nothing finished or failed. -->
-    {#if stitchers.length > 0 || mode === "finished" || mode === "failed"}
+    <!-- The heading, as on Setup: the Game, the Panorama's chip, the actions. -->
+    <div class="heading">
+    <div class="who">
+      <h1 class="t-title name">{game.name}</h1>
+      <Chip tone={panoramaTone}>
+        {#if mode === "finished"}<Icon name="check" size={13} />{/if}
+        {s.chip[mode]}
+      </Chip>
+    </div>
     <div class="actions">
     {#if mode === "idle"}
       <div class="acts">
@@ -462,7 +461,7 @@ async function openIn(stitcher: Stitcher) {
       </div>
     {/if}
     </div>
-    {/if}
+    </div>
 
     <section class="card top">
       <div class="titles">
@@ -473,9 +472,6 @@ async function openIn(stitcher: Stitcher) {
           {/if}
           {#if mode === "finished" && droppedPairs.length > 0}
             <Chip tone="warn"><Icon name="warn" size={13} />{plural(s.dropped.chip, droppedPairs.length)}</Chip>
-          {/if}
-          {#if mode === "failed"}
-            <Chip tone="bad">{s.title.failedChip}</Chip>
           {/if}
         </div>
         <p class="sub">{subtitle}</p>
@@ -543,19 +539,7 @@ async function openIn(stitcher: Stitcher) {
           </section>
         {/if}
 
-        {#if mode === "finished" && entry}
-          <div class="okbox">
-            <span class="grow">
-              {#each doneSegments as segment, i (i)}
-                {#if segment.kind === "slot"}<code>{entry.file}</code>{:else}{interpolate(segment.text, { duration: formatSeconds(entry.durationMs) })}{/if}
-              {/each}
-            </span>
-            <Button size="sm" onclick={revealPanorama}>
-              <Icon name="folder" size={13} />
-              {strings.settings.reveal}
-            </Button>
-          </div>
-        {:else if mode === "running"}
+        {#if mode === "running"}
           <div class="tips">
             {#if leftMs !== null}
               <Tip text={interpolate(s.progress.time, { elapsed: formatSeconds(elapsedMs), left: formatSeconds(leftMs) })} />
@@ -659,9 +643,7 @@ async function openIn(stitcher: Stitcher) {
   }
 
   .name {
-    font-weight: 700;
-    font-size: 15px;
-    letter-spacing: -0.01em;
+    margin: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -690,6 +672,13 @@ async function openIn(stitcher: Stitcher) {
   /* The actions row sits above the card, as on the Session end. */
   /* As tall as its buttons, so the inline question of Stitch again, drawn
      with smaller buttons, does not move the cards below. */
+  .heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
   .actions {
     display: flex;
     justify-content: flex-end;
@@ -896,35 +885,6 @@ async function openIn(stitcher: Stitcher) {
     font-variant-numeric: tabular-nums;
   }
 
-  .okbox {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    border-radius: var(--rs);
-    background: var(--ok-soft);
-    color: var(--ok-fg);
-    font-size: 12.5px;
-  }
-
-  /* The Reveal button on green: white at rest in light, a soft tint in
-     dark, a deeper green on hover instead of the app's near-invisible
-     hover tint. */
-  .okbox :global(.btn) {
-    background: var(--ok-btn);
-    border-color: transparent;
-    color: var(--ok-btn-fg);
-  }
-
-  .okbox :global(.btn:hover:not(:disabled)) {
-    color: var(--ok-fg);
-    background: color-mix(in srgb, var(--ok) 18%, transparent);
-    border-color: color-mix(in srgb, var(--ok) 65%, transparent);
-  }
-
-  .grow {
-    flex: 1;
-  }
 
   .tips {
     display: flex;

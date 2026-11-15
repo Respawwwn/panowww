@@ -474,7 +474,6 @@ export const strings = {
       finished: "Panorama stitched in {duration}",
       failed: "Could not stitch this Session",
       /** The red chip beside the failed title (board StitchFailed). */
-      failedChip: "Stitch failed",
     },
     subtitle: "{date} · {rows} Rows × {shotsPerRow} · {w} × {h} Shots",
     /** Once a Panorama exists: its size instead of the Shots'. */
@@ -502,8 +501,6 @@ export const strings = {
       leaveOut: "Leave out",
       leaveOutHint: "What only these Shots saw stays black.",
       quality: "JPEG quality",
-      /** The closed card's summary: `{antiGhost} · {quality}`, ` · Leave out` added. */
-      noAntiGhost: "No anti-ghost",
       /** The slider's value and each preset button. */
       percent: "{n} %",
     },
@@ -546,9 +543,12 @@ export const strings = {
       legendFailed:
         "Red: Shots without any control points. They look alike: sky, fog, a dark scene, or a camera that did not move.",
     },
-    done: {
-      /** `{file}` is drawn as code. */
-      file: "{file} created in {duration}",
+    /** The heading's chip: the Panorama's state, not the Session's. */
+    chip: {
+      idle: "Not stitched",
+      running: "Stitching",
+      finished: "Panorama stitched",
+      failed: "Stitch failed",
     },
     unaligned: {
       chip: { one: "1 Shot not aligned", other: "{n} Shots not aligned" },

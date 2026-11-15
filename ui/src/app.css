@@ -44,9 +44,6 @@
   --ok: #2eaa5d;
   --ok-soft: #e4f5ea;
   --ok-fg: #1d7a40;
-  /* A button on a green box, at rest. */
-  --ok-btn: #fff;
-  --ok-btn-fg: #1d7a40;
   --warn: #d98c00;
   --warn-soft: #fff2d9;
   --warn-fg: #8a5a00;
@@ -100,8 +97,6 @@
     --ok: #30d158;
     --ok-soft: rgb(48 209 88 / 16%);
     --ok-fg: #7ee29a;
-    --ok-btn: rgb(255 255 255 / 10%);
-    --ok-btn-fg: #7ee29a;
     --warn: #e5a100;
     --warn-soft: rgb(229 161 0 / 16%);
     --warn-fg: #f5c451;
@@ -142,8 +137,6 @@
   --ok: #30d158;
   --ok-soft: rgb(48 209 88 / 16%);
   --ok-fg: #7ee29a;
-  --ok-btn: rgb(255 255 255 / 10%);
-  --ok-btn-fg: #7ee29a;
   --warn: #e5a100;
   --warn-soft: rgb(229 161 0 / 16%);
   --warn-fg: #f5c451;

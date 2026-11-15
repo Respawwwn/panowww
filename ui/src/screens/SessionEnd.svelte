@@ -265,13 +265,6 @@ async function back() {
 </script>
 
 <div class="toolbar" data-tauri-drag-region>
-  <div class="who">
-    <Chip tone={stateTone(view.status)}>
-      {#if view.status === "completed"}<Icon name="check" size={13} />{/if}
-      {chip}
-    </Chip>
-    <span class="name">{game.name}</span>
-  </div>
   <Button onclick={back}>
     <Icon name="back" />
     {strings.session.end.backToGame}
@@ -279,6 +272,15 @@ async function back() {
 </div>
 
 <div class="end">
+  <!-- The heading, as on Setup: the Game, the Session's chip, the actions. -->
+  <div class="heading">
+  <div class="who">
+    <h1 class="t-title name">{game.name}</h1>
+    <Chip tone={stateTone(view.status)}>
+      {#if view.status === "completed"}<Icon name="check" size={13} />{/if}
+      {chip}
+    </Chip>
+  </div>
   <div class="actions">
     {#each actions as action (action.id === "openIn" ? `openIn-${action.stitcher}` : action.id)}
       {#if action.id === "stitch"}
@@ -318,6 +320,7 @@ async function back() {
         </Button>
       {/if}
     {/each}
+  </div>
   </div>
   {#if zipped || actionError}
     <p class="note" class:error={Boolean(actionError)}>{#if actionError}{actionError}{:else}<code title={zipped}>{zipped}</code>{/if}</p>
@@ -403,9 +406,7 @@ async function back() {
   }
 
   .name {
-    font-weight: 700;
-    font-size: 15px;
-    letter-spacing: -0.01em;
+    margin: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -469,6 +470,13 @@ async function back() {
     font-size: 22px;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
+  }
+
+  .heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
   }
 
   .actions {

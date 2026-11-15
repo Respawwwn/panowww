@@ -1,6 +1,6 @@
 <script lang="ts">
 // The Options card of the Stitch panel (spec §16.3), under the stages,
-// closed by default with a summary of the choices:
+// closed by default:
 // anti-ghost, the Shots without control points, the JPEG quality as a
 // slider of whole percents with three presets that only move it; the
 // card's own button starts the Stitch, cancels it while it runs, or
@@ -47,16 +47,6 @@ const presetItems = QUALITY_PRESETS.map((q) => ({
 
 let open = $state(false);
 
-const summary = $derived(
-  [
-    options.antiGhost ? t.antiGhost : t.noAntiGhost,
-    options.unalignedShots === "leaveOut" ? t.leaveOut : null,
-    interpolate(t.percent, { n: options.jpegQuality }),
-  ]
-    .filter(Boolean)
-    .join(" · "),
-);
-
 function set(next: Partial<StitchOptions>) {
   const changed = { ...options, ...next };
   onchange(changed);
@@ -72,7 +62,7 @@ function slide(value: number, keep: boolean) {
 }
 </script>
 
-<CollapsibleCard title={t.title} {summary} {open} ontoggle={() => (open = !open)}>
+<CollapsibleCard title={t.title} {open} ontoggle={() => (open = !open)}>
   <div class="options" class:locked={running}>
 
   <div class="opt">
