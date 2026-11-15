@@ -281,8 +281,8 @@ The F23–F31 pass on Windows, plus timing, memory and the WebView2 preview. Bui
 
 | # | Check | How | Pass | Result |
 |---|---|---|---|---|
-| WF15 | Experimental switch | As F23 | As F23, with *Open in…* for `PTGui.exe` and `AutopanoGiga_x64.exe` | To run |
-| WF16 | Stitch of the World of Warcraft Session, time and memory | As F24 on `world-of-warcraft-2026-11-07_23-14-46`; note the duration in the green box and the peak working set | The Panorama as on macOS (compare with `expected\world-of-warcraft-2026-11-07_23-14-46.jpg` in the clone); the dropped Step r04_c07 = r04_c08; the duration and the peak written here. The memory budget is a quarter of the RAM, 1 to 8 GiB: the log line `Stitch starting … budget_mb=` shows it, read through `GlobalMemoryStatusEx` | To run |
+| WF15 | Experimental switch | As F23 | As F23, with *Open in…* for `PTGui.exe` and `AutopanoGiga_x64.exe` in the Session end's toolbar (switch off), *Stitch* there (switch on) | To run |
+| WF16 | Stitch of the World of Warcraft Session, time and memory | As F24 on `world-of-warcraft-2026-11-07_23-14-46`; note the duration in the title *Panorama stitched in N s* and the peak working set | The Panorama as on macOS (compare with `expected\world-of-warcraft-2026-11-07_23-14-46.jpg` in the clone); the dropped Step r04_c07 = r04_c08; the duration and the peak written here. The memory budget is a quarter of the RAM, 1 to 8 GiB: the log line `Stitch starting … budget_mb=` shows it, read through `GlobalMemoryStatusEx` | To run |
 | WF17 | The other five Sessions | Stitch each one | Each as its `expected\<slug>.jpg`: the chips *1 Shot not aligned* on two NoClip Sessions, *14 Shots not aligned* on the MacBook one, none on the others | To run |
 | WF18 | Cancel mid-way | As F25 | As F25 | To run |
 | WF19 | A Session starts during a Stitch | As F26, with a Game of the machine selected and the Sessions folder set back first | As F26 | To run |
@@ -291,6 +291,7 @@ The F23–F31 pass on Windows, plus timing, memory and the WebView2 preview. Bui
 | WF22 | Preview without a GPU | Quit Panowww; set `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--disable-gpu` for the user (System → Advanced system settings → Environment variables), relaunch, *Preview Panorama*; remove the variable afterwards | The flat preview image with *This window cannot show the 360° view…*, no blank window | To run |
 | WF23 | Failure with no Stitcher | As F29 on `failing\sky-2x3-2026-11-15`, with both Stitchers reset, then one set | As F29 | To run |
 | WF24 | Zip holds the Panorama | As F30 | As F30, the zip's path in code | To run |
+| WF25 | Stitch options | As F32 | As F32; the slider's thumb and the presets in WebView2 | To run |
 
 ## Release (issue 21)
 
