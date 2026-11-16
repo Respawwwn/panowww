@@ -19,7 +19,7 @@
   <a href="https://github.com/Respawwwn/panowww/releases/latest"><img src="docs/readme/download-windows.svg" alt="Download for Windows" height="48"></a>
 </p>
 
-<img src="docs/readme/hero.svg" alt="Panowww on the left display and World of Warcraft on the right: the Capture zone is drawn over the game, a Session turns the camera Shot by Shot while the Shots fill Panowww, and the 98 Shots end up stitched into a 360° panorama" width="900">
+<img src="docs/readme/hero.svg" alt="Panowww on the left display and World of Warcraft on the right: the Capture zone is drawn over the game, a Session turns the camera Shot by Shot while the Shots fill Panowww, then Panowww stitches the 98 Shots itself and previews the 360° panorama" width="900">
 
 </div>
 
@@ -39,6 +39,8 @@ New to game panoramas? Watch [How to Create a 360° Panorama in a Video Game](ht
 | **Set up a Game** once: input, grid and delays. | **Draw the Capture zone** over the game. |
 | <img src="docs/readme/session.webp" alt="Session running" width="440"> | <img src="docs/readme/session-end.webp" alt="Session completed" width="440"> |
 | **Follow the Session** with live thumbnails. | **Every Shot is in**: zip the Session or reveal it, then stitch. |
+| <img src="docs/readme/stitch.webp" alt="Stitch in progress" width="440"> | <img src="docs/readme/preview.webp" alt="Panorama preview" width="440"> |
+| **Stitch in Panowww** (experimental): every Shot aligned, the field of view measured. | **Preview the Panorama** in 360°, then fill the screen. |
 
 ## Quick start
 
