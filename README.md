@@ -19,7 +19,7 @@
   <a href="https://github.com/Respawwwn/panowww/releases/latest"><img src="docs/readme/download-windows.svg" alt="Download for Windows" height="48"></a>
 </p>
 
-<img src="docs/readme/hero.svg" alt="Panowww on the left display and World of Warcraft on the right: the Capture zone is drawn over the game, a Session turns the camera Shot by Shot while the Shots fill Panowww, and the 98 Shots end up stitched into a 360° panorama" width="900">
+<img src="docs/readme/hero.svg" alt="Panowww on the left display and World of Warcraft on the right: the Capture zone is drawn over the game, a Session turns the camera Shot by Shot while the Shots fill Panowww, then Panowww stitches the 98 Shots itself and previews the 360° panorama" width="900">
 
 </div>
 
