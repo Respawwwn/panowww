@@ -14,4 +14,6 @@ magick shot.png -resize 1760x\> -strip tmp.png && cwebp -q 84 -alpha_q 100 -m 6 
 | `capture-zone.webp` | Capture zone picker over World of Warcraft | app, full-screen capture |
 | `session.webp` | Session running | design board `B-SessionRunning` with the real Shots |
 | `session-end.webp` | Session completed | app, CleanShot window capture |
+| `stitch.webp` | Stitch in progress, World of Warcraft | app, CleanShot window capture (1x) |
+| `preview.webp` | Panorama preview over the Stitch panel | app, CleanShot window capture (1x) |
 

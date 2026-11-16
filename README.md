@@ -39,6 +39,8 @@ New to game panoramas? Watch [How to Create a 360° Panorama in a Video Game](ht
 | **Set up a Game** once: input, grid and delays. | **Draw the Capture zone** over the game. |
 | <img src="docs/readme/session.webp" alt="Session running" width="440"> | <img src="docs/readme/session-end.webp" alt="Session completed" width="440"> |
 | **Follow the Session** with live thumbnails. | **Every Shot is in**: zip the Session or reveal it, then stitch. |
+| <img src="docs/readme/stitch.webp" alt="Stitch in progress" width="440"> | <img src="docs/readme/preview.webp" alt="Panorama preview" width="440"> |
+| **Stitch in Panowww** (experimental): every Shot aligned, the field of view measured. | **Preview the Panorama** in 360°, then fill the screen. |
 
 ## Quick start
 
