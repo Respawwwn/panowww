@@ -21,6 +21,7 @@ export const defaultSettings: Settings = {
   onboarded: false,
   includePrereleases: false,
   stitchers: { ptgui: null, autopanoGiga: null },
+  experimental: { stitch: false },
 };
 
 let current = $state<Settings>(structuredClone(defaultSettings));

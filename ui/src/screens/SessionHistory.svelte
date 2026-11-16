@@ -3,7 +3,7 @@
 // again, shown by the Session end screen with on-demand thumbnails.
 import { api, isAppError } from "../lib/api";
 import { games } from "../lib/games.svelte";
-import { type SessionView, viewFromRecord } from "../lib/sessionView";
+import { fetchSessionView, type SessionView } from "../lib/sessionView";
 import { strings } from "../lib/strings";
 import SessionEnd from "./SessionEnd.svelte";
 
@@ -19,12 +19,10 @@ $effect(() => {
   const f = folder;
   view = null;
   error = null;
-  api.sessions
-    .list(id)
-    .then((rows) => {
-      const row = rows.find((r) => r.folder === f);
-      if (row) {
-        view = viewFromRecord(row.record, row.folder);
+  fetchSessionView(id, f)
+    .then((found) => {
+      if (found) {
+        view = found;
       } else {
         error = strings.sessions.gone;
       }

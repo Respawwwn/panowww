@@ -34,7 +34,7 @@ function onKeyDown(event: KeyboardEvent) {
     class="win"
     role="dialog"
     aria-label={title}
-    style:width="min({width}px, 94vw)"
+    style:width={`min(${width}px, 94vw)`}
     style:height={height ? `min(${height}px, 92vh)` : undefined}
   >
     <header class="win-t" class:scrolled>

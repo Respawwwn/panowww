@@ -14,6 +14,7 @@ import { run } from "./lib/run.svelte";
 import { viewFromLast } from "./lib/sessionView";
 import { settings } from "./lib/settings.svelte";
 import { detectPlatform } from "./lib/shortcut";
+import { stitch } from "./lib/stitch.svelte";
 import { applyAppearance } from "./lib/theme";
 import { update } from "./lib/update.svelte";
 import { windows } from "./lib/windows.svelte";
@@ -25,10 +26,12 @@ import EmptyDetail from "./screens/EmptyDetail.svelte";
 import Gallery from "./screens/Gallery.svelte";
 import GameDetail from "./screens/GameDetail.svelte";
 import Onboarding from "./screens/Onboarding.svelte";
+import PanoramaPreview from "./screens/PanoramaPreview.svelte";
 import SessionEnd from "./screens/SessionEnd.svelte";
 import SessionHistory from "./screens/SessionHistory.svelte";
 import SessionRunning from "./screens/SessionRunning.svelte";
 import Settings from "./screens/Settings.svelte";
+import Stitch from "./screens/Stitch.svelte";
 
 onMount(() => {
   if (nav.screen.kind === "gallery") {
@@ -36,10 +39,12 @@ onMount(() => {
   }
   let unwatch: (() => void) | null = null;
   let unrun: (() => void) | null = null;
+  let unstitch: (() => void) | null = null;
   void (async () => {
     await Promise.allSettled([settings.load(), games.load()]);
     unwatch = await games.watch().catch(() => null);
     unrun = await run.subscribe().catch(() => null);
+    unstitch = await stitch.subscribe().catch(() => null);
     // Onboarding shows at the first launch and whenever a macOS permission
     // is missing at launch (§11.11). ViGEmBus is optional: a missing driver
     // never brings it back. On Windows the first launch is the one showing
@@ -56,6 +61,7 @@ onMount(() => {
   return () => {
     unwatch?.();
     unrun?.();
+    unstitch?.();
   };
 });
 
@@ -126,7 +132,7 @@ function onKeyDown(event: KeyboardEvent) {
       onabout={() => windows.show("about")}
     />
     <main class="detail">
-      {#if !["game", "ended", "session", "running", "countdown", "allSessions"].includes(nav.screen.kind)}
+      {#if !["game", "ended", "session", "stitch", "running", "countdown", "allSessions"].includes(nav.screen.kind)}
         <!-- The hidden title bar: the strip under it moves the window. The
              Game detail and the Session screens have a toolbar that is its
              own drag region. -->
@@ -144,6 +150,8 @@ function onKeyDown(event: KeyboardEvent) {
         <SessionEnd view={endedView} />
       {:else if nav.screen.kind === "session"}
         <SessionHistory gameId={nav.screen.gameId} folder={nav.screen.folder} />
+      {:else if nav.screen.kind === "stitch"}
+        <Stitch gameId={nav.screen.gameId} folder={nav.screen.folder} />
       {:else if nav.screen.kind === "allSessions"}
         <AllSessions />
       {:else}
@@ -160,6 +168,8 @@ function onKeyDown(event: KeyboardEvent) {
       <About />
     {:else if windows.open === "onboarding"}
       <Onboarding />
+    {:else if windows.open === "panorama"}
+      <PanoramaPreview />
     {/if}
   </div>
 {/if}

@@ -16,6 +16,24 @@ export function formatDuration(ms: number): string {
   return `≈ ${s} s`;
 }
 
+/**
+ * A measured time, as the Stitch panel shows it: `0.6 s`, `9.8 s`, `48 s`,
+ * `1 min 12 s`. Tenths under ten seconds, whole seconds after.
+ */
+export function formatSeconds(ms: number): string {
+  const secs = Math.max(0, ms) / 1000;
+  if (secs < 10) {
+    return `${secs.toFixed(1)} s`;
+  }
+  if (secs < 60) {
+    return `${Math.round(secs)} s`;
+  }
+  const whole = Math.round(secs);
+  const m = Math.floor(whole / 60);
+  const s = whole % 60;
+  return s > 0 ? `${m} min ${s} s` : `${m} min`;
+}
+
 /** `1.2 GB`, `480 MB`, `12 KB`. */
 export function formatBytes(bytes: number): string {
   if (bytes >= 1e9) {

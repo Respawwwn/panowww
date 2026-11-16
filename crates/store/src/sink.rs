@@ -136,6 +136,7 @@ impl ShotSink for SessionSink {
             shots_expected: start.shots_expected,
             shots_taken: 0,
             shots: Vec::new(),
+            panorama: None,
         };
         record.write(&folder)?;
         tracing::info!(folder = %folder.display(), "Session folder created");

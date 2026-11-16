@@ -1,5 +1,6 @@
 //! Thin Tauri shell of Panowww (spec §4.1): the commands the UI calls, the
-//! single Runner owner, countdown, pre-flight, global shortcuts, windows,
+//! single Runner owner, the single Stitch owner, countdown, pre-flight,
+//! global shortcuts, windows,
 //! onboarding aggregation, update check and the one `AppError` shape the
 //! UI sees. Window glue only; every decision lives in `core`.
 
@@ -13,6 +14,7 @@ mod picker;
 mod runner;
 mod shortcuts;
 mod state;
+mod stitch;
 mod stitchers;
 mod update;
 
@@ -30,11 +32,14 @@ use crate::backend::SystemBackend;
 use crate::overlay::WindowOverlay;
 use crate::runner::Runner;
 use crate::state::{AppState, SharedState};
+use crate::stitch::StitchOwner;
 
 /// The app window's label in `tauri.conf.json`.
 pub const MAIN_WINDOW: &str = "main";
 /// The window event that carries every `RunEvent` of a run.
 pub const RUN_EVENT: &str = "run";
+/// The window event that carries every `StitchEvent` of a Stitch (spec §16.5).
+pub const STITCH_EVENT: &str = "stitch";
 /// The window event sent when a file of the Games folder changed on disk.
 pub const GAMES_CHANGED_EVENT: &str = "games-changed";
 
@@ -104,7 +109,9 @@ pub fn run() {
             // Cmd+Q from the macOS menu comes as `Exit` straight away, a
             // closed last window as `ExitRequested`; shutdown is idempotent.
             tauri::RunEvent::ExitRequested { .. } | tauri::RunEvent::Exit => {
-                app.state::<SharedState>().runner.shutdown();
+                let state = app.state::<SharedState>();
+                state.runner.shutdown();
+                state.stitch.shutdown();
                 // The virtual pad outlives runs (spec §8.3), not the app.
                 #[cfg(target_os = "windows")]
                 panowww_input::windows::gamepad::unplug_shared();
@@ -115,7 +122,9 @@ pub fn run() {
                 event: tauri::WindowEvent::Destroyed,
                 ..
             } if label == MAIN_WINDOW => {
-                app.state::<SharedState>().runner.shutdown();
+                let state = app.state::<SharedState>();
+                state.runner.shutdown();
+                state.stitch.shutdown();
                 app.exit(0);
             }
             // A picker window closed by other means cancels the pick.
@@ -163,6 +172,22 @@ fn build_state(app: &tauri::App) -> tauri::Result<SharedState> {
         }),
         Arc::clone(&overlay),
     );
+    // The Stitch owner refuses to start while the Runner is not Idle, and a
+    // run that starts cancels the Stitch in progress (spec §16.5).
+    let stitch_handle = app.handle().clone();
+    let stitch = Arc::new(StitchOwner::new(
+        Arc::new(move |event| {
+            if let Err(error) = stitch_handle.emit(STITCH_EVENT, &event) {
+                tracing::warn!(%error, "stitch event not delivered");
+            }
+        }),
+        runner.idle_probe(),
+        Arc::clone(&backend),
+    ));
+    let stitch_to_cancel = Arc::clone(&stitch);
+    runner.set_before_start(Arc::new(move || {
+        stitch_to_cancel.cancel(dto::StitchCancelReason::SessionStarted);
+    }));
     // A Game edited by hand, or a damaged file repaired, is re-read: the
     // window re-lists the folder on `games-changed` (spec §5).
     let folder_handle = app.handle().clone();
@@ -184,6 +209,7 @@ fn build_state(app: &tauri::App) -> tauri::Result<SharedState> {
         local: RwLock::new(local),
         selected: Mutex::new(None),
         runner,
+        stitch,
         backend,
         overlay,
         picker: picker::Picker::default(),

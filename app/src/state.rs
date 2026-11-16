@@ -1,5 +1,6 @@
 //! What the commands share: the data folder, the Games folder, the
-//! settings and local state in memory, the selected Game, the Runner.
+//! settings and local state in memory, the selected Game, the Runner, the
+//! Stitch owner.
 
 use std::sync::{Arc, Mutex, RwLock};
 
@@ -13,6 +14,7 @@ use crate::backend::SharedBackend;
 use crate::overlay::SharedOverlay;
 use crate::picker::Picker;
 use crate::runner::Runner;
+use crate::stitch::StitchOwner;
 
 pub struct AppState {
     pub paths: AppPaths,
@@ -22,6 +24,8 @@ pub struct AppState {
     /// The Game shown in the detail area: what the Start shortcut runs.
     pub selected: Mutex<Option<Uuid>>,
     pub runner: Runner,
+    /// The single Stitch owner (spec §16.5); the Runner cancels it on start.
+    pub stitch: Arc<StitchOwner>,
     pub backend: SharedBackend,
     /// Shared with the Runner; the Setup's Show zone draws the frame alone.
     pub overlay: SharedOverlay,

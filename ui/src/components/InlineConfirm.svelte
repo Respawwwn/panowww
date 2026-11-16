@@ -7,6 +7,8 @@ import Button from "./Button.svelte";
 type Props = {
   confirming: boolean;
   question: string;
+  /** Draws the question instead of `question`'s text, for a file name as code. */
+  questionContent?: Snippet;
   confirmLabel: string;
   cancelLabel: string;
   onconfirm: () => void;
@@ -15,14 +17,22 @@ type Props = {
   children?: Snippet;
 };
 
-let { confirming, question, confirmLabel, cancelLabel, onconfirm, oncancel, children }: Props =
-  $props();
+let {
+  confirming,
+  question,
+  questionContent,
+  confirmLabel,
+  cancelLabel,
+  onconfirm,
+  oncancel,
+  children,
+}: Props = $props();
 </script>
 
 <div class="acts">
   {#if confirming}
     <div class="confirm" role="alertdialog">
-      <span>{question}</span>
+      <span>{#if questionContent}{@render questionContent()}{:else}{question}{/if}</span>
       <Button variant="danger" size="sm" onclick={onconfirm}>{confirmLabel}</Button>
       <Button size="sm" onclick={oncancel}>{cancelLabel}</Button>
     </div>

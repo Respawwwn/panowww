@@ -1,27 +1,33 @@
 <script lang="ts">
-// Session end (spec §11.7, board B-SessionEnd): the state chip and the
-// Game's name in the toolbar with *Back to Game*; the summary card with
-// the actions row (*Open in…* per Stitcher set in Settings, completed
-// Sessions only, the first one primary; *Zip Session*, primary when no
-// Stitcher is set; *Reveal*), sized like the Game header's Duplicate and
-// Share; the summary card with the title, the date line and the counts;
-// the Shots card with the folder and the full grid, which fills the
-// window when there is room and never shrinks below its grid. Shown for
-// the run that just ended and for any Session opened from a table; no
-// preview.
+// Session end (spec §11.7, §16.2, boards B-SessionEnd and Main): the state
+// chip and the Game's name in the toolbar with *Back to Game*; the actions
+// row (`sessionActions`: *Stitch*, or *Preview Panorama* and a *Stitch*
+// that opens the panel once a Panorama exists, when the Experimental
+// switch is on;
+// *Open in…* per Stitcher set in Settings, completed Sessions only; *Zip
+// Session*; *Reveal*), sized like the Game header's Duplicate and Share;
+// the summary card with the title, the date line, the *Next* line with
+// its links or the Panorama box, and the counts; the Shots card with the
+// folder and the full grid, which fills the window when there is room and
+// never shrinks below its grid. Shown for the run that just ended and for
+// any Session opened from a table; no preview.
 import Button from "../components/Button.svelte";
 import Chip from "../components/Chip.svelte";
 import Icon from "../components/Icon.svelte";
 import Thumbnail from "../components/Thumbnail.svelte";
-import Tip from "../components/Tip.svelte";
 import { api, isAppError, type Stitcher } from "../lib/api";
 import { formatBytes, formatDuration, formatWhen, shotLabel } from "../lib/format";
 import { nav } from "../lib/nav.svelte";
+import { preview } from "../lib/preview.svelte";
+import { run } from "../lib/run.svelte";
+import { nextVariant, sessionActions } from "../lib/sessionEnd";
 import { reasonFragment, stateTone } from "../lib/sessionText";
 import type { SessionView } from "../lib/sessionView";
 import { settings } from "../lib/settings.svelte";
 import { detectPlatform } from "../lib/shortcut";
-import { interpolate, strings } from "../lib/strings";
+import { percent, stitch } from "../lib/stitch.svelte";
+import { type InterpolationValues, interpolate, splitPlaceholders, strings } from "../lib/strings";
+import { windows } from "../lib/windows.svelte";
 
 type Props = { view: SessionView };
 
@@ -172,6 +178,70 @@ async function openIn(stitcher: Stitcher) {
   }
 }
 
+/** The Panorama in the folder: written during this window, or found on disk. */
+const panorama = $derived(stitch.entryFor(folder) ?? view.panorama);
+const stitching = $derived(stitch.isStitching(folder));
+const stitchOn = $derived(settings.value.experimental.stitch);
+const actions = $derived(
+  sessionActions({
+    status: view.status,
+    stitchOn,
+    stitchers,
+    hasPanorama: panorama !== null,
+    stitching,
+  }),
+);
+/** The Stitch's button and the *Open in…* buttons live in the toolbar,
+ * like *Start Stitch* in the panel; the heading keeps the rest. */
+const stitchAction = $derived(
+  actions.find((a) => a.id === "stitch" || a.id === "stitching" || a.id === "stitchPanel") ?? null,
+);
+const openInActions = $derived(actions.flatMap((a) => (a.id === "openIn" ? [a] : [])));
+const headingActions = $derived(actions.filter((a) => a !== stitchAction && a.id !== "openIn"));
+/** *Stitch* waits for the Runner (spec §16.2) and for a Stitch elsewhere. */
+const stitchDisabled = $derived(!folder || run.busy || (stitch.running !== null && !stitching));
+
+const nextSegments = $derived(
+  splitPlaceholders(strings.session.end.next[nextVariant(stitchOn, stitchers)], [
+    "stitchHere",
+    "stitchers",
+  ]),
+);
+
+const panoramaSegments = $derived(splitPlaceholders(strings.session.end.panorama, ["file"]));
+const panoramaValues = $derived.by(
+  (): InterpolationValues =>
+    panorama
+      ? {
+          when: formatWhen(panorama.stitchedAt, strings.sessions),
+          width: panorama.width,
+          height: panorama.height,
+          size: formatBytes(panorama.bytes),
+        }
+      : {},
+);
+
+/** Opens the Stitch panel: the Stitch starts there, after its options. */
+function openStitch() {
+  if (folder) {
+    nav.showStitch(game.id, folder);
+  }
+}
+
+/** The preview window over the app (spec §16.4). */
+function previewPanorama() {
+  if (folder && panorama) {
+    preview.show({
+      folder,
+      entry: panorama,
+      gameName: game.name,
+      startedAt: view.startedAt,
+      startPole: game.startPole,
+    });
+    windows.show("panorama");
+  }
+}
+
 const cells = $derived.by(() => {
   const byKey = new Map(
     view.shots.map((s) => [`${s.row}-${s.col}`, s.src ?? thumbs[s.file] ?? null]),
@@ -202,38 +272,60 @@ async function back() {
 </script>
 
 <div class="toolbar" data-tauri-drag-region>
+  <Button onclick={back}>
+    <Icon name="back" />
+    {strings.session.end.backToGame}
+  </Button>
+  <span class="spacer"></span>
+  {#each openInActions as action (action.stitcher)}
+    <Button variant={action.primary ? "primary" : "secondary"} disabled={!folder} onclick={() => openIn(action.stitcher)}>
+      <Icon name={action.stitcher === "ptgui" ? "ptgui" : "autopano"} size={14} />
+      {interpolate(strings.session.end.openIn, { stitcher: strings.settings.stitcher[action.stitcher] })}
+    </Button>
+  {/each}
+  {#if stitchAction}
+    <Button variant="primary" disabled={!folder} onclick={openStitch}>
+      <Icon name="stitch" size={14} />
+      {stitchAction.id === "stitching"
+        ? interpolate(strings.session.end.stitching, { pct: percent(stitch.running?.progress ?? null) })
+        : strings.session.end.stitch}
+    </Button>
+  {/if}
+</div>
+
+<div class="end">
+  <!-- The heading, as on Setup: the Game, the Session's chip, the actions. -->
+  <div class="heading">
   <div class="who">
+    <h1 class="t-title name">{game.name}</h1>
     <Chip tone={stateTone(view.status)}>
       {#if view.status === "completed"}<Icon name="check" size={13} />{/if}
       {chip}
     </Chip>
-    <span class="name">{game.name}</span>
   </div>
-  <Button size="lg" onclick={back}>
-    <Icon name="back" />
-    {strings.session.end.backToGame}
-  </Button>
-</div>
-
-<div class="end">
   <div class="actions">
-    {#each stitchers as stitcher, i (stitcher)}
-      <Button variant={i === 0 ? "primary" : "secondary"} disabled={!folder} onclick={() => openIn(stitcher)}>
-        <Icon name={stitcher === "ptgui" ? "ptgui" : "autopano"} size={14} />
-        {interpolate(strings.session.end.openIn, { stitcher: strings.settings.stitcher[stitcher] })}
-      </Button>
+    {#each headingActions as action (action.id === "openIn" ? `openIn-${action.stitcher}` : action.id)}
+      {#if action.id === "previewPanorama"}
+        <Button variant="primary" disabled={!folder} onclick={previewPanorama}>
+          <Icon name="pano" size={14} />
+          {strings.session.end.previewPanorama}
+        </Button>
+      {:else if action.id === "zip"}
+        <Button variant={action.primary ? "primary" : "secondary"} disabled={!folder} onclick={zip}>
+          <Icon name="zip" size={14} />
+          {strings.session.end.zip}
+        </Button>
+      {:else}
+        <Button disabled={!folder} onclick={reveal}>
+          <Icon name="folder" size={14} />
+          {platform === "macos" ? strings.detail.revealInFinder : strings.detail.revealInExplorer}
+        </Button>
+      {/if}
     {/each}
-    <Button variant={stitchers.length === 0 ? "primary" : "secondary"} disabled={!folder} onclick={zip}>
-      <Icon name="zip" size={14} />
-      {strings.session.end.zip}
-    </Button>
-    <Button disabled={!folder} onclick={reveal}>
-      <Icon name="folder" size={14} />
-      {platform === "macos" ? strings.detail.revealInFinder : strings.detail.revealInExplorer}
-    </Button>
+  </div>
   </div>
   {#if zipped || actionError}
-    <p class="note" class:error={Boolean(actionError)}>{actionError ?? zipped}</p>
+    <p class="note" class:error={Boolean(actionError)}>{#if actionError}{actionError}{:else}<code title={zipped}>{zipped}</code>{/if}</p>
   {/if}
 
   <section class="card summary">
@@ -244,6 +336,31 @@ async function back() {
         <p class="sub">{strings.session.end.interrupted.note}</p>
       {:else if failedText}
         <p class="sub bad">{failedText}</p>
+      {/if}
+      {#if view.status === "completed" && panorama && stitchOn}
+        <div class="tipbox done">
+          <span>
+            {#each panoramaSegments as segment, i (i)}
+              {#if segment.kind === "slot"}<code class="file">{panorama.file}</code>{:else}{interpolate(segment.text, panoramaValues)}{/if}
+            {/each}
+          </span>
+        </div>
+      {:else if view.status === "completed"}
+        <p class="tipbox next">
+          {#each nextSegments as segment, i (i)}
+            {#if segment.kind === "text"}{segment.text}{:else if segment.name === "stitchHere"}<button
+                type="button"
+                class="lnk"
+                disabled={!folder}
+                onclick={openStitch}>{strings.session.end.next.stitchHere}</button
+              >{:else}{#each stitchers as stitcher, j (stitcher)}{#if j > 0}{strings.session.end.next.or}{/if}<button
+                  type="button"
+                  class="lnk"
+                  disabled={!folder}
+                  onclick={() => openIn(stitcher)}>{strings.settings.stitcher[stitcher]}</button
+                >{/each}{/if}
+          {/each}
+        </p>
       {/if}
     </div>
     <div class="facts">
@@ -262,9 +379,6 @@ async function back() {
     <div class="head">
       <b>{strings.session.end.shotsLabel}</b>
       {#if folderText}<code>{folderText}</code>{/if}
-      {#if view.status === "completed"}
-        <span class="t-tip next">{strings.session.end.next}</span>
-      {/if}
     </div>
     <div class="thumbs" style:grid-template-columns="repeat({game.shotsPerRow}, minmax(0, 1fr))">
       {#each cells as cell (cell.label)}
@@ -279,7 +393,7 @@ async function back() {
     height: 60px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: 12px;
     padding: 0 24px;
     border-bottom: 1px solid var(--line);
@@ -294,9 +408,7 @@ async function back() {
   }
 
   .name {
-    font-weight: 700;
-    font-size: 15px;
-    letter-spacing: -0.01em;
+    margin: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -362,6 +474,17 @@ async function back() {
     font-variant-numeric: tabular-nums;
   }
 
+  .spacer {
+    flex: 1;
+  }
+
+  .heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
   .actions {
     display: flex;
     justify-content: flex-end;
@@ -412,9 +535,43 @@ async function back() {
     text-overflow: ellipsis;
   }
 
-  .next {
-    margin-left: auto;
-    white-space: nowrap;
+  .tipbox {
+    align-self: flex-start;
+    margin-top: 6px;
+    font-size: 11.5px;
+    padding: 8px 10px;
+    border-radius: var(--rs);
+    background: var(--lav);
+    color: var(--lav-fg);
+  }
+
+  code.file {
+    font-size: 11px;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: rgb(0 0 0 / 8%);
+    color: inherit;
+  }
+
+  :global([data-theme="dark"]) code.file {
+    background: rgb(255 255 255 / 10%);
+  }
+
+  .lnk {
+    display: inline;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+  }
+
+  .lnk:disabled {
+    opacity: 0.6;
+    cursor: default;
   }
 
   .thumbs {

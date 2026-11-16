@@ -1,11 +1,14 @@
 // What the Session end screen shows (spec §11.7), built either from the
 // run that just ended (live thumbnails in memory) or from a Session folder
 // on disk (history, thumbnails generated on demand).
+import { api } from "./api";
 import type { Game } from "./generated/Game";
+import type { PanoramaEntry } from "./generated/PanoramaEntry";
 import type { RunError } from "./generated/RunError";
 import type { SessionRecord } from "./generated/SessionRecord";
 import type { SessionStatus } from "./generated/SessionStatus";
 import type { LastRun } from "./run.svelte";
+import { detectPlatform } from "./shortcut";
 
 export interface SessionShot {
   row: number;
@@ -29,6 +32,10 @@ export interface SessionView {
   error: RunError | null;
   /** The display the zone was on, for the failed reason. */
   displayId: string | null;
+  /** The Panorama in the folder, when a Stitch left one (spec §16.4). */
+  panorama: PanoramaEntry | null;
+  /** The Shots' size in pixels, from the Capture zone; null for a run just ended. */
+  shotSize: { w: number; h: number } | null;
 }
 
 function file(row: number, col: number): string {
@@ -57,11 +64,21 @@ export function viewFromLast(last: LastRun, game: Game, folder: string | null): 
     })),
     error: outcome.status === "failed" ? outcome.error : null,
     displayId: null,
+    panorama: null,
+    shotSize: null,
   };
 }
 
-/** A Session folder's record, opened from a table. */
-export function viewFromRecord(record: SessionRecord, folder: string): SessionView {
+/**
+ * A Session folder's record, opened from a table. `panorama` is the
+ * summary's entry: the record's block only while `panorama.jpg` is still
+ * in the folder.
+ */
+export function viewFromRecord(
+  record: SessionRecord,
+  folder: string,
+  panorama: PanoramaEntry | null = null,
+): SessionView {
   const at = (s: string | undefined): number | null => {
     if (!s) {
       return null;
@@ -80,5 +97,26 @@ export function viewFromRecord(record: SessionRecord, folder: string): SessionVi
     shots: record.shots.map((s) => ({ row: s.row, col: s.col, file: s.file, src: null })),
     error: record.error ?? null,
     displayId: record.zone.displayId,
+    panorama,
+    shotSize: shotSizeOf(record.zone),
   };
+}
+
+/** Zones are points on macOS and physical pixels on Windows (spec §6). */
+function shotSizeOf(zone: SessionRecord["zone"]): { w: number; h: number } {
+  const perPoint = detectPlatform() === "macos" ? zone.scale : 1;
+  return { w: Math.round(zone.w * perPoint), h: Math.round(zone.h * perPoint) };
+}
+
+/**
+ * The Session of `folder` read again from its table row, for the history
+ * and the Stitch panel; null when the folder is gone.
+ */
+export async function fetchSessionView(
+  gameId: string,
+  folder: string,
+): Promise<SessionView | null> {
+  const rows = await api.sessions.list(gameId);
+  const row = rows.find((r) => r.folder === folder);
+  return row ? viewFromRecord(row.record, row.folder, row.panorama ?? null) : null;
 }

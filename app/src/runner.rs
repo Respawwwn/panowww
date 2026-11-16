@@ -44,6 +44,10 @@ pub type EventSink = Arc<dyn Fn(RunEvent) + Send + Sync>;
 /// Flips the Display preview of the run in progress; `None` while Idle.
 type PreviewSwitch = Arc<Mutex<Option<Box<dyn Fn(bool) + Send>>>>;
 
+/// Called once a start is accepted, before the thread runs: the Stitch
+/// owner cancels its Stitch here (spec §16.5).
+pub type BeforeStart = Arc<dyn Fn() + Send + Sync>;
+
 pub struct Runner {
     backend: SharedBackend,
     emit: EventSink,
@@ -52,6 +56,7 @@ pub struct Runner {
     cancel: Mutex<Option<CancelFlag>>,
     preview_switch: PreviewSwitch,
     thread: Mutex<Option<JoinHandle<()>>>,
+    before_start: Mutex<Option<BeforeStart>>,
 }
 
 impl std::fmt::Debug for Runner {
@@ -77,7 +82,23 @@ impl Runner {
             cancel: Mutex::new(None),
             preview_switch: Arc::new(Mutex::new(None)),
             thread: Mutex::new(None),
+            before_start: Mutex::new(None),
         }
+    }
+
+    /// Sets what runs when a start is accepted, before the countdown.
+    pub fn set_before_start(&self, hook: BeforeStart) {
+        *self
+            .before_start
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(hook);
+    }
+
+    /// A probe of the phase that outlives borrows of the Runner: the Stitch
+    /// owner refuses to start while it does not say Idle.
+    pub fn idle_probe(&self) -> Arc<dyn Fn() -> bool + Send + Sync> {
+        let phase = Arc::clone(&self.phase);
+        Arc::new(move || phase.load(Ordering::SeqCst) == IDLE)
     }
 
     pub fn phase(&self) -> RunnerPhase {
@@ -99,6 +120,14 @@ impl Runner {
         {
             tracing::info!("start ignored: a run is in progress");
             return false;
+        }
+        if let Some(hook) = self
+            .before_start
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .clone()
+        {
+            hook();
         }
         self.join_finished();
         let cancel = CancelFlag::new();
@@ -829,6 +858,24 @@ mod tests {
         runner.wait();
         let calls = overlay.calls();
         assert_eq!(&calls[calls.len() - 2..], ["hide", "hide"]);
+    }
+
+    #[test]
+    fn an_accepted_start_runs_the_hook_first_and_a_refused_one_does_not() {
+        let dir = tempfile::tempdir().unwrap();
+        let (runner, _rx) = runner(FakeBackend::new());
+        let calls = Arc::new(Mutex::new(0));
+        let seen = Arc::clone(&calls);
+        runner.set_before_start(Arc::new(move || *seen.lock().unwrap() += 1));
+        assert!(runner.idle_probe()());
+        assert!(runner.start(spec(dir.path(), RunKindDto::Session, 2)));
+        assert_eq!(*calls.lock().unwrap(), 1);
+        assert!(!runner.idle_probe()());
+        assert!(!runner.start(spec(dir.path(), RunKindDto::TurnTest, 1)));
+        assert_eq!(*calls.lock().unwrap(), 1, "a refused start runs nothing");
+        runner.stop();
+        runner.wait();
+        assert!(runner.idle_probe()());
     }
 
     #[test]

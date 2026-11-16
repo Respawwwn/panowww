@@ -13,6 +13,8 @@ type Props = {
     | "folder"
     | "play"
     | "crop"
+    | "expand"
+    | "shrink"
     | "eye"
     | "zip"
     | "back"
@@ -21,7 +23,9 @@ type Props = {
     | "warn"
     | "refresh"
     | "ptgui"
-    | "autopano";
+    | "autopano"
+    | "stitch"
+    | "pano";
   size?: number;
 };
 
@@ -54,6 +58,10 @@ let { name, size = 16 }: Props = $props();
     <path d="M7 5v14l11-7z" />
   {:else if name === "crop"}
     <path d="M6 2v16a2 2 0 0 0 2 2h14M2 6h16a2 2 0 0 1 2 2v14" />
+  {:else if name === "expand"}
+    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+  {:else if name === "shrink"}
+    <path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7" />
   {:else if name === "eye"}
     <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z" />
     <circle cx="12" cy="12" r="3" />
@@ -79,6 +87,13 @@ let { name, size = 16 }: Props = $props();
     <!-- Detection: a lens with its points. -->
     <circle cx="12" cy="12" r="8" />
     <path d="M12 4v3M12 17v3M4 12h3M17 12h3M12 12h.01" />
+  {:else if name === "stitch"}
+    <!-- The sphere with its seams: the Stitch. -->
+    <circle cx="12" cy="12" r="9" />
+    <path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
+  {:else if name === "pano"}
+    <!-- A curved strip: the Panorama. -->
+    <path d="M3 7.5c3-1.3 6-2 9-2s6 .7 9 2v9c-3-1.3-6-2-9-2s-6 .7-9 2v-9z" />
   {/if}
 </svg>
 

@@ -1,6 +1,6 @@
 //! What the app needs from the operating system, behind one trait so the
-//! Runner owner is tested with fakes: the input and capture adapters, the
-//! permission checks, the displays.
+//! Runner and Stitch owners are tested with fakes: the input and capture
+//! adapters, the permission checks, the displays, the machine's memory.
 
 use std::sync::Arc;
 
@@ -28,6 +28,9 @@ pub trait Backend: Send + Sync {
     /// Asks the OS; returns whether the permission is granted now.
     fn request_permission(&self, permission: PermissionKind) -> bool;
     fn open_permission_settings(&self, permission: PermissionKind) -> std::io::Result<()>;
+    /// The machine's physical memory, for the Stitch's budget (spec §16.5);
+    /// `None` when the OS does not say.
+    fn total_memory_bytes(&self) -> Option<u64>;
 }
 
 pub type SharedBackend = Arc<dyn Backend>;
@@ -87,6 +90,15 @@ impl Backend for SystemBackend {
             PermissionKind::Accessibility => panowww_input::macos::accessibility::open_settings(),
             PermissionKind::ScreenRecording => panowww_capture::macos::permission::open_settings(),
         }
+    }
+
+    /// `sysctl -n hw.memsize`: one short process, no binding to keep.
+    fn total_memory_bytes(&self) -> Option<u64> {
+        let output = std::process::Command::new("sysctl")
+            .args(["-n", "hw.memsize"])
+            .output()
+            .ok()?;
+        String::from_utf8_lossy(&output.stdout).trim().parse().ok()
     }
 }
 
@@ -168,6 +180,18 @@ impl Backend for SystemBackend {
             "Windows has no permission to grant",
         ))
     }
+
+    fn total_memory_bytes(&self) -> Option<u64> {
+        use windows::Win32::System::SystemInformation::{GlobalMemoryStatusEx, MEMORYSTATUSEX};
+        let mut status = MEMORYSTATUSEX {
+            dwLength: u32::try_from(std::mem::size_of::<MEMORYSTATUSEX>()).ok()?,
+            ..Default::default()
+        };
+        // SAFETY: `status` is a properly sized, writable MEMORYSTATUSEX whose
+        // `dwLength` is set, as the API requires; the pointer lives for the call.
+        unsafe { GlobalMemoryStatusEx(&raw mut status) }.ok()?;
+        Some(status.ullTotalPhys)
+    }
 }
 
 /// Other operating systems: the workspace builds, every run is refused.
@@ -214,6 +238,14 @@ impl Backend for SystemBackend {
             std::io::ErrorKind::Unsupported,
             "no settings on this OS",
         ))
+    }
+
+    /// `MemTotal` of `/proc/meminfo`, in kB.
+    fn total_memory_bytes(&self) -> Option<u64> {
+        let text = std::fs::read_to_string("/proc/meminfo").ok()?;
+        let line = text.lines().find(|l| l.starts_with("MemTotal:"))?;
+        let kb: u64 = line.split_whitespace().nth(1)?.parse().ok()?;
+        Some(kb * 1024)
     }
 }
 
@@ -398,6 +430,10 @@ pub mod fake {
 
         fn open_permission_settings(&self, _: PermissionKind) -> std::io::Result<()> {
             Ok(())
+        }
+
+        fn total_memory_bytes(&self) -> Option<u64> {
+            Some(16 * 1024 * 1024 * 1024)
         }
     }
 }

@@ -1,5 +1,6 @@
-//! `session.json` (spec §6): what one Session folder records about its
-//! run. Written as `running` at the first Shot, rewritten at the end.
+//! `session.json` (spec §6, §16.4): what one Session folder records about
+//! its run, and about the Panorama once a Stitch has run. Written as
+//! `running` at the first Shot, rewritten at the end and after a Stitch.
 
 use std::path::{Path, PathBuf};
 
@@ -13,11 +14,13 @@ use uuid::Uuid;
 
 use crate::StoreError;
 use crate::json;
+use crate::panorama::PanoramaEntry;
 
 /// Value of the `format` field.
 pub const FORMAT: &str = "panowww-session";
-/// Schema version this build writes.
-pub const CURRENT_VERSION: u32 = 1;
+/// Schema version this build writes: 2 added the optional `panorama`
+/// block. Version 1 files read as is.
+pub const CURRENT_VERSION: u32 = 2;
 /// File name inside the Session folder.
 pub const FILE: &str = "session.json";
 /// Folder name of a Session: local time, sortable, legal on both file
@@ -81,6 +84,10 @@ pub struct SessionRecord {
     pub shots_expected: u32,
     pub shots_taken: u32,
     pub shots: Vec<ShotEntry>,
+    /// The Panorama of the last Stitch (spec §16.4); absent until one ran.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub panorama: Option<PanoramaEntry>,
 }
 
 impl SessionRecord {
@@ -89,7 +96,7 @@ impl SessionRecord {
         let path = Self::path(folder);
         let text = std::fs::read_to_string(&path).map_err(|e| StoreError::io("read", &path, e))?;
         match json::check_envelope(&path, &text, FORMAT, u64::from(CURRENT_VERSION))? {
-            1 => json::parse(&path, &text),
+            1 | 2 => json::parse(&path, &text),
             other => Err(StoreError::Json {
                 path,
                 source: serde_json::Error::custom(format!("unknown format version {other}")),

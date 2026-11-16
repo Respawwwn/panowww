@@ -10,9 +10,12 @@ publish.workspace = true
 workspace = true
 
 [dependencies]
+image = { version = "0.25", default-features = false, features = ["jpeg"] }
+img-parts = "0.4.2"
 jiff = "0.2"
 notify = "8.2.1"
 panowww-core = { path = "../core" }
+panowww-stitch = { path = "../stitch" }
 png = "0.18"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
@@ -23,6 +26,8 @@ uuid = { version = "1", features = ["serde", "v4"] }
 zip = { version = "9", default-features = false }
 
 [dev-dependencies]
-image = { version = "0.25", default-features = false, features = ["jpeg"] }
+insta = "1"
 panowww-core = { path = "../core", features = ["test-support"] }
+panowww-stitch = { path = "../stitch", features = ["test-support"] }
 tempfile = "3"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }

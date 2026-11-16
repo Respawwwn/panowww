@@ -7,6 +7,7 @@ import { games } from "../lib/games.svelte";
 import type { Shortcut } from "../lib/generated/Shortcut";
 import { nav } from "../lib/nav.svelte";
 import { detectPlatform } from "../lib/shortcut";
+import { stitch } from "../lib/stitch.svelte";
 import { strings } from "../lib/strings";
 import DeviceIcon from "./DeviceIcon.svelte";
 import Icon from "./Icon.svelte";
@@ -77,7 +78,7 @@ function dragEnd() {
 }
 </script>
 
-<aside class="sidebar" class:dim={nav.busy}>
+<aside class="sidebar" class:dim={nav.busy || stitch.running !== null}>
   <header class="brand" data-tauri-drag-region>
     <button type="button" class="home" disabled={nav.busy} onclick={() => games.select(null)}>
       <Mark />

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { interpolate, splitKeyCaps, strings } from "./strings";
+import { interpolate, plural, splitKeyCaps, splitPlaceholders, strings } from "./strings";
 
 describe("interpolate", () => {
   test("fills every placeholder", () => {
@@ -41,6 +41,36 @@ describe("splitKeyCaps", () => {
       { kind: "keys", shortcut: "start" },
     ]);
     expect(splitKeyCaps("No caps [here]")).toEqual([{ kind: "text", text: "No caps [here]" }]);
+  });
+});
+
+describe("splitPlaceholders", () => {
+  test("cuts around the named slots and leaves the others as text", () => {
+    expect(
+      splitPlaceholders(strings.session.end.next.stitchAndOpen, ["stitchHere", "stitchers"]),
+    ).toEqual([
+      { kind: "text", text: "Next: " },
+      { kind: "slot", name: "stitchHere" },
+      { kind: "text", text: ", or open it in " },
+      { kind: "slot", name: "stitchers" },
+      { kind: "text", text: "." },
+    ]);
+    expect(splitPlaceholders("Display {n} · {w}", ["w"])).toEqual([
+      { kind: "text", text: "Display {n} · " },
+      { kind: "slot", name: "w" },
+    ]);
+    expect(splitPlaceholders(strings.session.end.next.drop, ["stitchHere"])).toEqual([
+      { kind: "text", text: strings.session.end.next.drop },
+    ]);
+  });
+});
+
+describe("plural", () => {
+  test("one Shot, two Shots", () => {
+    expect(plural(strings.stitch.unaligned.chip, 1)).toBe("1 Shot not aligned");
+    expect(plural(strings.stitch.unaligned.chip, 2)).toBe("2 Shots not aligned");
+    expect(plural(strings.stitch.dropped.chip, 1)).toBe("1 Step did not move");
+    expect(plural(strings.stitch.dropped.chip, 0)).toBe("0 Steps did not move");
   });
 });
 

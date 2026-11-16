@@ -53,3 +53,30 @@ icons:
 fixtures *ARGS:
     cargo run -q -p panowww-store --example fixtures -- "$@"
 
+# Stitch the real Sessions of the sibling repository panowww-stitch-fixtures
+# again and hold them to their approved Panoramas (crates/store/tests/
+# real_sessions.rs). Expects the checkout next to this one, or
+# `PANOWWW_STITCH_FIXTURES` pointing at it. Pass a filter to run one Session.
+stitch-regress *ARGS:
+    cargo nextest run --release -p panowww-store --test real_sessions --run-ignored only --no-tests=fail "$@"
+
+# Approve the current code's output as this platform's reference (the
+# floating point differs per CPU, so macos-aarch64, windows-x86_64 and
+# linux-x86_64 each keep their own): rewrites the Panoramas in the fixtures'
+# expected/<platform>/ and the report snapshots here. Review the Panoramas by
+# eye before committing either.
+stitch-regress-accept *ARGS:
+    PANOWWW_STITCH_FIXTURES_WRITE=1 INSTA_UPDATE=always just stitch-regress "$@"
+
+# Copy a Session folder (its Shots and session.json, not its Panorama) into
+# the fixtures as `sessions/SLUG`; then add a `real_session!` line to the test
+# and run `just stitch-regress-accept SLUG`.
+stitch-fixture-add SESSION SLUG FIXTURES="../panowww-stitch-fixtures":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    dest="$3/sessions/$2"
+    mkdir -p "$dest"
+    cp "$1"/r*_c*.png "$dest/"
+    jq 'del(.panorama)' "$1/session.json" > "$dest/session.json"
+    echo "$(find "$dest" -name 'r*_c*.png' | wc -l | tr -d ' ') Shots copied to $dest"
+

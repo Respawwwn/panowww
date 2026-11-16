@@ -12,6 +12,7 @@ pub mod onboarding;
 pub mod run;
 pub mod sessions;
 pub mod settings;
+pub mod stitch;
 pub mod zone;
 
 use serde::{Deserialize, Serialize};
@@ -74,6 +75,11 @@ pub fn handler<R: tauri::Runtime>() -> impl Fn(tauri::ipc::Invoke<R>) -> bool + 
         sessions::session_thumbnail,
         sessions::reveal_path,
         sessions::open_in_stitcher,
+        stitch::stitch_session,
+        stitch::stitch_cancel,
+        stitch::stitch_phase,
+        stitch::panorama_preview,
+        stitch::panorama_full_screen,
         settings::get_settings,
         settings::save_settings,
         settings::choose_sessions_folder,

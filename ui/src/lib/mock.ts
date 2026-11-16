@@ -9,8 +9,11 @@ import type { RunEvent } from "./generated/RunEvent";
 import type { RunKindDto } from "./generated/RunKindDto";
 import type { SessionSummary } from "./generated/SessionSummary";
 import type { Settings } from "./generated/Settings";
+import type { StitchEvent } from "./generated/StitchEvent";
+import type { StitchOptions } from "./generated/StitchOptions";
 import { applyRunEvent } from "./run.svelte";
 import { defaultSettings } from "./settings.svelte";
+import { stitch } from "./stitch.svelte";
 
 function game(id: string, name: string, input: Game["input"], notes?: string): Game {
   return {
@@ -216,6 +219,17 @@ export function installMock(): void {
         return null;
       case "runner_phase":
         return "idle";
+      case "stitch_session":
+        simulateStitch(String(args.folder), args.options as StitchOptions);
+        return true;
+      case "stitch_cancel":
+        return null;
+      case "stitch_phase":
+        return { phase: "idle" };
+      case "panorama_preview":
+        return samplePanorama();
+      case "panorama_full_screen":
+        return null;
       case "check_for_updates":
         return { version: "0.2.0", url: "https://github.com/Respawwwn/panowww/releases" };
       case "session_size":
@@ -265,6 +279,176 @@ export function installMock(): void {
 function sample(x: number): string {
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='640' height='360'><rect width='640' height='360' fill='%236454b5'/><rect x='${x}%' y='40' width='40' height='280' fill='%23fff'/><circle cx='${x + 20}%' cy='180' r='30' fill='%23ffb0c2'/></svg>`;
   return `data:image/svg+xml,${svg}`;
+}
+
+/**
+ * Plays a Stitch through the store over about eight seconds: the six
+ * stages at the spike's shares, then Finished with two Shots placed from
+ * the grid; a folder ending in `_19-48-00` fails with too few links.
+ */
+function simulateStitch(folder: string, options: StitchOptions): void {
+  const rows = 6;
+  const steps: StitchEvent[] = [];
+  const stage = (s: StitchEvent & { event: "progress" }) => steps.push(s);
+  for (let i = 0; i <= 3; i += 1) {
+    stage({
+      event: "progress",
+      stage: { stage: "read" },
+      stageFraction: i / 3,
+      overall: 0.07 * (i / 3),
+    });
+  }
+  const measured = {
+    fieldOfViewDeg: 92.4,
+    turnStepDeg: 25.6,
+    pitchStepDeg: 29.4,
+    startPoleOffsetDeg: 1.8,
+    closingTurnDeg: 0.4,
+    driftDeg: 0.26,
+  };
+  for (let i = 0; i <= 6; i += 1) {
+    stage({
+      event: "progress",
+      stage: { stage: "overlaps" },
+      stageFraction: i / 6,
+      overall: 0.07 + 0.2 * (i / 6),
+      // The field of view comes first, the Steps once the Rows are placed.
+      ...(i === 0
+        ? {
+            measured: {
+              ...measured,
+              turnStepDeg: null,
+              pitchStepDeg: null,
+              startPoleOffsetDeg: null,
+              closingTurnDeg: null,
+              driftDeg: null,
+            },
+          }
+        : i === 3
+          ? { measured }
+          : {}),
+    });
+  }
+  for (let row = 1; row <= rows; row += 1) {
+    stage({
+      event: "progress",
+      stage: { stage: "align", row, rows },
+      stageFraction: (row - 1) / rows,
+      overall: 0.27 + 0.3 * ((row - 1) / rows),
+    });
+  }
+  for (let i = 0; i <= 6; i += 1) {
+    stage({
+      event: "progress",
+      stage: { stage: "render" },
+      stageFraction: i / 6,
+      overall: 0.57 + 0.25 * (i / 6),
+    });
+  }
+  for (let i = 0; i <= 4; i += 1) {
+    stage({
+      event: "progress",
+      stage: { stage: "blend" },
+      stageFraction: i / 4,
+      overall: 0.82 + 0.15 * (i / 4),
+    });
+  }
+  const failing = folder.endsWith("_19-48-00");
+  const closing: StitchEvent = failing
+    ? {
+        event: "failed",
+        error: {
+          kind: "tooFewLinked",
+          linked: 37,
+          total: rows * 13,
+          unlinked: Array.from({ length: 41 }, (_, i) => ({
+            row: 4 + Math.floor(i / 13),
+            col: (i % 13) + 1,
+          })),
+        },
+      }
+    : {
+        event: "finished",
+        entry: {
+          file: "panorama.jpg",
+          preview: "panorama-preview.jpg",
+          width: 5184,
+          height: 2592,
+          bytes: 5_100_000,
+          stitchedAt: new Date().toISOString(),
+          durationMs: 9800,
+          appVersion: "0.0.1-mock",
+          fieldOfViewDeg: 92.4,
+          turnStepDeg: 25.6,
+          pitchStepDeg: 29.4,
+          startPoleOffsetDeg: 1.8,
+          closingTurnDeg: 0.4,
+          driftDeg: 0.26,
+          unaligned: ["r06_c03.png", "r06_c09.png"],
+          droppedSteps: [["r04_c07.png", "r04_c08.png"]],
+          ...options,
+        },
+      };
+  const all = failing
+    ? steps.slice(0, 14)
+    : [
+        ...steps,
+        {
+          event: "progress",
+          stage: { stage: "save" },
+          stageFraction: 1,
+          overall: 1,
+        } as StitchEvent,
+      ];
+  all.push(closing);
+  for (const [i, step] of all.entries()) {
+    setTimeout(() => stitch.apply(step), 250 * (i + 1));
+  }
+}
+
+/**
+ * A 2:1 equirectangular JPEG drawn on a canvas: sky and ground, a
+ * meridian every 30° with its heading, so the viewer has something to
+ * turn around.
+ */
+function samplePanorama(): string {
+  const w = 2048;
+  const h = 1024;
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    return sample(42);
+  }
+  const sky = ctx.createLinearGradient(0, 0, 0, h / 2);
+  sky.addColorStop(0, "#2a2550");
+  sky.addColorStop(1, "#a596ea");
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, w, h / 2);
+  const ground = ctx.createLinearGradient(0, h / 2, 0, h);
+  ground.addColorStop(0, "#7a9a4a");
+  ground.addColorStop(1, "#2e3a1a");
+  ctx.fillStyle = ground;
+  ctx.fillRect(0, h / 2, w, h / 2);
+  ctx.strokeStyle = "rgba(255,255,255,0.35)";
+  ctx.lineWidth = 3;
+  ctx.font = "bold 48px Inter, sans-serif";
+  ctx.fillStyle = "#fff";
+  ctx.textAlign = "center";
+  for (let deg = -180; deg < 180; deg += 30) {
+    const x = ((deg + 180) / 360) * w;
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, h);
+    ctx.stroke();
+    ctx.fillText(`${deg}°`, x, h / 2 - 20);
+  }
+  ctx.beginPath();
+  ctx.moveTo(0, h / 2);
+  ctx.lineTo(w, h / 2);
+  ctx.stroke();
+  return canvas.toDataURL("image/jpeg", 0.8);
 }
 
 /** Plays the events of a run through the store, a few hundred ms apart. */
@@ -346,7 +530,33 @@ function sampleSessions(entries: GameEntry[]): SessionSummary[] {
     startedAt: string,
     status: "completed" | "interrupted" | "failed",
     taken: number,
+    stitched = false,
   ): SessionSummary => ({
+    ...(stitched
+      ? {
+          panorama: {
+            file: "panorama.jpg",
+            preview: "panorama-preview.jpg",
+            width: 5184,
+            height: 2592,
+            bytes: 5_100_000,
+            stitchedAt: startedAt,
+            durationMs: 5200,
+            appVersion: "0.0.1-mock",
+            fieldOfViewDeg: 90.2,
+            turnStepDeg: 25.7,
+            pitchStepDeg: 30.1,
+            startPoleOffsetDeg: 19.0,
+            closingTurnDeg: 0.4,
+            driftDeg: 0.3,
+            unaligned: [],
+            droppedSteps: [],
+            antiGhost: true,
+            unalignedShots: "placeFromGrid",
+            jpegQuality: 100,
+          },
+        }
+      : {}),
     folder: `/Users/me/Pictures/Panowww/${game.name}/${startedAt.slice(0, 19).replace("T", "_").replaceAll(":", "-")}`,
     record: {
       format: "panowww-session",
@@ -379,6 +589,6 @@ function sampleSessions(entries: GameEntry[]): SessionSummary[] {
     make(a, "2026-10-30T14:32:00+01:00", "completed", 78),
     make(a, "2026-10-30T14:10:00+01:00", "interrupted", 31),
     make(b, "2026-10-29T22:05:00+01:00", "failed", 52),
-    make(a, "2026-10-27T19:48:00+01:00", "completed", 78),
+    make(a, "2026-10-27T19:48:00+01:00", "completed", 78, true),
   ];
 }

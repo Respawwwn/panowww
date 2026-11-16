@@ -11,6 +11,8 @@ export type Screen =
   | { kind: "running"; gameId: string }
   | { kind: "ended"; gameId: string; folder: string | null }
   | { kind: "session"; gameId: string; folder: string }
+  /** The Stitch panel of a completed Session (spec §16.3). */
+  | { kind: "stitch"; gameId: string; folder: string }
   | { kind: "allSessions" }
   | { kind: "gallery" };
 
@@ -60,6 +62,10 @@ export const nav = {
   /** A Session opened from a table. */
   showSession(gameId: string, folder: string) {
     screen = { kind: "session", gameId, folder };
+  },
+  /** The Stitch panel of the Session in `folder`. */
+  showStitch(gameId: string, folder: string) {
+    screen = { kind: "stitch", gameId, folder };
   },
   /** The global Sessions table, selected like a Game in the sidebar. */
   showAllSessions() {
